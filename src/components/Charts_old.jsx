@@ -14,68 +14,48 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts'
-import { useLanguage } from '../i18n/LanguageContext'
+
+// 模拟数据
+const streakData = [
+  { day: '第1天', count: 1 },
+  { day: '第7天', count: 7 },
+  { day: '第14天', count: 14 },
+  { day: '第21天', count: 21 },
+  { day: '第30天', count: 28 },
+  { day: '第60天', count: 55 },
+  { day: '第90天', count: 82 }
+]
+
+const completionData = [
+  { name: '已完成', value: 85, color: '#FFCE00' },
+  { name: '进行中', value: 10, color: '#60A5FA' },
+  { name: '已放弃', value: 5, color: '#E5E7EB' }
+]
+
+const categoryData = [
+  { category: '运动健身', count: 3200 },
+  { category: '学习阅读', count: 2800 },
+  { category: '健康饮食', count: 2400 },
+  { category: '早睡早起', count: 2000 },
+  { category: '戒除坏习惯', count: 1500 }
+]
 
 const Charts = () => {
-  const { t, language } = useLanguage()
-  
-  // 模拟数据 - 根据语言动态生成
-  const streakData = language === 'zh' ? [
-    { day: '第1天', count: 1 },
-    { day: '第7天', count: 7 },
-    { day: '第14天', count: 14 },
-    { day: '第21天', count: 21 },
-    { day: '第30天', count: 28 },
-    { day: '第60天', count: 55 },
-    { day: '第90天', count: 82 }
-  ] : [
-    { day: 'Day 1', count: 1 },
-    { day: 'Day 7', count: 7 },
-    { day: 'Day 14', count: 14 },
-    { day: 'Day 21', count: 21 },
-    { day: 'Day 30', count: 28 },
-    { day: 'Day 60', count: 55 },
-    { day: 'Day 90', count: 82 }
-  ]
-
-  const completionData = [
-    { name: t('charts.completionChart.labels.completed'), value: 85, color: '#FFCE00' },
-    { name: t('charts.completionChart.labels.inProgress'), value: 10, color: '#60A5FA' },
-    { name: t('charts.completionChart.labels.abandoned'), value: 5, color: '#E5E7EB' }
-  ]
-
-  // Google 风格的多彩配色
-  const googleColors = ['#4285F4', '#EA4335', '#FBBC04', '#34A853', '#FF6D01']
-  
-  const categoryData = language === 'zh' ? [
-    { category: '运动健身', count: 3200, fill: googleColors[0] },
-    { category: '学习阅读', count: 2800, fill: googleColors[1] },
-    { category: '健康饮食', count: 2400, fill: googleColors[2] },
-    { category: '早睡早起', count: 2000, fill: googleColors[3] },
-    { category: '戒除坏习惯', count: 1500, fill: googleColors[4] }
-  ] : [
-    { category: 'Fitness', count: 3200, fill: googleColors[0] },
-    { category: 'Reading', count: 2800, fill: googleColors[1] },
-    { category: 'Healthy Diet', count: 2400, fill: googleColors[2] },
-    { category: 'Sleep Early', count: 2000, fill: googleColors[3] },
-    { category: 'Break Habits', count: 1500, fill: googleColors[4] }
-  ]
-
   return (
-    <section id="charts" className="py-20 bg-white">
+    <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="section-title">{t('charts.title')}</h2>
+          <h2 className="section-title">数据驱动改变</h2>
           <p className="section-subtitle">
-            {t('charts.subtitle')}
+            可视化你的进步，让坚持看得见
           </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* 折线图：连续坚持天数 */}
           <div className="card">
-            <h3 className="text-2xl font-bold mb-2">{t('charts.streakChart.title')}</h3>
-            <p className="text-gray-600 mb-6">{t('charts.streakChart.subtitle')}</p>
+            <h3 className="text-2xl font-bold mb-2">连续坚持天数</h3>
+            <p className="text-gray-600 mb-6">平均用户坚持曲线</p>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={streakData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -99,14 +79,14 @@ const Charts = () => {
               </LineChart>
             </ResponsiveContainer>
             <div className="mt-4 text-center text-sm text-gray-500">
-              💪 {t('charts.streakChart.insight')}
+              💪 使用微习惯法则，82% 的用户能坚持超过 90 天
             </div>
           </div>
 
           {/* 环形图：习惯完成率 */}
           <div className="card">
-            <h3 className="text-2xl font-bold mb-2">{t('charts.completionChart.title')}</h3>
-            <p className="text-gray-600 mb-6">{t('charts.completionChart.subtitle')}</p>
+            <h3 className="text-2xl font-bold mb-2">习惯完成率</h3>
+            <p className="text-gray-600 mb-6">用户习惯完成情况分布</p>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -127,14 +107,14 @@ const Charts = () => {
               </PieChart>
             </ResponsiveContainer>
             <div className="mt-4 text-center text-sm text-gray-500">
-              ✨ {t('charts.completionChart.insight')}
+              ✨ 85% 的高完成率，远超传统习惯养成方式
             </div>
           </div>
 
           {/* 柱状图：习惯类型分布 */}
           <div className="card lg:col-span-2">
-            <h3 className="text-2xl font-bold mb-2">{t('charts.categoryChart.title')}</h3>
-            <p className="text-gray-600 mb-6">{t('charts.categoryChart.subtitle')}</p>
+            <h3 className="text-2xl font-bold mb-2">最受欢迎的习惯类型</h3>
+            <p className="text-gray-600 mb-6">不同习惯类型的用户数量（单位：人）</p>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={categoryData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -149,16 +129,13 @@ const Charts = () => {
                 />
                 <Bar 
                   dataKey="count" 
+                  fill="#FFCE00" 
                   radius={[8, 8, 0, 0]}
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Bar>
+                />
               </BarChart>
             </ResponsiveContainer>
             <div className="mt-4 text-center text-sm text-gray-500">
-              🏃 {t('charts.categoryChart.insight')}
+              🏃 运动健身是最受欢迎的习惯类型，其次是学习阅读
             </div>
           </div>
         </div>
@@ -167,19 +144,19 @@ const Charts = () => {
         <div className="mt-16 grid md:grid-cols-4 gap-6">
           <div className="text-center p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl">
             <div className="text-4xl font-bold text-primary mb-2">82%</div>
-            <div className="text-gray-700">{t('charts.highlights.retention')}</div>
+            <div className="text-gray-700">90天留存率</div>
           </div>
           <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl">
             <div className="text-4xl font-bold text-blue-600 mb-2">3.5</div>
-            <div className="text-gray-700">{t('charts.highlights.avgHabits')}</div>
+            <div className="text-gray-700">平均习惯数</div>
           </div>
           <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl">
-            <div className="text-4xl font-bold text-green-600 mb-2">25{language === 'zh' ? '分钟' : 'min'}</div>
-            <div className="text-gray-700">{t('charts.highlights.dailyTime')}</div>
+            <div className="text-4xl font-bold text-green-600 mb-2">25分钟</div>
+            <div className="text-gray-700">日均使用时长</div>
           </div>
           <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl">
-            <div className="text-4xl font-bold text-purple-600 mb-2">500{language === 'zh' ? '万+' : 'M+'}</div>
-            <div className="text-gray-700">{t('charts.highlights.totalCheckins')}</div>
+            <div className="text-4xl font-bold text-purple-600 mb-2">500万+</div>
+            <div className="text-gray-700">累计打卡次数</div>
           </div>
         </div>
       </div>

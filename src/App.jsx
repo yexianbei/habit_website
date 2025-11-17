@@ -6,10 +6,12 @@ import Charts from './components/Charts'
 import Testimonials from './components/Testimonials'
 import Download from './components/Download'
 import Footer from './components/Footer'
+import LanguageSwitcher from './components/LanguageSwitcher'
 
 function App() {
   return (
     <div className="min-h-screen">
+      <LanguageSwitcher />
       <Hero />
       <Features />
       <UserStories />

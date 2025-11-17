@@ -1,13 +1,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
+import Privacy from './pages/Privacy'
 import { LanguageProvider } from './i18n/LanguageContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <LanguageProvider>
-      <App />
+      <Privacy />
     </LanguageProvider>
   </React.StrictMode>,
 )

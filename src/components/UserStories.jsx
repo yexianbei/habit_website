@@ -1,71 +1,52 @@
 import React from 'react'
 import { GraduationCap, Heart, Briefcase } from 'lucide-react'
+import { useLanguage } from '../i18n/LanguageContext'
 
-const stories = [
-  {
-    icon: GraduationCap,
-    role: '大学生',
-    name: '小李',
-    age: 21,
-    goal: '提升专注力，提高学习效率',
-    challenge: '总是忍不住刷手机，注意力难以集中',
-    solution: '使用小习惯的番茄钟功能，每天完成 4 次 25 分钟专注学习',
-    result: '坚持 60 天后，期末成绩从班级中游提升到前 10%',
-    stats: {
-      days: 60,
-      sessions: 240,
-      hours: 100
-    },
-    chartType: '专注时长折线图',
-    chartPlaceholder: '/assets/chart-student.png',
-    color: 'from-blue-500 to-cyan-500'
-  },
-  {
-    icon: Heart,
-    role: '全职妈妈',
-    name: '王女士',
-    age: 35,
-    goal: '培养孩子的阅读和整理习惯',
-    challenge: '孩子总是拖延，不愿意主动完成任务',
-    solution: '为孩子设置「每天阅读 10 分钟」「睡前整理书包」等微习惯',
-    result: '30 天后，孩子开始主动阅读，房间也变得整洁有序',
-    stats: {
-      days: 30,
-      habits: 3,
-      completion: 92
-    },
-    chartType: '打卡热力图',
-    chartPlaceholder: '/assets/chart-parent.png',
-    color: 'from-pink-500 to-rose-500'
-  },
-  {
-    icon: Briefcase,
-    role: '上班族',
-    name: '张先生',
-    age: 28,
-    goal: '减肥健身，改善身体状态',
-    challenge: '工作忙碌，经常加班，没时间运动',
-    solution: '设置「每天走 8000 步」「喝 8 杯水」「睡前拉伸 5 分钟」',
-    result: '3 个月减重 12 斤，体脂率下降 5%，精神状态明显改善',
-    stats: {
-      days: 90,
-      weight: -12,
-      bodyFat: -5
-    },
-    chartType: '体重变化折线图',
-    chartPlaceholder: '/assets/chart-worker.png',
-    color: 'from-green-500 to-emerald-500'
-  }
+const iconMap = [GraduationCap, Heart, Briefcase]
+const colorMap = [
+  'from-blue-500 to-cyan-500',
+  'from-pink-500 to-rose-500',
+  'from-green-500 to-emerald-500'
+]
+const chartPlaceholders = [
+  '/assets/chart-student.png',
+  '/assets/chart-parent.png',
+  '/assets/chart-worker.png'
+]
+
+// 真实人物头像 - 来自 Unsplash，符合各自身份特征
+const avatarImages = [
+  // 学生 - 年轻大学生，学习场景
+  'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=200&h=200&fit=crop&crop=faces',
+  // 父母/妈妈 - 30多岁女性，温暖亲和
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces',
+  // 上班族 - 职场人士，专业形象
+  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces'
 ]
 
 const UserStories = () => {
+  const { t, tArray, language } = useLanguage()
+  const stories = tArray('userStories.stories').map((story, index) => ({
+    ...story,
+    icon: iconMap[index],
+    color: colorMap[index],
+    chartPlaceholder: chartPlaceholders[index],
+    avatar: avatarImages[index],
+    age: index === 0 ? 21 : index === 1 ? 35 : 28,
+    stats: index === 0 
+      ? { days: 60, sessions: 240, hours: 100 }
+      : index === 1
+      ? { days: 30, habits: 3, completion: 92 }
+      : { days: 90, weight: -12, bodyFat: -5 }
+  }))
+
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section id="stories" className="py-20 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="section-title">真实用户故事</h2>
+          <h2 className="section-title">{t('userStories.title')}</h2>
           <p className="section-subtitle">
-            看看他们如何通过小习惯改变生活
+            {t('userStories.subtitle')}
           </p>
         </div>
 
@@ -80,33 +61,43 @@ const UserStories = () => {
               {/* 内容区 */}
               <div className={`${index % 2 === 1 ? 'md:order-2' : ''}`}>
                 <div className="flex items-center gap-4 mb-6">
-                  <div className={`w-16 h-16 bg-gradient-to-br ${story.color} rounded-2xl flex items-center justify-center text-white`}>
-                    <story.icon size={32} />
+                  {/* 真实人物头像 */}
+                  <img 
+                    src={story.avatar}
+                    alt={story.name}
+                    className="w-20 h-20 rounded-2xl object-cover ring-4 ring-primary/20 shadow-lg"
+                    loading="lazy"
+                  />
+                  {/* 角色图标（小） */}
+                  <div className={`w-12 h-12 bg-gradient-to-br ${story.color} rounded-xl flex items-center justify-center text-white shadow-md`}>
+                    <story.icon size={24} />
                   </div>
                   <div>
                     <div className="text-2xl font-bold">{story.name}</div>
-                    <div className="text-gray-600">{story.role} · {story.age}岁</div>
+                    <div className="text-gray-600">
+                      {story.role} · {story.age}{language === 'zh' ? '岁' : ' years old'}
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <div className="text-sm font-semibold text-primary mb-2">🎯 目标</div>
+                    <div className="text-sm font-semibold text-primary mb-2">🎯 {t('userStories.labels.goal')}</div>
                     <div className="text-lg">{story.goal}</div>
                   </div>
 
                   <div>
-                    <div className="text-sm font-semibold text-red-500 mb-2">😰 挑战</div>
+                    <div className="text-sm font-semibold text-red-500 mb-2">😰 {t('userStories.labels.challenge')}</div>
                     <div className="text-gray-600">{story.challenge}</div>
                   </div>
 
                   <div>
-                    <div className="text-sm font-semibold text-blue-500 mb-2">💡 解决方案</div>
+                    <div className="text-sm font-semibold text-blue-500 mb-2">💡 {t('userStories.labels.solution')}</div>
                     <div className="text-gray-600">{story.solution}</div>
                   </div>
 
                   <div>
-                    <div className="text-sm font-semibold text-green-500 mb-2">✨ 效果</div>
+                    <div className="text-sm font-semibold text-green-500 mb-2">✨ {t('userStories.labels.result')}</div>
                     <div className="text-lg font-medium">{story.result}</div>
                   </div>
                 </div>
@@ -118,17 +109,11 @@ const UserStories = () => {
                       <div className="text-2xl font-bold text-primary">
                         {typeof value === 'number' && value > 0 ? '+' : ''}{value}
                         {key === 'completion' ? '%' : ''}
-                        {key === 'weight' ? '斤' : ''}
+                        {key === 'weight' ? (language === 'zh' ? '斤' : 'kg') : ''}
                         {key === 'bodyFat' ? '%' : ''}
                       </div>
                       <div className="text-sm text-gray-600 mt-1">
-                        {key === 'days' && '坚持天数'}
-                        {key === 'sessions' && '完成次数'}
-                        {key === 'hours' && '专注时长'}
-                        {key === 'habits' && '习惯数量'}
-                        {key === 'completion' && '完成率'}
-                        {key === 'weight' && '体重变化'}
-                        {key === 'bodyFat' && '体脂变化'}
+                        {t(`userStories.stats.${key}`)}
                       </div>
                     </div>
                   ))}
@@ -144,7 +129,7 @@ const UserStories = () => {
                   <div className="aspect-video bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center">
                     <div className="text-center p-8">
                       <div className="text-5xl mb-4">📊</div>
-                      <div className="text-gray-600 font-medium">图表占位</div>
+                      <div className="text-gray-600 font-medium">{t('common.chartPlaceholder')}</div>
                       <div className="text-sm text-gray-500 mt-2">
                         {story.chartPlaceholder}
                       </div>

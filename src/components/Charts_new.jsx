@@ -44,25 +44,22 @@ const Charts = () => {
     { name: t('charts.completionChart.labels.abandoned'), value: 5, color: '#E5E7EB' }
   ]
 
-  // Google 风格的多彩配色
-  const googleColors = ['#4285F4', '#EA4335', '#FBBC04', '#34A853', '#FF6D01']
-  
   const categoryData = language === 'zh' ? [
-    { category: '运动健身', count: 3200, fill: googleColors[0] },
-    { category: '学习阅读', count: 2800, fill: googleColors[1] },
-    { category: '健康饮食', count: 2400, fill: googleColors[2] },
-    { category: '早睡早起', count: 2000, fill: googleColors[3] },
-    { category: '戒除坏习惯', count: 1500, fill: googleColors[4] }
+    { category: '运动健身', count: 3200 },
+    { category: '学习阅读', count: 2800 },
+    { category: '健康饮食', count: 2400 },
+    { category: '早睡早起', count: 2000 },
+    { category: '戒除坏习惯', count: 1500 }
   ] : [
-    { category: 'Fitness', count: 3200, fill: googleColors[0] },
-    { category: 'Reading', count: 2800, fill: googleColors[1] },
-    { category: 'Healthy Diet', count: 2400, fill: googleColors[2] },
-    { category: 'Sleep Early', count: 2000, fill: googleColors[3] },
-    { category: 'Break Habits', count: 1500, fill: googleColors[4] }
+    { category: 'Fitness', count: 3200 },
+    { category: 'Reading', count: 2800 },
+    { category: 'Healthy Diet', count: 2400 },
+    { category: 'Sleep Early', count: 2000 },
+    { category: 'Break Habits', count: 1500 }
   ]
 
   return (
-    <section id="charts" className="py-20 bg-white">
+    <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="section-title">{t('charts.title')}</h2>
@@ -149,12 +146,9 @@ const Charts = () => {
                 />
                 <Bar 
                   dataKey="count" 
+                  fill="#FFCE00" 
                   radius={[8, 8, 0, 0]}
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Bar>
+                />
               </BarChart>
             </ResponsiveContainer>
             <div className="mt-4 text-center text-sm text-gray-500">
