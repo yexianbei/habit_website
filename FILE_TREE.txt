@@ -1,0 +1,170 @@
+小习惯 App 官方网站 - 完整文件树
+=====================================
+
+website/
+│
+├── 📦 配置文件
+│   ├── package.json                    # 项目依赖和脚本
+│   ├── vite.config.js                 # Vite 构建配置
+│   ├── tailwind.config.js             # TailwindCSS 主题配置
+│   ├── postcss.config.js              # PostCSS 配置
+│   ├── netlify.toml                   # Netlify 部署配置
+│   └── .gitignore                     # Git 忽略文件
+│
+├── 📄 文档文件
+│   ├── README.md                      # 项目说明（主文档）
+│   ├── QUICK_START.md                 # 快速启动指南
+│   ├── DEPLOYMENT.md                  # Netlify 部署指南
+│   ├── ASSETS_CHECKLIST.md           # 图片资源清单
+│   ├── PROJECT_STRUCTURE.md          # 项目结构详解
+│   ├── PROJECT_OVERVIEW.md           # 项目总览
+│   └── FILE_TREE.txt                 # 文件树（本文件）
+│
+├── 🌐 HTML 入口
+│   └── index.html                     # HTML 模板
+│
+├── 📁 public/ (静态资源)
+│   ├── favicon.svg                    # 网站图标 ✅
+│   └── assets/                        # 图片资源目录
+│       ├── README.md                  # 图片说明
+│       ├── app-screenshot.png        # ⚠️ 待添加
+│       ├── chart-student.png         # ⚠️ 待添加
+│       ├── chart-parent.png          # ⚠️ 待添加
+│       ├── chart-worker.png          # ⚠️ 待添加
+│       └── qrcode-ios.png            # ⚠️ 待添加
+│
+└── 📂 src/ (源代码)
+    │
+    ├── 🎨 样式文件
+    │   └── index.css                  # 全局样式 + TailwindCSS
+    │
+    ├── ⚛️ React 入口
+    │   ├── main.jsx                   # 应用入口
+    │   └── App.jsx                    # 主应用组件
+    │
+    └── 🧩 components/ (组件目录)
+        │
+        ├── Hero.jsx                   # 首屏 Banner 区域
+        │   ├── 主标题和副标题
+        │   ├── 下载按钮
+        │   ├── 统计数据
+        │   ├── 手机截图展示
+        │   └── 背景装饰效果
+        │
+        ├── Features.jsx               # 功能亮点模块
+        │   ├── 微习惯法则
+        │   ├── AI 智能教练
+        │   ├── 专注计时器
+        │   ├── 戒除坏习惯
+        │   ├── 游戏化养成
+        │   └── 多端同步
+        │
+        ├── UserStories.jsx            # 用户故事模块
+        │   ├── 大学生故事
+        │   ├── 全职妈妈故事
+        │   └── 上班族故事
+        │
+        ├── Charts.jsx                 # 数据图表模块
+        │   ├── 折线图（坚持天数）
+        │   ├── 环形图（完成率）
+        │   └── 柱状图（习惯类型）
+        │
+        ├── Testimonials.jsx           # 用户评价模块
+        │   ├── 6 条用户评价
+        │   └── App Store 评分展示
+        │
+        ├── Download.jsx               # 下载引导模块
+        │   ├── 下载按钮
+        │   ├── 二维码展示
+        │   └── 特性标签
+        │
+        └── Footer.jsx                 # 页脚模块
+            ├── Logo 和简介
+            ├── 快速链接
+            ├── 法律信息
+            └── 版权信息
+
+
+构建产物 (npm run build 后生成)
+================================
+
+dist/
+├── index.html                         # 打包后的 HTML
+├── assets/
+│   ├── index-[hash].js               # 打包后的 JS
+│   └── index-[hash].css              # 打包后的 CSS
+└── (其他静态资源)
+
+
+依赖包 (npm install 后生成)
+===========================
+
+node_modules/
+├── react                              # React 核心库
+├── react-dom                          # React DOM 渲染
+├── recharts                           # 图表库
+├── lucide-react                       # 图标库
+├── vite                               # 构建工具
+├── tailwindcss                        # CSS 框架
+└── (其他依赖...)
+
+
+文件统计
+========
+
+源代码文件：
+  - React 组件：7 个
+  - 配置文件：6 个
+  - 文档文件：7 个
+  - 总代码行数：约 1500 行
+
+文档文件：
+  - 总字数：约 15000 字
+  - 覆盖场景：启动、开发、部署、优化
+
+图片资源：
+  - 必需图片：5 个
+  - 可选图片：若干
+  - 当前状态：占位设计（可直接使用）
+
+
+图标说明
+========
+
+✅ = 已完成
+⚠️ = 待添加（不影响运行）
+📦 = 配置文件
+📄 = 文档文件
+🌐 = HTML 文件
+📁 = 静态资源目录
+📂 = 源代码目录
+🎨 = 样式文件
+⚛️ = React 文件
+🧩 = 组件文件
+
+
+快速命令
+========
+
+# 安装依赖
+npm install
+
+# 启动开发
+npm run dev
+
+# 构建生产
+npm run build
+
+# 预览生产
+npm run preview
+
+
+下一步
+======
+
+1. 查看 QUICK_START.md 快速启动
+2. 查看 ASSETS_CHECKLIST.md 准备图片
+3. 查看 DEPLOYMENT.md 部署上线
+
+祝你成功！🚀
+

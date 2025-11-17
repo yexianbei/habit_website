@@ -1,0 +1,25 @@
+import React from 'react'
+import Hero from './components/Hero'
+import Features from './components/Features'
+import UserStories from './components/UserStories'
+import Charts from './components/Charts'
+import Testimonials from './components/Testimonials'
+import Download from './components/Download'
+import Footer from './components/Footer'
+
+function App() {
+  return (
+    <div className="min-h-screen">
+      <Hero />
+      <Features />
+      <UserStories />
+      <Charts />
+      <Testimonials />
+      <Download />
+      <Footer />
+    </div>
+  )
+}
+
+export default App
+
