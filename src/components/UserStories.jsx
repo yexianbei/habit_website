@@ -2,26 +2,27 @@ import React from 'react'
 import { GraduationCap, Heart, Briefcase } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 
-const iconMap = [GraduationCap, Heart, Briefcase]
+// 图标、颜色、图表、头像的顺序：上班族 -> 父母 -> 学生
+const iconMap = [Briefcase, Heart, GraduationCap]
 const colorMap = [
-  'from-blue-500 to-cyan-500',
+  'from-green-500 to-emerald-500',
   'from-pink-500 to-rose-500',
-  'from-green-500 to-emerald-500'
+  'from-blue-500 to-cyan-500'
 ]
 const chartPlaceholders = [
-  '/assets/chart-student.png',
+  '/assets/chart-worker.png',
   '/assets/chart-parent.png',
-  '/assets/chart-worker.png'
+  '/assets/chart-student.png'
 ]
 
 // 真实人物头像 - 来自 Unsplash，符合各自身份特征
 const avatarImages = [
-  // 学生 - 年轻大学生，学习场景
-  'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=200&h=200&fit=crop&crop=faces',
+  // 上班族 - 卡通风格女性
+  'https://i.pravatar.cc/200?img=47',
   // 父母/妈妈 - 30多岁女性，温暖亲和
   'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces',
-  // 上班族 - 职场人士，专业形象
-  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=faces'
+  // 学生 - 年轻大学生，学习场景
+  'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=200&h=200&fit=crop&crop=faces'
 ]
 
 const UserStories = () => {
@@ -32,12 +33,12 @@ const UserStories = () => {
     color: colorMap[index],
     chartPlaceholder: chartPlaceholders[index],
     avatar: avatarImages[index],
-    age: index === 0 ? 21 : index === 1 ? 35 : 28,
+    age: index === 0 ? 28 : index === 1 ? 35 : 21,
     stats: index === 0 
-      ? { days: 60, sessions: 240, hours: 100 }
+      ? { days: 90, weight: -12, bodyFat: -5 }
       : index === 1
       ? { days: 30, habits: 3, completion: 92 }
-      : { days: 90, weight: -12, bodyFat: -5 }
+      : { days: 60, sessions: 240, hours: 100 }
   }))
 
   return (
@@ -126,14 +127,13 @@ const UserStories = () => {
                   <div className="text-sm font-semibold text-gray-500 mb-4">
                     {story.chartType}
                   </div>
-                  <div className="aspect-video bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center">
-                    <div className="text-center p-8">
-                      <div className="text-5xl mb-4">📊</div>
-                      <div className="text-gray-600 font-medium">{t('common.chartPlaceholder')}</div>
-                      <div className="text-sm text-gray-500 mt-2">
-                        {story.chartPlaceholder}
-                      </div>
-                    </div>
+                  <div className="aspect-video bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl overflow-hidden">
+                    <img 
+                      src={story.chartPlaceholder}
+                      alt={`${story.name} - ${story.chartType}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
                   </div>
                 </div>
               </div>

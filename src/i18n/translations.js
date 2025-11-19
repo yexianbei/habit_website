@@ -71,13 +71,13 @@ export const translations = {
       },
       stories: [
         {
-          role: '大学生',
-          name: '小李',
-          goal: '提升专注力，提高学习效率',
-          challenge: '总是忍不住刷手机，注意力难以集中',
-          solution: '使用小习惯的番茄钟功能，每天完成 4 次 25 分钟专注学习',
-          result: '坚持 60 天后，期末成绩从班级中游提升到前 10%',
-          chartType: '专注时长折线图'
+          role: '上班族',
+          name: 'Shelly',
+          goal: '减肥健身，改善身体状态',
+          challenge: '工作忙碌，经常加班，没时间运动',
+          solution: '设置「每天走 8000 步」「喝 8 杯水」「睡前拉伸 5 分钟」',
+          result: '3 个月减重 12 斤，体脂率下降 5%，精神状态明显改善',
+          chartType: '体重变化折线图'
         },
         {
           role: '全职妈妈',
@@ -89,13 +89,13 @@ export const translations = {
           chartType: '打卡热力图'
         },
         {
-          role: '上班族',
-          name: '张先生',
-          goal: '减肥健身，改善身体状态',
-          challenge: '工作忙碌，经常加班，没时间运动',
-          solution: '设置「每天走 8000 步」「喝 8 杯水」「睡前拉伸 5 分钟」',
-          result: '3 个月减重 12 斤，体脂率下降 5%，精神状态明显改善',
-          chartType: '体重变化折线图'
+          role: '大学生',
+          name: '小李',
+          goal: '提升专注力，提高学习效率',
+          challenge: '总是忍不住刷手机，注意力难以集中',
+          solution: '使用小习惯的番茄钟功能，每天完成 4 次 25 分钟专注学习',
+          result: '坚持 60 天后，期末成绩从班级中游提升到前 10%',
+          chartType: '专注时长折线图'
         }
       ]
     },
@@ -297,13 +297,13 @@ export const translations = {
       },
       stories: [
         {
-          role: 'College Student',
-          name: 'Alex',
-          goal: 'Improve focus and study efficiency',
-          challenge: 'Always distracted by phone, hard to concentrate',
-          solution: 'Use Pomodoro timer, complete 4 sessions of 25-min focused study daily',
-          result: 'After 60 days, grades improved from average to top 10%',
-          chartType: 'Focus Time Chart'
+          role: 'Office Worker',
+          name: 'Shelly',
+          goal: 'Lose weight and improve fitness',
+          challenge: 'Busy work schedule, frequent overtime, no time for exercise',
+          solution: 'Set "8000 steps daily", "8 glasses of water", "5-min stretch before bed"',
+          result: 'Lost 6kg in 3 months, body fat down 5%, much better energy',
+          chartType: 'Weight Change Chart'
         },
         {
           role: 'Stay-at-home Mom',
@@ -315,13 +315,13 @@ export const translations = {
           chartType: 'Check-in Heatmap'
         },
         {
-          role: 'Office Worker',
-          name: 'Michael',
-          goal: 'Lose weight and improve fitness',
-          challenge: 'Busy work schedule, frequent overtime, no time for exercise',
-          solution: 'Set "8000 steps daily", "8 glasses of water", "5-min stretch before bed"',
-          result: 'Lost 6kg in 3 months, body fat down 5%, much better energy',
-          chartType: 'Weight Change Chart'
+          role: 'College Student',
+          name: 'Alex',
+          goal: 'Improve focus and study efficiency',
+          challenge: 'Always distracted by phone, hard to concentrate',
+          solution: 'Use Pomodoro timer, complete 4 sessions of 25-min focused study daily',
+          result: 'After 60 days, grades improved from average to top 10%',
+          chartType: 'Focus Time Chart'
         }
       ]
     },
