@@ -42,20 +42,26 @@ const UserStories = () => {
   }))
 
   return (
-    <section id="stories" className="py-20 bg-gradient-to-b from-gray-50 to-white">
+    <section id="stories" className="py-24 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
+        <div className="text-center mb-20">
           <h2 className="section-title">{t('userStories.title')}</h2>
           <p className="section-subtitle">
             {t('userStories.subtitle')}
           </p>
         </div>
 
-        <div className="space-y-20">
+        <div className="space-y-32">
           {stories.map((story, index) => (
             <div
               key={index}
-              className={`grid md:grid-cols-2 gap-12 items-center ${
+              className="relative"
+            >
+              {/* 背景装饰卡片 */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${story.color} opacity-5 rounded-3xl transform -rotate-1`}></div>
+              
+              {/* 主要内容 */}
+              <div className={`relative grid md:grid-cols-2 gap-16 items-center p-8 md:p-12 ${
                 index % 2 === 1 ? 'md:flex-row-reverse' : ''
               }`}
             >
@@ -137,6 +143,16 @@ const UserStories = () => {
                   </div>
                 </div>
               </div>
+              </div>
+              
+              {/* 分隔线 - 除了最后一个 */}
+              {index < stories.length - 1 && (
+                <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                  <div className="w-2 h-2 rounded-full bg-primary/50"></div>
+                  <div className="w-2 h-2 rounded-full bg-primary/30"></div>
+                </div>
+              )}
             </div>
           ))}
         </div>
