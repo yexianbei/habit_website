@@ -108,7 +108,7 @@ const Hero = () => {
           </div>
 
           {/* 右侧手机展示 */}
-          <div className="flex justify-center items-center mt-12 md:mt-0">
+          <div className="flex flex-col items-center mt-12 md:mt-0">
             {/* 手机端：四张截图 2x2 排列 */}
             <div className="grid grid-cols-2 gap-4 max-w-xs w-full mx-auto md:hidden">
               {[1, 2, 3, 4].map((num) => (
@@ -192,16 +192,15 @@ const Hero = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* 向下滚动提示 */}
-      {/* 手机端：放在内容下方，避免被遮挡 */}
-      <div className="mt-8 mb-6 md:hidden text-center animate-bounce">
-        <div className="text-gray-400 text-sm mb-2">{t('hero.scrollHint')}</div>
-        <div className="w-6 h-10 border-2 border-gray-300 rounded-full mx-auto relative">
-          <div className="w-1.5 h-3 bg-gray-400 rounded-full absolute top-2 left-1/2 transform -translate-x-1/2"></div>
+            {/* 手机端：放在四张截图正下方 */}
+            <div className="mt-6 md:hidden text-center animate-bounce">
+              <div className="text-gray-400 text-sm mb-2">{t('hero.scrollHint')}</div>
+              <div className="w-6 h-10 border-2 border-gray-300 rounded-full mx-auto relative">
+                <div className="w-1.5 h-3 bg-gray-400 rounded-full absolute top-2 left-1/2 transform -translate-x-1/2"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
