@@ -197,7 +197,16 @@ const Hero = () => {
       </div>
 
       {/* 向下滚动提示 */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+      {/* 手机端：放在内容下方，避免被遮挡 */}
+      <div className="mt-8 mb-6 md:hidden text-center animate-bounce">
+        <div className="text-gray-400 text-sm mb-2">{t('hero.scrollHint')}</div>
+        <div className="w-6 h-10 border-2 border-gray-300 rounded-full mx-auto relative">
+          <div className="w-1.5 h-3 bg-gray-400 rounded-full absolute top-2 left-1/2 transform -translate-x-1/2"></div>
+        </div>
+      </div>
+
+      {/* 平板 / 桌面端：悬浮在底部中间 */}
+      <div className="hidden md:block absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
         <div className="text-gray-400 text-sm mb-2">{t('hero.scrollHint')}</div>
         <div className="w-6 h-10 border-2 border-gray-300 rounded-full mx-auto relative">
           <div className="w-1.5 h-3 bg-gray-400 rounded-full absolute top-2 left-1/2 transform -translate-x-1/2"></div>
