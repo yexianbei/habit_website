@@ -55,7 +55,7 @@ const Hero = () => {
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-stretch sm:items-center justify-center md:justify-start">
               {/* 下载按钮 */}
               <a
-                href="https://apps.apple.com/app/id6738595702"
+                href="https://apps.apple.com/app/id1455083310"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-primary inline-flex items-center justify-center gap-2"

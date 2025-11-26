@@ -38,15 +38,15 @@ const Download = () => {
 
           {/* 下载按钮 */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
-              <a
-                href="https://apps.apple.com/app/id6738595702"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-dark hover:bg-gray-800 text-white font-semibold px-10 py-5 rounded-full transition-all duration-300 shadow-2xl hover:shadow-3xl hover:scale-105 inline-flex items-center gap-3 text-lg"
-              >
-                <AppleLogo size={28} />
-                {t('download.downloadIOS')}
-              </a>
+            <a
+              href="https://apps.apple.com/app/id1455083310"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-dark hover:bg-gray-800 text-white font-semibold px-10 py-5 rounded-full transition-all duration-300 shadow-2xl hover:shadow-3xl hover:scale-105 inline-flex items-center gap-3 text-lg"
+            >
+              <AppleLogo size={28} />
+              {t('download.downloadIOS')}
+            </a>
             
             {/* Android 按钮暂时隐藏 */}
             {/* <button className="bg-white/30 backdrop-blur-sm text-dark font-semibold px-10 py-5 rounded-full inline-flex items-center gap-3 text-lg opacity-60 cursor-not-allowed">
