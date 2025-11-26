@@ -26,8 +26,8 @@ const Hero = () => {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="container mx-auto px-6 py-20 relative z-10">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+      <div className="container mx-auto px-6 py-16 md:py-20 relative z-10">
+        <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
           {/* 左侧文字内容 */}
           <div className="text-center md:text-left animate-fade-in">
             {/* App 图标 + 标题 */}
@@ -52,7 +52,7 @@ const Hero = () => {
             </p>
 
             {/* 下载按钮和二维码 */}
-            <div className="flex flex-col sm:flex-row gap-6 items-center justify-center md:justify-start">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-stretch sm:items-center justify-center md:justify-start">
               {/* 下载按钮 */}
               <a
                 href="https://apps.apple.com/app/id6738595702"
@@ -65,7 +65,7 @@ const Hero = () => {
               </a>
 
               {/* 二维码 - 小尺寸，适合电脑用户 */}
-              <div className="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-lg ring-2 ring-primary/20">
+              <div className="flex items-center gap-3 bg-white rounded-2xl p-3 shadow-lg ring-2 ring-primary/20 w-full sm:w-auto">
                 <img 
                   src="/assets/apple_qr_code.png" 
                   alt="Scan to Download"
@@ -89,7 +89,7 @@ const Hero = () => {
             </div>
 
             {/* 统计数据 */}
-            <div className="mt-12 grid grid-cols-3 gap-6">
+            <div className="mt-10 md:mt-12 grid grid-cols-3 gap-4 md:gap-6 text-sm md:text-base">
               <div>
                 <div className="text-3xl font-bold text-primary">100K+</div>
                 <div className="text-gray-600 text-sm mt-1">{t('hero.stats.users')}</div>
@@ -108,11 +108,11 @@ const Hero = () => {
           </div>
 
           {/* 右侧手机展示 - 扇形排列 */}
-          <div className="flex justify-center items-center animate-float">
-            <div className="relative w-[500px] h-[600px]">
+          <div className="flex justify-center items-center animate-float mt-12 md:mt-0">
+            <div className="relative w-full max-w-[360px] sm:max-w-[420px] md:w-[460px] md:h-[560px] aspect-[5/7]">
               {/* App Logo - 悬浮在中心上方 */}
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-50">
-                <div className="w-24 h-24 bg-white rounded-[1.5rem] shadow-2xl p-3 ring-4 ring-primary/30">
+              <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 z-50">
+                <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-[1.5rem] shadow-2xl p-3 ring-4 ring-primary/30">
                   <img 
                     src="/app_icon.png" 
                     alt="Tiny Habits App Icon"
@@ -122,7 +122,7 @@ const Hero = () => {
               </div>
 
               {/* 第一张截图 - 最左边，旋转 -15 度 */}
-              <div className="absolute top-10 left-0 w-[220px] h-[440px] transform -rotate-[15deg] origin-bottom-right transition-all duration-300 hover:scale-105 hover:-rotate-[10deg] z-10">
+              <div className="absolute top-6 md:top-10 left-0 w-[40%] h-[80%] md:w-[220px] md:h-[440px] transform -rotate-[10deg] md:-rotate-[15deg] origin-bottom-right transition-all duration-300 hover:scale-105 hover:-rotate-[6deg] md:hover:-rotate-[10deg] z-10">
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden">
                     <img 
@@ -135,7 +135,7 @@ const Hero = () => {
               </div>
 
               {/* 第二张截图 - 左侧，旋转 -8 度 */}
-              <div className="absolute top-6 left-20 w-[220px] h-[440px] transform -rotate-[8deg] origin-bottom-right transition-all duration-300 hover:scale-105 hover:-rotate-[4deg] z-20">
+              <div className="absolute top-4 md:top-6 left-[14%] md:left-20 w-[40%] h-[80%] md:w-[220px] md:h-[440px] transform -rotate-[6deg] md:-rotate-[8deg] origin-bottom-right transition-all duration-300 hover:scale-105 hover:-rotate-[3deg] md:hover:-rotate-[4deg] z-20">
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden">
                     <img 
@@ -148,7 +148,7 @@ const Hero = () => {
               </div>
 
               {/* 第三张截图 - 右侧，旋转 8 度 */}
-              <div className="absolute top-6 right-20 w-[220px] h-[440px] transform rotate-[8deg] origin-bottom-left transition-all duration-300 hover:scale-105 hover:rotate-[4deg] z-20">
+              <div className="absolute top-4 md:top-6 right-[14%] md:right-20 w-[40%] h-[80%] md:w-[220px] md:h-[440px] transform rotate-[6deg] md:rotate-[8deg] origin-bottom-left transition-all duration-300 hover:scale-105 hover:rotate-[3deg] md:hover:rotate-[4deg] z-20">
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden">
                     <img 
@@ -161,7 +161,7 @@ const Hero = () => {
               </div>
 
               {/* 第四张截图 - 最右边，旋转 15 度 */}
-              <div className="absolute top-10 right-0 w-[220px] h-[440px] transform rotate-[15deg] origin-bottom-left transition-all duration-300 hover:scale-105 hover:rotate-[10deg] z-10">
+              <div className="absolute top-6 md:top-10 right-0 w-[40%] h-[80%] md:w-[220px] md:h-[440px] transform rotate-[10deg] md:rotate-[15deg] origin-bottom-left transition-all duration-300 hover:scale-105 hover:rotate-[6deg] md:hover:rotate-[10deg] z-10">
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden">
                     <img 
