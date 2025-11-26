@@ -109,19 +109,22 @@ const Hero = () => {
 
           {/* 右侧手机展示 */}
           <div className="flex justify-center items-center mt-12 md:mt-0">
-            {/* 手机端：单张大截图，更自然的展示 */}
-            <div className="block md:hidden animate-float">
-              <div className="relative w-full max-w-[260px] mx-auto">
-                <div className="w-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
-                  <div className="w-full bg-white rounded-[2rem] overflow-hidden">
-                    <img 
-                      src="/assets/app-screenshot-2.png" 
-                      alt="Tiny Habits App Screenshot"
+            {/* 手机端：四张截图 2x2 排列 */}
+            <div className="grid grid-cols-2 gap-4 max-w-xs w-full mx-auto md:hidden">
+              {[1, 2, 3, 4].map((num) => (
+                <div
+                  key={num}
+                  className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-[1.75rem] p-1.5 shadow-2xl"
+                >
+                  <div className="bg-white rounded-[1.5rem] overflow-hidden">
+                    <img
+                      src={`/assets/app-screenshot-${num}.png`}
+                      alt={`Tiny Habits Screenshot ${num}`}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
 
             {/* 平板 / 桌面端：扇形排列四张截图 */}
