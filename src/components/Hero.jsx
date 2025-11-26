@@ -107,9 +107,25 @@ const Hero = () => {
             </div>
           </div>
 
-          {/* 右侧手机展示 - 扇形排列 */}
-          <div className="flex justify-center items-center animate-float mt-12 md:mt-0">
-            <div className="relative w-full max-w-[360px] sm:max-w-[420px] md:w-[460px] md:h-[560px] aspect-[5/7]">
+          {/* 右侧手机展示 */}
+          <div className="flex justify-center items-center mt-12 md:mt-0">
+            {/* 手机端：单张大截图，更自然的展示 */}
+            <div className="block md:hidden animate-float">
+              <div className="relative w-full max-w-[260px] mx-auto">
+                <div className="w-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
+                  <div className="w-full bg-white rounded-[2rem] overflow-hidden">
+                    <img 
+                      src="/assets/app-screenshot-2.png" 
+                      alt="Tiny Habits App Screenshot"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 平板 / 桌面端：扇形排列四张截图 */}
+            <div className="hidden md:block relative w-full max-w-[420px] lg:max-w-[460px] h-[520px] lg:h-[560px] animate-float">
               {/* App Logo - 悬浮在中心上方 */}
               <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 z-50">
                 <div className="w-20 h-20 md:w-24 md:h-24 bg-white rounded-[1.5rem] shadow-2xl p-3 ring-4 ring-primary/30">
@@ -122,7 +138,7 @@ const Hero = () => {
               </div>
 
               {/* 第一张截图 - 最左边，旋转 -15 度 */}
-              <div className="absolute top-6 md:top-10 left-0 w-[40%] h-[80%] md:w-[220px] md:h-[440px] transform -rotate-[10deg] md:-rotate-[15deg] origin-bottom-right transition-all duration-300 hover:scale-105 hover:-rotate-[6deg] md:hover:-rotate-[10deg] z-10">
+              <div className="absolute top-10 left-0 w-[220px] h-[440px] transform -rotate-[15deg] origin-bottom-right transition-all duration-300 hover:scale-105 hover:-rotate-[10deg] z-10">
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden">
                     <img 
@@ -135,7 +151,7 @@ const Hero = () => {
               </div>
 
               {/* 第二张截图 - 左侧，旋转 -8 度 */}
-              <div className="absolute top-4 md:top-6 left-[14%] md:left-20 w-[40%] h-[80%] md:w-[220px] md:h-[440px] transform -rotate-[6deg] md:-rotate-[8deg] origin-bottom-right transition-all duration-300 hover:scale-105 hover:-rotate-[3deg] md:hover:-rotate-[4deg] z-20">
+              <div className="absolute top-6 left-20 w-[220px] h-[440px] transform -rotate-[8deg] origin-bottom-right transition-all duration-300 hover:scale-105 hover:-rotate-[4deg] z-20">
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden">
                     <img 
@@ -148,7 +164,7 @@ const Hero = () => {
               </div>
 
               {/* 第三张截图 - 右侧，旋转 8 度 */}
-              <div className="absolute top-4 md:top-6 right-[14%] md:right-20 w-[40%] h-[80%] md:w-[220px] md:h-[440px] transform rotate-[6deg] md:rotate-[8deg] origin-bottom-left transition-all duration-300 hover:scale-105 hover:rotate-[3deg] md:hover:rotate-[4deg] z-20">
+              <div className="absolute top-6 right-20 w-[220px] h-[440px] transform rotate-[8deg] origin-bottom-left transition-all duration-300 hover:scale-105 hover:rotate-[4deg] z-20">
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden">
                     <img 
@@ -161,7 +177,7 @@ const Hero = () => {
               </div>
 
               {/* 第四张截图 - 最右边，旋转 15 度 */}
-              <div className="absolute top-6 md:top-10 right-0 w-[40%] h-[80%] md:w-[220px] md:h-[440px] transform rotate-[10deg] md:rotate-[15deg] origin-bottom-left transition-all duration-300 hover:scale-105 hover:rotate-[6deg] md:hover:rotate-[10deg] z-10">
+              <div className="absolute top-10 right-0 w-[220px] h-[440px] transform rotate-[15deg] origin-bottom-left transition-all duration-300 hover:scale-105 hover:rotate-[10deg] z-10">
                 <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-[2rem] overflow-hidden">
                     <img 
