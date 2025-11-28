@@ -4,7 +4,7 @@ import Features from './components/Features'
 import UserStories from './components/UserStories'
 import Charts from './components/Charts'
 import Testimonials from './components/Testimonials'
-import Blog from './components/Blog'
+// import Blog from './components/Blog' // 暂时隐藏，保留代码
 import Download from './components/Download'
 import Footer from './components/Footer'
 import LanguageSwitcher from './components/LanguageSwitcher'
@@ -18,7 +18,7 @@ function App() {
       <UserStories />
       <Charts />
       <Testimonials />
-      <Blog />
+      {/* <Blog /> */}
       <Download />
       <Footer />
     </div>
