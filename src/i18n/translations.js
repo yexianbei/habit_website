@@ -208,6 +208,7 @@ export const translations = {
         stories: '用户故事',
         charts: '数据统计',
         download: '立即下载',
+        blog: '博客文章',
         privacy: '隐私政策',
         terms: '用户协议',
         contact: '联系我们'
@@ -215,6 +216,22 @@ export const translations = {
       copyright: '保留所有权利。',
       madeWith: 'Made with ❤️ for better habits',
       icp: 'ICP备案号：京ICP备xxxxxxxx号'
+    },
+
+    // Blog 区域
+    blog: {
+      title: '博客 & 文章',
+      subtitle: '习惯养成、时间管理、效率提升的实用指南',
+      readMore: '阅读全文',
+      categories: {
+        all: '全部',
+        habit: '习惯养成',
+        productivity: '效率提升',
+        time: '时间管理',
+        fitness: '健身减肥',
+        mindfulness: '冥想瑜伽',
+        selfDiscipline: '自律成长'
+      }
     },
 
     // 通用
@@ -434,6 +451,7 @@ export const translations = {
         stories: 'Stories',
         charts: 'Data',
         download: 'Download',
+        blog: 'Blog',
         privacy: 'Privacy Policy',
         terms: 'Terms of Service',
         contact: 'Contact Us'
@@ -441,6 +459,22 @@ export const translations = {
       copyright: 'All rights reserved.',
       madeWith: 'Made with ❤️ for better habits',
       icp: 'ICP: 京ICP备xxxxxxxx号'
+    },
+
+    // Blog Section
+    blog: {
+      title: 'Blog & Articles',
+      subtitle: 'Practical guides on habit building, time management, and productivity',
+      readMore: 'Read Full Article',
+      categories: {
+        all: 'All',
+        habit: 'Habit Building',
+        productivity: 'Productivity',
+        time: 'Time Management',
+        fitness: 'Fitness & Weight Loss',
+        mindfulness: 'Mindfulness & Yoga',
+        selfDiscipline: 'Self-Discipline'
+      }
     },
 
     // Common

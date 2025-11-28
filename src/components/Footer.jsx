@@ -49,6 +49,11 @@ const Footer = () => {
                   {t('footer.links.download')}
                 </a>
               </li>
+              <li>
+                <a href="#blog" className="text-gray-400 hover:text-primary transition-colors duration-300">
+                  {t('footer.links.blog')}
+                </a>
+              </li>
             </ul>
           </div>
 
