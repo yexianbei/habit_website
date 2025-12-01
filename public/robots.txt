@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Disallow common non-production paths (adjust if不需要)
+Disallow: /dist/
+Disallow: /node_modules/
+
+Sitemap: https://tinyhabits.top/sitemap.xml
+
+
