@@ -629,6 +629,130 @@ export const blogPosts = [
     readTime: { zh: '10分钟', en: '10 min' },
     image: 'https://plus.unsplash.com/premium_photo-1673548916457-400cca78a210?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8QXRvbWljJTIwSGFiaXRzfGVufDB8fDB8fHww',
     featured: false
+  },
+  {
+    id: 10,
+    title: { 
+      zh: '如何用积分奖励系统培养孩子好习惯，而不是“用奖品威胁”', 
+      en: 'How to Use a Points Reward System to Build Kids’ Habits (Without Overusing Prizes)' 
+    },
+    excerpt: { 
+      zh: '很多家长一提到培养孩子的习惯，就想到“奖励”和“惩罚”。这篇文章会用小习惯 Tiny Habits Tracker 的积分系统为例，聊聊如何通过适当激励、亲子约定和长期反馈，帮孩子养成自律，而不是变成“没有奖励就不做事”。', 
+      en: 'Many parents think of rewards and punishments when building kids’ habits. Using Tiny Habits Tracker’s points system as an example, this article shows how to use gentle incentives, clear agreements and long-term feedback to raise self-disciplined kids instead of reward-dependent ones.' 
+    },
+    content: {
+      zh: `
+        <h2>为什么培养孩子习惯不能“全靠奖励”？</h2>
+        <p>在搜索“如何培养孩子好习惯不靠打骂”的时候，你可能已经看到很多建议：多鼓励、少批评、用奖励代替惩罚。但如果<strong>所有事情都要有奖品</strong>，孩子很容易变成：没有奖励就不愿意做事。</p>
+        <p>真正科学的儿童习惯养成方法，是在<strong>外在激励</strong>和<strong>内在动机</strong>之间找到平衡——既让孩子感到被肯定，又慢慢把“我为了奖励去做”变成“我因为这是对自己好而去做”。</p>
+
+        <h2>小习惯 Tiny Habits Tracker：用积分代替“即时大礼”</h2>
+        <p>小习惯（Tiny Habits Tracker）内置了一个简单好用的<strong>亲子积分奖励系统</strong>：</p>
+        <ul>
+          <li>每天完成约定的习惯（比如按时刷牙、写完作业、睡前自己收拾房间），孩子就可以在 App 里<strong>获得对应积分</strong>。</li>
+          <li>积分不是马上兑换，而是<strong>累计到一定数额</strong>，再和家长一起选择奖励。</li>
+          <li>奖励可以是<strong>体验型</strong>（比如去迪士尼乐园、周末亲子露营），也可以是孩子特别想要的礼物（球鞋、玩具、绘本）。</li>
+        </ul>
+        <p>这种“先积分、再兑换”的方式，比起每次做完就立刻给奖品，更像一个<strong>长期目标</strong>，也更接近成年人的世界（工作拿绩效、储蓄攒利息）。</p>
+
+        <h2>家长和孩子如何一起设计“积分规则”？</h2>
+        <p>为了让积分奖励系统真正帮助孩子建立自律，而不是变成讨价还价工具，建议你在使用前和孩子一起做三件事：</p>
+        <ol>
+          <li><strong>先选 3 个最重要的习惯，而不是 30 个</strong>  
+            从“刷牙、写作业、整理书包、练琴、阅读、运动……”里，选出 2–3 件你们当前最在意的事。习惯太多，孩子会觉得永远完成不了。</li>
+          <li><strong>给每个习惯设置清晰、可量化的标准</strong>  
+            比如“睡前自己刷牙 2 分钟”“晚饭后 30 分钟内坐到书桌前写作业”“每天读书 10 分钟并在小习惯里打卡”。</li>
+          <li><strong>和孩子一起决定“多少分换什么”</strong>  
+            比如：100 分换一次电影院家庭观影，300 分换一次迪士尼，500 分可以选择一双心仪的球鞋。过程要让孩子<strong>参与决策</strong>，而不是单向宣布。</li>
+        </ol>
+
+        <h2>长尾问题：如何防止孩子对奖励“上瘾”？</h2>
+        <p>在“用积分奖励孩子好习惯”的过程中，很多家长会遇到这些困惑：</p>
+        <ul>
+          <li>孩子习惯变好了，但一停奖励就立刻“打回原形”？</li>
+          <li>孩子只愿意做有积分的事，不愿意做日常家务？</li>
+          <li>积分越设越高，奖品越来越贵，家长压力很大？</li>
+        </ul>
+        <p>要避免这些问题，可以在小习惯 App 的使用中刻意设计几个阶段：</p>
+        <ol>
+          <li><strong>第 1 阶段：用积分帮孩子“开始行动”</strong>  
+            这一阶段的重点是<strong>让行为发生</strong>，比如每天按时写作业、按顺序完成睡前流程，孩子每完成一次就能看到积分上涨，感受到正向反馈。</li>
+          <li><strong>第 2 阶段：逐步减少对物质奖励的强调</strong>  
+            当孩子已经做到“基本稳定”时，可以开始加入更多<strong>精神性奖励</strong>（贴纸、排行榜、成就徽章），并且在对话中多强调“你真的越来越自律了”。</li>
+          <li><strong>第 3 阶段：把“奖励对象”从结果变成过程</strong>  
+            比如不再只在“分数达标时”庆祝，而是在孩子“主动开始写作业”“自己提醒刷牙”时及时表扬，帮助他把自豪感和行为本身绑定。</li>
+        </ol>
+
+        <h2>实操示例：用积分系统培养 7–12 岁孩子的学习与生活习惯</h2>
+        <p>下面是一个可以直接参考的“亲子习惯积分表”，特别适合在 Google 上经常被搜索的场景：<strong>如何培养小学生自律、如何让孩子主动写作业、如何用正向激励代替吼叫</strong>。</p>
+        <ul>
+          <li><strong>学习类习惯</strong>：按时坐到书桌前（5 分）、当天作业完成并在 App 中打卡（10 分）、额外阅读 15 分钟（5 分）。</li>
+          <li><strong>生活类习惯</strong>：睡前自己收拾房间 5 分钟（5 分）、早起后自己叠被子（5 分）、饭前洗手不提醒（5 分）。</li>
+          <li><strong>品格类习惯</strong>：主动帮家人做家务（10 分）、在学校帮助同学（家长回家后沟通记录，10 分）。</li>
+        </ul>
+        <p>你可以在小习惯 Tiny Habits Tracker 中把这些习惯添加为每日任务，让孩子每天打开 App 勾选，一方面获得积分，一方面看到自己连续打卡的天数。</p>
+
+        <h2>把“奖励”变成一次次亲子对话的机会</h2>
+        <p>真正高质量的亲子积分奖励系统，并不是简单地“刷牙=1 分，写作业=2 分”，而是把每一次兑换奖励，都变成一次<strong>复盘和鼓励</strong>：</p>
+        <ul>
+          <li>一起回顾这段时间孩子坚持了哪些事情；</li>
+          <li>请孩子自己说说：哪一个习惯对他最有帮助；</li>
+          <li>讨论下一个阶段要继续保持什么、可以尝试新增什么小目标。</li>
+        </ul>
+        <p>当孩子逐渐从“为了礼物而坚持”，走向“为了成为更好的自己而坚持”，你就真正用好了一套既温和又有边界的积分奖励系统。</p>
+
+        <h2>小结：奖励是辅助，自律才是终点</h2>
+        <p>培养孩子的习惯，永远不应该只依赖奖惩。<strong>奖励只是一个启动器</strong>，真正让孩子受益一生的，是他在一个个小习惯中练出来的自律感、胜任感和自我认同。</p>
+        <p>如果你正在寻找“如何科学地培养孩子好习惯”的方法，不妨从今天开始，和孩子一起在小习惯 Tiny Habits Tracker 里，搭建你们自己的亲子积分系统——从一件小事开始，但朝着很长的未来走。</p>
+      `,
+      en: `
+        <h2>Why Kids’ Habits Shouldn’t Rely 100% on Rewards</h2>
+        <p>When parents search for “how to build good habits for kids without yelling or punishment”, they are usually told to “use rewards instead”. But if <strong>every behavior must be paid with a prize</strong>, kids quickly learn: no reward, no action.</p>
+        <p>Healthy habit building for children means balancing <strong>external rewards</strong> and <strong>internal motivation</strong> – using incentives at the beginning, then slowly shifting towards “I do this because it’s good for me”.</p>
+
+        <h2>Using Tiny Habits Tracker Points Instead of One-Off Prizes</h2>
+        <p>Tiny Habits Tracker (小习惯) has a built-in <strong>points reward system for families</strong>:</p>
+        <ul>
+          <li>Kids earn points every time they complete agreed routines: brushing teeth, finishing homework, tidying their room before bed.</li>
+          <li>Points are <strong>saved and accumulated</strong> instead of triggering an instant gift each time.</li>
+          <li>Rewards can be <strong>experiences</strong> (Disney trip, weekend camping) or specific gifts kids really want (sneakers, toys, books).</li>
+        </ul>
+        <p>This “collect points → redeem later” model is closer to real life (salary and bonuses, savings and interest) and works better for long-term habit building than constant small prizes.</p>
+
+        <h2>Designing the Rules Together with Your Child</h2>
+        <ol>
+          <li><strong>Start with 2–3 key habits, not everything at once</strong> – focus on what matters most now: homework, bedtime routine, or morning routine.</li>
+          <li><strong>Make each habit concrete and measurable</strong> – “brush teeth for 2 minutes before bed”, “sit at desk within 30 minutes after dinner”, “read for 10 minutes and tick it in the app”.</li>
+          <li><strong>Decide the points and rewards together</strong> – for example: 100 points for a movie night, 300 points for a theme park trip, 500 points for a pair of sneakers.</li>
+        </ol>
+
+        <h2>Avoiding Common Problems with Kids’ Reward Systems</h2>
+        <p>Many parents worry that a points system will make kids addicted to rewards. To avoid this, you can plan three stages:</p>
+        <ol>
+          <li><strong>Stage 1: Use points to help them start</strong> – focus on making the behavior happen regularly.</li>
+          <li><strong>Stage 2: Shift towards emotional and symbolic rewards</strong> – badges, streaks, praise and recognition.</li>
+          <li><strong>Stage 3: Reward the process, not just the outcome</strong> – celebrate when kids take initiative, not only when they “hit the target”.</li>
+        </ol>
+
+        <h2>Practical Example: A Simple Points Table for 7–12 Year Olds</h2>
+        <p>For SEO friendly long-tail topics like “how to build self-discipline in primary school kids” or “positive parenting reward system”, here is a simple structure:</p>
+        <ul>
+          <li><strong>Study habits</strong>: on-time homework start, daily reading, daily review.</li>
+          <li><strong>Life habits</strong>: tidying room, making bed, washing hands before meals.</li>
+          <li><strong>Character habits</strong>: helping family, being kind at school, taking responsibility.</li>
+        </ul>
+        <p>You can set these as daily habits in Tiny Habits Tracker so your child can tick them off, see their streak, and watch points grow.</p>
+
+        <h2>From Rewards to Real Self-Discipline</h2>
+        <p>Rewards are a <strong>tool</strong>, not the final goal. The real win is when your child begins to say “I want to do this because it makes me proud”, not just “what do I get for it?”.</p>
+        <p>If you are looking for a gentle, science-based way to build your child’s routines, start today by setting up a small points system in Tiny Habits Tracker – one small habit at a time, towards a much bigger future.</p>
+      `
+    },
+    category: 'habit',
+    date: '2025-12-02',
+    readTime: { zh: '11分钟', en: '11 min' },
+    image: 'https://images.unsplash.com/photo-1613186420419-868111e7ac07?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8cGFyZW50JTIwYW5kJTIwY2hpbGR8ZW58MHx8MHx8fDA%3D',
+    featured: true
   }
 ]
 

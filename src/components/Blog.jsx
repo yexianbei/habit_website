@@ -19,10 +19,12 @@ const Blog = () => {
   const { t, language } = useLanguage()
   const [selectedCategory, setSelectedCategory] = useState('all')
 
-  // 根据选择的分类筛选文章
+  // 先按时间从新到旧排序，再根据选择的分类筛选文章
+  const sortedPosts = [...blogPosts].sort((a, b) => new Date(b.date) - new Date(a.date))
+
   const filteredPosts = selectedCategory === 'all' 
-    ? blogPosts 
-    : blogPosts.filter(post => post.category === selectedCategory)
+    ? sortedPosts 
+    : sortedPosts.filter(post => post.category === selectedCategory)
 
   // 首页只展示最多两行（每行 3 篇），共 6 篇文章
   const postsToShow = filteredPosts.slice(0, 6)

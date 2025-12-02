@@ -22,9 +22,11 @@ const BlogList = () => {
   const navigate = useNavigate()
   const navigationType = useNavigationType()
 
+  const sortedPosts = [...blogPosts].sort((a, b) => new Date(b.date) - new Date(a.date))
+
   const filteredPosts = selectedCategory === 'all'
-    ? blogPosts
-    : blogPosts.filter(post => post.category === selectedCategory)
+    ? sortedPosts
+    : sortedPosts.filter(post => post.category === selectedCategory)
 
   const getCategoryName = (categoryId) => {
     const category = categories.find(cat => cat.id === categoryId)
