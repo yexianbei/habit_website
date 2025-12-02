@@ -53,6 +53,7 @@ const Home = () => (
     <Testimonials />
     <Blog />
     <Download />
+    <Footer />
   </>
 )
 
