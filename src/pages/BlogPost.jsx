@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, ArrowLeft, Share2 } from 'lucide-react'
+import { Calendar, Clock, ArrowLeft, Share2, Twitter, Facebook } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { getPostById } from '../data/blogPosts'
 import Footer from '../components/Footer'
@@ -120,6 +120,21 @@ const BlogPost = () => {
     }
   }
 
+  const handleShareTwitter = () => {
+    if (typeof window === 'undefined') return
+    const url = encodeURIComponent(window.location.href)
+    const text = encodeURIComponent(post.title[language])
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`
+    window.open(twitterUrl, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleShareFacebook = () => {
+    if (typeof window === 'undefined') return
+    const url = encodeURIComponent(window.location.href)
+    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`
+    window.open(fbUrl, '_blank', 'noopener,noreferrer')
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <LanguageSwitcher />
@@ -158,13 +173,29 @@ const BlogPost = () => {
               <Clock size={18} />
               <span>{post.readTime[language]}</span>
             </div>
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-2 hover:text-primary transition-colors"
-            >
-              <Share2 size={18} />
-              <span>{language === 'zh' ? '分享' : 'Share'}</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-4">
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 hover:text-primary transition-colors"
+              >
+                <Share2 size={18} />
+                <span>{language === 'zh' ? '系统分享 / 复制链接' : 'System share / Copy link'}</span>
+              </button>
+              <button
+                onClick={handleShareTwitter}
+                className="flex items-center gap-2 hover:text-sky-500 transition-colors"
+              >
+                <Twitter size={18} />
+                <span>{language === 'zh' ? '分享到 Twitter' : 'Share to Twitter'}</span>
+              </button>
+              <button
+                onClick={handleShareFacebook}
+                className="flex items-center gap-2 hover:text-blue-600 transition-colors"
+              >
+                <Facebook size={18} />
+                <span>{language === 'zh' ? '分享到 Facebook' : 'Share to Facebook'}</span>
+              </button>
+            </div>
           </div>
 
           {/* 封面图 */}
