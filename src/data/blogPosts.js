@@ -755,6 +755,326 @@ export const blogPosts = [
     readTime: { zh: '11分钟', en: '11 min' },
     image: 'https://images.unsplash.com/photo-1613186420419-868111e7ac07?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8cGFyZW50JTIwYW5kJTIwY2hpbGR8ZW58MHx8MHx8fDA%3D',
     featured: true
+  },
+  {
+    id: 11,
+    title: { 
+      zh: '降低身体炎症的100个生活习惯', 
+      en: '100 Lifestyle Habits to Reduce Inflammation' 
+    },
+    excerpt: { 
+      zh: '慢性炎症是许多健康问题的根源。从饮食调整到运动习惯，从睡眠质量到压力管理，这100个简单实用的生活习惯将帮助你有效降低身体炎症水平，提升整体健康。', 
+      en: 'Chronic inflammation is the root of many health issues. From dietary adjustments to exercise habits, from sleep quality to stress management, these 100 simple and practical lifestyle habits will help you effectively reduce inflammation and improve overall health.' 
+    },
+    content: {
+      zh: `
+        <h2>为什么降低身体炎症很重要？</h2>
+        <p>慢性炎症被认为是许多疾病的潜在诱因，包括心血管疾病、糖尿病、癌症、关节炎等。与急性炎症不同，慢性炎症是一个持续的过程，往往悄无声息地损害我们的健康。好消息是，通过调整生活方式，我们可以有效降低体内的炎症水平。这篇文章将为你介绍100个经过科学验证的生活习惯，帮助你从饮食、运动、睡眠、压力管理等多个维度降低身体炎症。</p>
+        
+        <h2>一、饮食习惯（1-50）</h2>
+        
+        <h3>增加抗炎食物摄入</h3>
+        <ol>
+          <li><strong>多吃深色蔬菜</strong>：菠菜、羽衣甘蓝、西兰花等富含抗氧化剂和抗炎化合物。</li>
+          <li><strong>增加浆果类水果</strong>：蓝莓、草莓、覆盆子含有丰富的花青素，具有强大的抗炎作用。</li>
+          <li><strong>食用深海鱼类</strong>：三文鱼、沙丁鱼、鲭鱼富含Omega-3脂肪酸，有助于减少促炎物质。</li>
+          <li><strong>选择全谷物</strong>：燕麦、糙米、全麦面包替代精制谷物，降低血糖波动引起的炎症。</li>
+          <li><strong>增加坚果摄入</strong>：杏仁、核桃、巴西坚果富含健康脂肪和抗氧化剂。</li>
+          <li><strong>食用豆类</strong>：黑豆、鹰嘴豆、扁豆提供植物蛋白和纤维，改善肠道健康。</li>
+          <li><strong>使用橄榄油</strong>：特级初榨橄榄油富含单不饱和脂肪酸和抗氧化物质。</li>
+          <li><strong>增加香料使用</strong>：姜黄、生姜、肉桂、大蒜都有抗炎特性。</li>
+          <li><strong>食用发酵食品</strong>：酸奶、泡菜、康普茶有助于维持肠道菌群平衡。</li>
+          <li><strong>适量饮用绿茶</strong>：茶多酚具有抗氧化和抗炎作用。</li>
+          <li><strong>食用番茄</strong>：富含番茄红素，加热后更容易被吸收。</li>
+          <li><strong>增加洋葱和大蒜</strong>：含有硫化物，具有抗炎和抗菌作用。</li>
+          <li><strong>食用甜椒</strong>：富含维生素C和类胡萝卜素。</li>
+          <li><strong>增加蘑菇摄入</strong>：香菇、白蘑菇含有抗炎化合物。</li>
+          <li><strong>食用柑橘类水果</strong>：橙子、柠檬、柚子富含维生素C。</li>
+          <li><strong>增加绿叶蔬菜</strong>：生菜、芝麻菜、瑞士甜菜富含叶酸和维生素K。</li>
+          <li><strong>食用红薯</strong>：富含β-胡萝卜素和纤维。</li>
+          <li><strong>增加胡萝卜摄入</strong>：β-胡萝卜素是强大的抗氧化剂。</li>
+          <li><strong>食用南瓜</strong>：富含维生素A和抗氧化物质。</li>
+          <li><strong>适量食用黑巧克力</strong>：选择70%以上可可含量的，富含黄酮类化合物。</li>
+          <li><strong>食用鳄梨</strong>：富含单不饱和脂肪和维生素E。</li>
+          <li><strong>增加海藻摄入</strong>：海带、紫菜、裙带菜富含矿物质和抗氧化剂。</li>
+          <li><strong>食用石榴</strong>：富含抗氧化剂和抗炎物质。</li>
+          <li><strong>增加芹菜摄入</strong>：富含维生素K和抗氧化剂。</li>
+          <li><strong>食用甜菜</strong>：富含硝酸盐和抗氧化剂。</li>
+        </ol>
+        
+        <h3>减少促炎食物</h3>
+        <ol start="26">
+          <li><strong>限制红肉摄入</strong>：每周红肉不超过2-3次，选择瘦肉部分。</li>
+          <li><strong>避免加工肉类</strong>：香肠、培根、火腿含有大量添加剂和促炎物质。</li>
+          <li><strong>减少精制糖</strong>：糖果、甜饮料、糕点会加剧炎症反应。</li>
+          <li><strong>限制精制碳水化合物</strong>：白面包、白米、白面会快速升高血糖。</li>
+          <li><strong>避免反式脂肪酸</strong>：油炸食品、加工零食、人造黄油。</li>
+          <li><strong>减少高盐饮食</strong>：过量食盐会刺激炎症反应。</li>
+          <li><strong>控制酒精摄入</strong>：过量饮酒会增加炎症标记物。</li>
+          <li><strong>减少油炸食品</strong>：高温油炸会产生促炎物质。</li>
+          <li><strong>限制加工零食</strong>：薯片、饼干等往往含有多种添加剂。</li>
+          <li><strong>减少含糖饮料</strong>：汽水、果汁饮料、能量饮料。</li>
+        </ol>
+        
+        <h3>营养补充和优化</h3>
+        <ol start="36">
+          <li><strong>确保充足的维生素D</strong>：通过阳光、食物或补充剂维持适当水平。</li>
+          <li><strong>增加镁的摄入</strong>：绿叶蔬菜、坚果、种子、全谷物。</li>
+          <li><strong>补充足够的锌</strong>：牡蛎、瘦肉、豆类、坚果。</li>
+          <li><strong>增加硒的摄入</strong>：巴西坚果、金枪鱼、鸡蛋。</li>
+          <li><strong>确保足够的维生素C</strong>：柑橘类、甜椒、西兰花。</li>
+          <li><strong>增加维生素E的摄入</strong>：坚果、种子、植物油。</li>
+          <li><strong>补充Omega-3</strong>：如果饮食不足，考虑鱼油补充剂。</li>
+          <li><strong>增加益生菌摄入</strong>：酸奶、开菲尔、发酵蔬菜。</li>
+          <li><strong>食用益生元食物</strong>：洋葱、大蒜、香蕉、全谷物。</li>
+          <li><strong>保持充足水分</strong>：每天至少8杯水，帮助身体清除毒素。</li>
+        </ol>
+        
+        <h3>烹饪和饮食方式</h3>
+        <ol start="46">
+          <li><strong>选择蒸煮而非油炸</strong>：减少高温烹饪产生的有害物质。</li>
+          <li><strong>使用香料代替盐</strong>：用香草和香料增加风味，减少盐的使用。</li>
+          <li><strong>适量食用</strong>：避免暴饮暴食，控制热量摄入。</li>
+          <li><strong>细嚼慢咽</strong>：充分咀嚼有助于消化和营养吸收。</li>
+          <li><strong>规律三餐</strong>：定时定量，避免血糖大幅波动。</li>
+        </ol>
+        
+        <h2>二、运动习惯（51-65）</h2>
+        <ol start="51">
+          <li><strong>每周至少150分钟中等强度有氧运动</strong>：快走、慢跑、游泳、骑自行车。</li>
+          <li><strong>每周进行2-3次力量训练</strong>：增强肌肉，提高代谢率。</li>
+          <li><strong>避免久坐</strong>：每45-60分钟起身活动2-3分钟。</li>
+          <li><strong>增加日常活动量</strong>：爬楼梯代替电梯，步行代替短途开车。</li>
+          <li><strong>进行柔韧性训练</strong>：瑜伽、普拉提、拉伸运动。</li>
+          <li><strong>适度运动</strong>：避免过度训练，给身体充分恢复时间。</li>
+          <li><strong>运动前热身</strong>：5-10分钟热身，减少运动损伤风险。</li>
+          <li><strong>运动后拉伸</strong>：帮助肌肉恢复，减少炎症。</li>
+          <li><strong>保持运动多样性</strong>：结合有氧、力量、柔韧性训练。</li>
+          <li><strong>在自然环境中运动</strong>：户外运动有助于减轻压力。</li>
+          <li><strong>找到喜欢的运动</strong>：选择能长期坚持的运动方式。</li>
+          <li><strong>设定现实目标</strong>：从小目标开始，逐步增加强度。</li>
+          <li><strong>记录运动数据</strong>：用APP追踪运动，保持动力。</li>
+          <li><strong>与朋友一起运动</strong>：增加趣味性和坚持性。</li>
+          <li><strong>运动后充分休息</strong>：确保充足的恢复时间。</li>
+        </ol>
+        
+        <h2>三、睡眠习惯（66-75）</h2>
+        <ol start="66">
+          <li><strong>保证7-9小时优质睡眠</strong>：睡眠不足会增加炎症因子。</li>
+          <li><strong>保持规律作息</strong>：每天同一时间睡觉和起床，即使在周末。</li>
+          <li><strong>营造舒适的睡眠环境</strong>：适宜的温度、黑暗、安静。</li>
+          <li><strong>睡前1小时避免蓝光</strong>：减少手机、电脑、电视使用。</li>
+          <li><strong>建立睡前仪式</strong>：阅读、冥想、洗热水澡。</li>
+          <li><strong>避免睡前大餐</strong>：睡前2-3小时停止进食。</li>
+          <li><strong>限制咖啡因摄入</strong>：下午2点后避免含咖啡因的饮料。</li>
+          <li><strong>白天适度晒太阳</strong>：有助于调节生物钟。</li>
+          <li><strong>睡前避免剧烈运动</strong>：运动时间安排在睡前3-4小时。</li>
+          <li><strong>使用遮光窗帘</strong>：确保卧室完全黑暗。</li>
+        </ol>
+        
+        <h2>四、压力管理（76-85）</h2>
+        <ol start="76">
+          <li><strong>每天冥想10-20分钟</strong>：正念冥想可以降低压力激素。</li>
+          <li><strong>练习深呼吸</strong>：每天进行几次深呼吸练习。</li>
+          <li><strong>定期进行瑜伽</strong>：结合运动、呼吸和正念。</li>
+          <li><strong>培养兴趣爱好</strong>：音乐、绘画、手工等创意活动。</li>
+          <li><strong>保持社交联系</strong>：与家人朋友定期联系，获得情感支持。</li>
+          <li><strong>学会说"不"</strong>：合理设置边界，避免过度承诺。</li>
+          <li><strong>定期放松</strong>：按摩、温泉、听音乐。</li>
+          <li><strong>练习感恩</strong>：每天记录3件值得感恩的事。</li>
+          <li><strong>限制新闻消费</strong>：避免过度关注负面新闻。</li>
+          <li><strong>寻求专业帮助</strong>：必要时咨询心理医生或治疗师。</li>
+        </ol>
+        
+        <h2>五、生活方式调整（86-100）</h2>
+        <ol start="86">
+          <li><strong>戒烟</strong>：吸烟是炎症的重要诱因。</li>
+          <li><strong>控制体重</strong>：过多的脂肪组织会分泌促炎因子。</li>
+          <li><strong>保持良好口腔卫生</strong>：预防牙龈炎等口腔炎症。</li>
+          <li><strong>定期体检</strong>：早期发现和管理潜在健康问题。</li>
+          <li><strong>保持良好姿势</strong>：预防肌肉和关节炎症。</li>
+          <li><strong>避免环境污染</strong>：减少接触空气污染和有害化学物质。</li>
+          <li><strong>适度日晒</strong>：每天10-15分钟，促进维生素D合成。</li>
+          <li><strong>减少接触有毒物质</strong>：选择天然清洁产品和个人护理用品。</li>
+          <li><strong>保持室内空气清新</strong>：使用空气净化器，定期开窗通风。</li>
+          <li><strong>培养乐观心态</strong>：积极的心态有助于减少压力性炎症。</li>
+          <li><strong>定期进行健康检查</strong>：监测炎症标记物如C反应蛋白。</li>
+          <li><strong>避免过度使用抗生素</strong>：只在必要时使用，保护肠道菌群。</li>
+          <li><strong>保持肠道健康</strong>：通过饮食和补充剂维持菌群平衡。</li>
+          <li><strong>减少电子产品使用</strong>：避免过度使用导致的眼部和颈部炎症。</li>
+          <li><strong>培养规律的生活节奏</strong>：稳定的生活节奏有助于降低压力。</li>
+        </ol>
+        
+        <h2>如何开始实施？</h2>
+        <p>100个习惯看起来很多，但你不必一次性全部实施。记住微习惯的原则：从最小的改变开始。建议你：</p>
+        <ol>
+          <li><strong>选择3-5个最容易的开始</strong>：比如每天多喝一杯水、增加一份蔬菜、走10分钟路。</li>
+          <li><strong>用习惯叠加法</strong>：将新习惯绑定到已有习惯上，比如"吃完早饭后，我喝一杯绿茶"。</li>
+          <li><strong>追踪你的进步</strong>：使用小习惯App记录每天完成的抗炎习惯，看到连续记录会让你更有动力。</li>
+          <li><strong>循序渐进</strong>：当第一个习惯稳定后，再添加新的习惯。</li>
+          <li><strong>保持耐心</strong>：降低炎症是一个长期过程，需要持续的努力。</li>
+        </ol>
+        
+        <h2>小结</h2>
+        <p>降低身体炎症不是一蹴而就的事情，而是一个需要长期坚持的过程。通过这100个生活习惯，你可以从多个维度改善健康。记住，每一个小的改变都有累积效应。从小习惯开始，逐步建立更健康的生活方式，你的身体会感谢你的努力。</p>
+      `,
+      en: `
+        <h2>Why Reducing Inflammation Matters</h2>
+        <p>Chronic inflammation is considered a potential trigger for many diseases, including cardiovascular disease, diabetes, cancer, and arthritis. Unlike acute inflammation, chronic inflammation is a continuous process that often silently damages our health. The good news is that we can effectively reduce inflammation levels through lifestyle adjustments. This article introduces 100 scientifically validated habits to help you reduce inflammation across multiple dimensions including diet, exercise, sleep, and stress management.</p>
+        
+        <h2>Part 1: Dietary Habits (1-50)</h2>
+        
+        <h3>Increase Anti-Inflammatory Foods</h3>
+        <ol>
+          <li><strong>Eat more dark leafy greens</strong>: Spinach, kale, and broccoli are rich in antioxidants and anti-inflammatory compounds.</li>
+          <li><strong>Add berries</strong>: Blueberries, strawberries, and raspberries contain anthocyanins with powerful anti-inflammatory effects.</li>
+          <li><strong>Eat fatty fish</strong>: Salmon, sardines, and mackerel are rich in Omega-3 fatty acids.</li>
+          <li><strong>Choose whole grains</strong>: Oats, brown rice, and whole wheat bread instead of refined grains.</li>
+          <li><strong>Increase nut intake</strong>: Almonds, walnuts, and Brazil nuts are rich in healthy fats and antioxidants.</li>
+          <li><strong>Eat legumes</strong>: Black beans, chickpeas, and lentils provide plant protein and fiber.</li>
+          <li><strong>Use olive oil</strong>: Extra virgin olive oil is rich in monounsaturated fats and antioxidants.</li>
+          <li><strong>Add spices</strong>: Turmeric, ginger, cinnamon, and garlic have anti-inflammatory properties.</li>
+          <li><strong>Eat fermented foods</strong>: Yogurt, sauerkraut, and kombucha support gut health.</li>
+          <li><strong>Drink green tea</strong>: Tea polyphenols have antioxidant and anti-inflammatory effects.</li>
+          <li><strong>Eat tomatoes</strong>: Rich in lycopene, better absorbed when cooked.</li>
+          <li><strong>Add onions and garlic</strong>: Contain sulfur compounds with anti-inflammatory effects.</li>
+          <li><strong>Eat bell peppers</strong>: Rich in vitamin C and carotenoids.</li>
+          <li><strong>Increase mushrooms</strong>: Shiitake and white mushrooms contain anti-inflammatory compounds.</li>
+          <li><strong>Eat citrus fruits</strong>: Oranges, lemons, and grapefruits are rich in vitamin C.</li>
+          <li><strong>Add leafy greens</strong>: Lettuce, arugula, and Swiss chard are rich in folate and vitamin K.</li>
+          <li><strong>Eat sweet potatoes</strong>: Rich in beta-carotene and fiber.</li>
+          <li><strong>Increase carrots</strong>: Beta-carotene is a powerful antioxidant.</li>
+          <li><strong>Eat pumpkin</strong>: Rich in vitamin A and antioxidants.</li>
+          <li><strong>Eat dark chocolate</strong>: Choose 70%+ cocoa, rich in flavonoids.</li>
+          <li><strong>Eat avocado</strong>: Rich in monounsaturated fats and vitamin E.</li>
+          <li><strong>Add sea vegetables</strong>: Kelp, nori, and wakame are rich in minerals and antioxidants.</li>
+          <li><strong>Eat pomegranate</strong>: Rich in antioxidants and anti-inflammatory compounds.</li>
+          <li><strong>Increase celery</strong>: Rich in vitamin K and antioxidants.</li>
+          <li><strong>Eat beets</strong>: Rich in nitrates and antioxidants.</li>
+        </ol>
+        
+        <h3>Reduce Pro-Inflammatory Foods</h3>
+        <ol start="26">
+          <li><strong>Limit red meat</strong>: No more than 2-3 times per week, choose lean cuts.</li>
+          <li><strong>Avoid processed meats</strong>: Sausages, bacon, and ham contain many additives.</li>
+          <li><strong>Reduce refined sugar</strong>: Candy, sweet drinks, and pastries increase inflammation.</li>
+          <li><strong>Limit refined carbs</strong>: White bread, white rice, and white pasta raise blood sugar quickly.</li>
+          <li><strong>Avoid trans fats</strong>: Fried foods, processed snacks, and margarine.</li>
+          <li><strong>Reduce high-sodium foods</strong>: Excessive salt can trigger inflammation.</li>
+          <li><strong>Control alcohol intake</strong>: Excessive alcohol increases inflammatory markers.</li>
+          <li><strong>Reduce fried foods</strong>: High-temperature frying produces pro-inflammatory compounds.</li>
+          <li><strong>Limit processed snacks</strong>: Chips and cookies often contain multiple additives.</li>
+          <li><strong>Reduce sugary drinks</strong>: Soda, fruit drinks, and energy drinks.</li>
+        </ol>
+        
+        <h3>Nutritional Optimization</h3>
+        <ol start="36">
+          <li><strong>Ensure adequate vitamin D</strong>: Through sunlight, food, or supplements.</li>
+          <li><strong>Increase magnesium intake</strong>: Leafy greens, nuts, seeds, and whole grains.</li>
+          <li><strong>Get enough zinc</strong>: Oysters, lean meat, beans, and nuts.</li>
+          <li><strong>Increase selenium</strong>: Brazil nuts, tuna, and eggs.</li>
+          <li><strong>Ensure adequate vitamin C</strong>: Citrus fruits, bell peppers, and broccoli.</li>
+          <li><strong>Increase vitamin E</strong>: Nuts, seeds, and vegetable oils.</li>
+          <li><strong>Supplement Omega-3</strong>: Consider fish oil if diet is insufficient.</li>
+          <li><strong>Increase probiotics</strong>: Yogurt, kefir, and fermented vegetables.</li>
+          <li><strong>Eat prebiotic foods</strong>: Onions, garlic, bananas, and whole grains.</li>
+          <li><strong>Stay well hydrated</strong>: At least 8 glasses of water daily to help eliminate toxins.</li>
+        </ol>
+        
+        <h3>Cooking and Eating Methods</h3>
+        <ol start="46">
+          <li><strong>Steam instead of fry</strong>: Reduce harmful compounds from high-temperature cooking.</li>
+          <li><strong>Use spices instead of salt</strong>: Use herbs and spices for flavor, reduce salt.</li>
+          <li><strong>Eat in moderation</strong>: Avoid overeating, control calorie intake.</li>
+          <li><strong>Chew thoroughly</strong>: Proper chewing aids digestion and nutrient absorption.</li>
+          <li><strong>Eat regular meals</strong>: Consistent meal times to avoid blood sugar spikes.</li>
+        </ol>
+        
+        <h2>Part 2: Exercise Habits (51-65)</h2>
+        <ol start="51">
+          <li><strong>At least 150 minutes moderate aerobic exercise weekly</strong>: Brisk walking, jogging, swimming, cycling.</li>
+          <li><strong>Strength training 2-3 times weekly</strong>: Build muscle, increase metabolism.</li>
+          <li><strong>Avoid prolonged sitting</strong>: Get up and move 2-3 minutes every 45-60 minutes.</li>
+          <li><strong>Increase daily activity</strong>: Take stairs instead of elevator, walk instead of drive short distances.</li>
+          <li><strong>Flexibility training</strong>: Yoga, Pilates, stretching exercises.</li>
+          <li><strong>Exercise moderately</strong>: Avoid overtraining, allow adequate recovery.</li>
+          <li><strong>Warm up before exercise</strong>: 5-10 minutes to reduce injury risk.</li>
+          <li><strong>Stretch after exercise</strong>: Help muscle recovery, reduce inflammation.</li>
+          <li><strong>Maintain exercise variety</strong>: Combine aerobic, strength, and flexibility training.</li>
+          <li><strong>Exercise in nature</strong>: Outdoor exercise helps reduce stress.</li>
+          <li><strong>Find enjoyable activities</strong>: Choose exercises you can sustain long-term.</li>
+          <li><strong>Set realistic goals</strong>: Start small, gradually increase intensity.</li>
+          <li><strong>Track exercise data</strong>: Use apps to track and maintain motivation.</li>
+          <li><strong>Exercise with friends</strong>: Increase fun and consistency.</li>
+          <li><strong>Allow adequate rest after exercise</strong>: Ensure sufficient recovery time.</li>
+        </ol>
+        
+        <h2>Part 3: Sleep Habits (66-75)</h2>
+        <ol start="66">
+          <li><strong>Get 7-9 hours quality sleep</strong>: Sleep deprivation increases inflammatory markers.</li>
+          <li><strong>Maintain regular sleep schedule</strong>: Same bedtime and wake time daily, even on weekends.</li>
+          <li><strong>Create comfortable sleep environment</strong>: Appropriate temperature, darkness, quiet.</li>
+          <li><strong>Avoid blue light 1 hour before bed</strong>: Reduce phone, computer, TV use.</li>
+          <li><strong>Establish bedtime routine</strong>: Reading, meditation, warm bath.</li>
+          <li><strong>Avoid large meals before bed</strong>: Stop eating 2-3 hours before sleep.</li>
+          <li><strong>Limit caffeine</strong>: Avoid caffeinated drinks after 2 PM.</li>
+          <li><strong>Get moderate sunlight during day</strong>: Helps regulate circadian rhythm.</li>
+          <li><strong>Avoid intense exercise before bed</strong>: Schedule exercise 3-4 hours before sleep.</li>
+          <li><strong>Use blackout curtains</strong>: Ensure bedroom is completely dark.</li>
+        </ol>
+        
+        <h2>Part 4: Stress Management (76-85)</h2>
+        <ol start="76">
+          <li><strong>Meditate 10-20 minutes daily</strong>: Mindfulness meditation can reduce stress hormones.</li>
+          <li><strong>Practice deep breathing</strong>: Several deep breathing exercises daily.</li>
+          <li><strong>Regular yoga practice</strong>: Combines exercise, breathing, and mindfulness.</li>
+          <li><strong>Cultivate hobbies</strong>: Music, painting, crafts, and other creative activities.</li>
+          <li><strong>Maintain social connections</strong>: Regular contact with family and friends for emotional support.</li>
+          <li><strong>Learn to say "no"</strong>: Set reasonable boundaries, avoid overcommitting.</li>
+          <li><strong>Regular relaxation</strong>: Massage, spa, listening to music.</li>
+          <li><strong>Practice gratitude</strong>: Write down 3 things to be grateful for daily.</li>
+          <li><strong>Limit news consumption</strong>: Avoid excessive focus on negative news.</li>
+          <li><strong>Seek professional help</strong>: Consult a therapist when necessary.</li>
+        </ol>
+        
+        <h2>Part 5: Lifestyle Adjustments (86-100)</h2>
+        <ol start="86">
+          <li><strong>Quit smoking</strong>: Smoking is a major trigger of inflammation.</li>
+          <li><strong>Control weight</strong>: Excess fat tissue secretes pro-inflammatory factors.</li>
+          <li><strong>Maintain good oral hygiene</strong>: Prevent gingivitis and other oral inflammation.</li>
+          <li><strong>Regular health checkups</strong>: Early detection and management of potential health issues.</li>
+          <li><strong>Maintain good posture</strong>: Prevent muscle and joint inflammation.</li>
+          <li><strong>Avoid environmental pollution</strong>: Reduce exposure to air pollution and harmful chemicals.</li>
+          <li><strong>Moderate sun exposure</strong>: 10-15 minutes daily to promote vitamin D synthesis.</li>
+          <li><strong>Reduce toxic substance exposure</strong>: Choose natural cleaning and personal care products.</li>
+          <li><strong>Maintain fresh indoor air</strong>: Use air purifiers, open windows regularly.</li>
+          <li><strong>Cultivate optimistic mindset</strong>: Positive attitude helps reduce stress-induced inflammation.</li>
+          <li><strong>Regular health monitoring</strong>: Check inflammatory markers like C-reactive protein.</li>
+          <li><strong>Avoid excessive antibiotic use</strong>: Use only when necessary, protect gut microbiome.</li>
+          <li><strong>Maintain gut health</strong>: Maintain microbiome balance through diet and supplements.</li>
+          <li><strong>Reduce electronic device use</strong>: Avoid overuse causing eye and neck inflammation.</li>
+          <li><strong>Maintain regular life rhythm</strong>: Stable rhythm helps reduce stress.</li>
+        </ol>
+        
+        <h2>How to Get Started?</h2>
+        <p>100 habits may seem overwhelming, but you don't need to implement them all at once. Remember the micro habits principle: start with the smallest changes. We suggest:</p>
+        <ol>
+          <li><strong>Choose 3-5 easiest to start</strong>: For example, drink one more glass of water, add one serving of vegetables, walk 10 minutes daily.</li>
+          <li><strong>Use habit stacking</strong>: Link new habits to existing ones, like "After breakfast, I drink a cup of green tea."</li>
+          <li><strong>Track your progress</strong>: Use Tiny Habits App to record daily anti-inflammatory habits, seeing your streak will keep you motivated.</li>
+          <li><strong>Build gradually</strong>: Once the first habit is stable, add new ones.</li>
+          <li><strong>Be patient</strong>: Reducing inflammation is a long-term process requiring consistent effort.</li>
+        </ol>
+        
+        <h2>Summary</h2>
+        <p>Reducing inflammation is not an overnight achievement but a process requiring long-term commitment. Through these 100 lifestyle habits, you can improve health across multiple dimensions. Remember, every small change has a cumulative effect. Start with tiny habits, gradually build a healthier lifestyle, and your body will thank you for your efforts.</p>
+      `
+    },
+    category: 'fitness',
+    date: '2025-12-03',
+    readTime: { zh: '15分钟', en: '15 min' },
+    image: 'https://media.istockphoto.com/id/1380970057/photo/healthy-food-assortment-on-light-background.webp?a=1&b=1&s=612x612&w=0&k=20&c=WurUiv5bfI9XCQqw9vIWF1yf6R0G89TpmEN4P4Ip1Vc=',
+    featured: true
   }
 ]
 
