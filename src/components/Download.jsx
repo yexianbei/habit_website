@@ -1,5 +1,4 @@
 import React from 'react'
-import { Smartphone, QrCode } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 
 // Apple Logo SVG Component
@@ -16,11 +15,10 @@ const AppleLogo = ({ size = 24 }) => (
 )
 
 const Download = () => {
-  const { t, tArray } = useLanguage()
-  const features = tArray('download.features')
+  const { t } = useLanguage()
 
   return (
-    <section id="download" className="py-20 bg-gradient-to-br from-primary via-yellow-400 to-yellow-300 relative overflow-hidden">
+    <section id="download" className="py-12 md:py-16 bg-gradient-to-br from-primary via-yellow-400 to-yellow-300 relative overflow-hidden">
       {/* 背景装饰 */}
       <div className="absolute inset-0 overflow-hidden opacity-10">
         <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full blur-3xl"></div>
@@ -29,15 +27,15 @@ const Download = () => {
 
       <div className="container mx-auto px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-6xl font-bold text-dark mb-6">
+          <h2 className="text-3xl md:text-5xl font-bold text-dark mb-4">
             {t('download.title')}
           </h2>
-          <p className="text-xl md:text-2xl text-dark/80 mb-12">
+          <p className="text-lg md:text-xl text-dark/80 mb-8">
             {t('download.subtitle')}
           </p>
 
           {/* 下载按钮 */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
             <a
               href="https://apps.apple.com/app/id1455083310"
               target="_blank"
@@ -57,15 +55,15 @@ const Download = () => {
 
           {/* 二维码区域 */}
           <div className="flex justify-center gap-8 flex-wrap">
-            <div className="bg-white rounded-3xl p-6 shadow-2xl">
-              <div className="w-48 h-48 rounded-2xl overflow-hidden mb-4">
+            <div className="bg-white rounded-2xl p-4 shadow-xl">
+              <div className="w-40 h-40 rounded-xl overflow-hidden mb-3">
                 <img 
                   src="/assets/apple_qr_code.png" 
                   alt="App Store QR Code"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <div className="text-center font-medium text-dark">{t('download.scanIOS')}</div>
+              <div className="text-center text-sm font-medium text-dark">{t('download.scanIOS')}</div>
             </div>
 
             {/* Android 二维码暂时隐藏 */}
@@ -81,16 +79,6 @@ const Download = () => {
             </div> */}
           </div>
 
-          {/* 特性提示 */}
-          <div className="mt-16 grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            {features.map((feature, index) => (
-              <div key={index} className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-                <div className="text-3xl mb-2">{index === 0 ? '🔒' : '☁️'}</div>
-                <div className="font-semibold text-dark mb-1">{feature.title}</div>
-                <div className="text-sm text-dark/70">{feature.description}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>
