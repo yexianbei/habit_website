@@ -36,6 +36,10 @@ const Hero = () => {
                 src="/app_icon.png" 
                 alt="Tiny Habits App Icon"
                 className="w-16 h-16 md:w-20 md:h-20 rounded-2xl shadow-lg ring-2 ring-primary/30"
+                loading="eager"
+                fetchPriority="high"
+                width="80"
+                height="80"
               />
               <h1 className="text-5xl md:text-7xl font-bold leading-tight">
                 {t('hero.title')}
@@ -70,6 +74,8 @@ const Hero = () => {
                   src="/assets/apple_qr_code.png" 
                   alt="Scan to Download"
                   className="w-20 h-20 rounded-lg"
+                  loading="lazy"
+                  fetchPriority="low"
                 />
                 <div className="text-left">
                   <div className="text-sm font-semibold text-gray-900">
@@ -121,6 +127,8 @@ const Hero = () => {
                       src={`/assets/app-screenshot-${num}.png`}
                       alt={`Tiny Habits Screenshot ${num}`}
                       className="w-full h-full object-cover"
+                      loading={num === 1 ? "eager" : "lazy"}
+                      fetchPriority={num === 1 ? "high" : "low"}
                     />
                   </div>
                 </div>
@@ -136,6 +144,8 @@ const Hero = () => {
                     src="/app_icon.png" 
                     alt="Tiny Habits App Icon"
                     className="w-full h-full object-contain rounded-xl"
+                    loading="eager"
+                    fetchPriority="high"
                   />
                 </div>
               </div>
@@ -148,6 +158,8 @@ const Hero = () => {
                       src="/assets/app-screenshot-1.png" 
                       alt="Tiny Habits Screenshot 1"
                       className="w-full h-full object-cover"
+                      loading="eager"
+                      fetchPriority="high"
                     />
                   </div>
                 </div>
@@ -161,6 +173,8 @@ const Hero = () => {
                       src="/assets/app-screenshot-2.png" 
                       alt="Tiny Habits Screenshot 2"
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      fetchPriority="low"
                     />
                   </div>
                 </div>
@@ -174,6 +188,8 @@ const Hero = () => {
                       src="/assets/app-screenshot-3.png" 
                       alt="Tiny Habits Screenshot 3"
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      fetchPriority="low"
                     />
                   </div>
                 </div>
@@ -187,6 +203,8 @@ const Hero = () => {
                       src="/assets/app-screenshot-4.png" 
                       alt="Tiny Habits Screenshot 4"
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      fetchPriority="low"
                     />
                   </div>
                 </div>

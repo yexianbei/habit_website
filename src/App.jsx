@@ -1,18 +1,29 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, Suspense, lazy } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Hero from './components/Hero'
 import Features from './components/Features'
-import UserStories from './components/UserStories'
-import Charts from './components/Charts'
-import Testimonials from './components/Testimonials'
-import Blog from './components/Blog'
-import Download from './components/Download'
 import Footer from './components/Footer'
 import LanguageSwitcher from './components/LanguageSwitcher'
 import SEO from './components/SEO'
-import BlogPost from './pages/BlogPost'
-import BlogList from './pages/BlogList'
+import LazySection from './components/LazySection'
 import { useLanguage } from './i18n/LanguageContext'
+
+// 懒加载非关键组件 - 代码分割
+const UserStories = lazy(() => import('./components/UserStories'))
+const Charts = lazy(() => import('./components/Charts'))
+const Testimonials = lazy(() => import('./components/Testimonials'))
+const Blog = lazy(() => import('./components/Blog'))
+const Download = lazy(() => import('./components/Download'))
+const BlogPost = lazy(() => import('./pages/BlogPost'))
+const BlogList = lazy(() => import('./pages/BlogList'))
+
+// 加载中的占位组件
+const LoadingPlaceholder = ({ height = '200px' }) => (
+  <div 
+    className="w-full bg-gray-50 animate-pulse rounded-lg" 
+    style={{ height }}
+  />
+)
 
 // 路由滚动处理组件
 const ScrollToTop = () => {
@@ -86,11 +97,32 @@ const Home = () => {
       />
       <Hero />
       <Features />
-      <UserStories />
-      <Charts />
-      <Testimonials />
-      <Blog />
-      <Download />
+      {/* 懒加载非关键组件 - 滚动到视口时才加载 */}
+      <LazySection fallback={<LoadingPlaceholder height="400px" />}>
+        <Suspense fallback={<LoadingPlaceholder height="400px" />}>
+          <UserStories />
+        </Suspense>
+      </LazySection>
+      <LazySection fallback={<LoadingPlaceholder height="600px" />}>
+        <Suspense fallback={<LoadingPlaceholder height="600px" />}>
+          <Charts />
+        </Suspense>
+      </LazySection>
+      <LazySection fallback={<LoadingPlaceholder height="500px" />}>
+        <Suspense fallback={<LoadingPlaceholder height="500px" />}>
+          <Testimonials />
+        </Suspense>
+      </LazySection>
+      <LazySection fallback={<LoadingPlaceholder height="800px" />}>
+        <Suspense fallback={<LoadingPlaceholder height="800px" />}>
+          <Blog />
+        </Suspense>
+      </LazySection>
+      <LazySection fallback={<LoadingPlaceholder height="400px" />}>
+        <Suspense fallback={<LoadingPlaceholder height="400px" />}>
+          <Download />
+        </Suspense>
+      </LazySection>
       <Footer />
     </>
   )
@@ -103,8 +135,22 @@ function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/blog" element={<BlogList />} />
-        <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route 
+          path="/blog" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="600px" />}>
+              <BlogList />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/blog/:slug" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="800px" />}>
+              <BlogPost />
+            </Suspense>
+          } 
+        />
       </Routes>
     </div>
   )
