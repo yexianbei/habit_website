@@ -1,3 +1,5 @@
+import { generatePostSlug } from '../utils/slug'
+
 // 博客文章数据
 export const blogPosts = [
   {
@@ -756,14 +758,94 @@ export const blogPosts = [
   }
 ]
 
+// 为所有文章生成并添加slug字段（如果还没有的话）
+blogPosts.forEach(post => {
+  if (!post.slug) {
+    post.slug = {
+      zh: generatePostSlug(post.title.zh, post.id, 'zh'),
+      en: generatePostSlug(post.title.en, post.id, 'en')
+    }
+  }
+})
+
 // 根据ID获取文章
 export const getPostById = (id) => {
   return blogPosts.find(post => post.id === parseInt(id))
+}
+
+// 根据slug获取文章
+export const getPostBySlug = (slug, lang = 'en') => {
+  // 首先尝试通过当前语言的slug匹配
+  let post = blogPosts.find(post => {
+    const postSlug = post.slug?.[lang] || generatePostSlug(post.title[lang], post.id, lang)
+    return postSlug === slug
+  })
+  
+  // 如果没找到，尝试通过另一种语言的slug匹配（支持跨语言访问）
+  if (!post) {
+    const otherLang = lang === 'zh' ? 'en' : 'zh'
+    post = blogPosts.find(post => {
+      const postSlug = post.slug?.[otherLang] || generatePostSlug(post.title[otherLang], post.id, otherLang)
+      return postSlug === slug
+    })
+  }
+  
+  // 如果还是没找到，尝试从slug中提取ID（向后兼容）
+  if (!post) {
+    const idMatch = slug.match(/-(\d+)$/)
+    if (idMatch) {
+      const id = parseInt(idMatch[1], 10)
+      post = blogPosts.find(p => p.id === id)
+    }
+  }
+  
+  return post
 }
 
 // 根据分类获取文章
 export const getPostsByCategory = (category) => {
   if (category === 'all') return blogPosts
   return blogPosts.filter(post => post.category === category)
+}
+
+// 获取相关文章（相同分类，排除当前文章）
+export const getRelatedPosts = (currentPost, limit = 3) => {
+  if (!currentPost) return []
+  
+  return blogPosts
+    .filter(post => 
+      post.id !== currentPost.id && 
+      post.category === currentPost.category
+    )
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, limit)
+}
+
+// 如果同一分类文章不足，用其他文章补充
+export const getRelatedPostsWithFallback = (currentPost, limit = 3) => {
+  if (!currentPost) return []
+  
+  // 优先获取同分类文章
+  const sameCategory = blogPosts
+    .filter(post => 
+      post.id !== currentPost.id && 
+      post.category === currentPost.category
+    )
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+  
+  // 如果不足，用其他分类文章补充
+  if (sameCategory.length < limit) {
+    const otherPosts = blogPosts
+      .filter(post => 
+        post.id !== currentPost.id && 
+        post.category !== currentPost.category
+      )
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, limit - sameCategory.length)
+    
+    return [...sameCategory, ...otherPosts].slice(0, limit)
+  }
+  
+  return sameCategory.slice(0, limit)
 }
 

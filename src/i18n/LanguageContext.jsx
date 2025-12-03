@@ -21,8 +21,8 @@ export const LanguageProvider = ({ children }) => {
   // 保存语言偏好到 localStorage
   useEffect(() => {
     localStorage.setItem('language', language)
-    // 更新 HTML lang 属性
-    document.documentElement.lang = language
+    // 更新 HTML lang 属性，使用标准语言代码
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'
   }, [language])
 
   // 切换语言

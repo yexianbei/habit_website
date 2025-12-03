@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Calendar, Clock, BookOpen } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { blogPosts } from '../data/blogPosts'
+import { generatePostSlug } from '../utils/slug'
 
 // 博客分类配置
 const categories = [
@@ -44,6 +45,14 @@ const Blog = () => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
   }
 
+  // 获取文章的slug
+  const getPostSlug = (post) => {
+    if (post.slug && post.slug[language]) {
+      return post.slug[language]
+    }
+    return generatePostSlug(post.title[language], post.id, language)
+  }
+
   return (
     <section id="blog" className="py-20 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-6">
@@ -80,7 +89,7 @@ const Blog = () => {
           {postsToShow.map((post) => (
             <Link
               key={post.id}
-              to={`/blog/${post.id}`}
+              to={`/blog/${getPostSlug(post)}`}
               // 标记来源于首页博客区，便于详情页返回时滚回博客位置
               state={{ from: 'home-blog' }}
               className="block"
@@ -180,7 +189,7 @@ const Blog = () => {
                   headline: post.title[language],
                   description: post.excerpt[language],
                   datePublished: post.date,
-                  url: window.location.origin + `/blog/${post.id}`,
+                  url: window.location.origin + `/blog/${getPostSlug(post)}`,
                   image: window.location.origin + post.image,
                   author: {
                     '@type': 'Organization',

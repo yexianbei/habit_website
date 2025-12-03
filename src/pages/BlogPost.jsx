@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react'
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, ArrowLeft, Share2, Twitter, Facebook } from 'lucide-react'
+import { Calendar, Clock, ArrowLeft, Share2, Twitter, Facebook, BookOpen, ChevronRight, Home } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
-import { getPostById } from '../data/blogPosts'
+import { getPostBySlug, getRelatedPostsWithFallback } from '../data/blogPosts'
+import { generatePostSlug } from '../utils/slug'
 import Footer from '../components/Footer'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import SEO from '../components/SEO'
 
 const categories = [
   { id: 'habit', name: { zh: '习惯养成', en: 'Habit Building' }, color: 'bg-blue-100 text-blue-700' },
@@ -16,11 +18,11 @@ const categories = [
 ]
 
 const BlogPost = () => {
-  const { id } = useParams()
+  const { slug } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const { language } = useLanguage()
-  const post = getPostById(id)
+  const post = getPostBySlug(slug, language)
 
   // 在全局开启 smooth scroll 的情况下，程序触发的滚动改为「瞬间滚动」
   const scrollInstantly = (y = 0) => {
@@ -45,7 +47,7 @@ const BlogPost = () => {
     if (typeof window !== 'undefined') {
       scrollInstantly(0)
     }
-  }, [id])
+  }, [slug])
 
   // 返回：区分来源
   const handleBack = () => {
@@ -135,21 +137,58 @@ const BlogPost = () => {
     window.open(fbUrl, '_blank', 'noopener,noreferrer')
   }
 
+  // SEO配置
+  const seoConfig = {
+    title: `${post.title[language]} | Tiny Habits Blog`,
+    description: post.excerpt[language],
+    keywords: language === 'zh' 
+      ? '习惯养成,微习惯,时间管理,效率提升,自律,习惯追踪'
+      : 'habit building, micro habits, time management, productivity, self-discipline',
+    image: post.image.startsWith('http') ? post.image : `https://tinyhabits.top${post.image}`,
+    type: 'article'
+  }
+
   return (
     <div className="min-h-screen bg-white">
+      <SEO {...seoConfig} />
       <LanguageSwitcher />
       
       {/* 文章头部 */}
       <article className="pt-20 pb-12">
         <div className="container mx-auto px-6 max-w-4xl">
-          {/* 返回按钮 */}
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-primary mb-8 transition-colors"
-          >
-            <ArrowLeft size={20} />
-            <span>{language === 'zh' ? '返回博客' : 'Back to Blog'}</span>
-          </button>
+          {/* 面包屑导航 */}
+          <nav aria-label="Breadcrumb" className="mb-8">
+            <ol className="flex items-center gap-2 text-sm text-gray-600 flex-wrap">
+              <li>
+                <Link 
+                  to="/" 
+                  className="flex items-center gap-1 hover:text-primary transition-colors"
+                  itemProp="item"
+                >
+                  <Home size={16} />
+                  <span itemProp="name">{language === 'zh' ? '首页' : 'Home'}</span>
+                </Link>
+              </li>
+              <li>
+                <ChevronRight size={16} className="text-gray-400" />
+              </li>
+              <li>
+                <Link 
+                  to="/blog" 
+                  className="hover:text-primary transition-colors"
+                  itemProp="item"
+                >
+                  <span itemProp="name">{language === 'zh' ? '博客' : 'Blog'}</span>
+                </Link>
+              </li>
+              <li>
+                <ChevronRight size={16} className="text-gray-400" />
+              </li>
+              <li className="text-gray-900 font-medium" aria-current="page" itemProp="item">
+                <span itemProp="name">{post.title[language]}</span>
+              </li>
+            </ol>
+          </nav>
 
           {/* 分类标签 */}
           <div className={`inline-block ${categoryColor} px-4 py-2 rounded-full text-sm font-medium mb-6`}>
@@ -218,6 +257,72 @@ const BlogPost = () => {
           {/* 分隔线 */}
           <div className="border-t my-12"></div>
 
+          {/* 相关文章推荐 */}
+          {(() => {
+            const relatedPosts = getRelatedPostsWithFallback(post, 3)
+            if (relatedPosts.length === 0) return null
+            
+            const getPostSlug = (post) => {
+              if (post.slug && post.slug[language]) {
+                return post.slug[language]
+              }
+              return generatePostSlug(post.title[language], post.id, language)
+            }
+            
+            return (
+              <div className="mb-12">
+                <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
+                  <BookOpen size={28} className="text-primary" />
+                  <span>{language === 'zh' ? '相关文章' : 'Related Articles'}</span>
+                </h2>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {relatedPosts.map((relatedPost) => (
+                    <Link
+                      key={relatedPost.id}
+                      to={`/blog/${getPostSlug(relatedPost)}`}
+                      className="block group"
+                    >
+                      <article className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
+                        {/* 文章封面图 */}
+                        <div className="relative h-40 overflow-hidden">
+                          <img
+                            src={relatedPost.image}
+                            alt={relatedPost.title[language]}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                          {relatedPost.featured && (
+                            <div className="absolute top-3 left-3 bg-primary text-dark px-2 py-1 rounded-full text-xs font-semibold">
+                              {language === 'zh' ? '精选' : 'Featured'}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* 文章内容 */}
+                        <div className="p-4 flex-1 flex flex-col">
+                          <div className="text-xs text-gray-500 mb-2">
+                            <time dateTime={relatedPost.date}>
+                              {formatDate(relatedPost.date)}
+                            </time>
+                          </div>
+                          <h3 className="text-lg font-bold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                            {relatedPost.title[language]}
+                          </h3>
+                          <p className="text-sm text-gray-600 line-clamp-2 flex-1">
+                            {relatedPost.excerpt[language]}
+                          </p>
+                        </div>
+                      </article>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* 分隔线 */}
+          <div className="border-t my-12"></div>
+
           {/* 返回博客按钮 */}
           <div className="text-center">
             <button
@@ -231,33 +336,80 @@ const BlogPost = () => {
         </div>
       </article>
 
-      {/* SEO: 结构化数据 */}
+      {/* SEO: 结构化数据 - BlogPosting */}
       {typeof window !== 'undefined' && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+        <>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'BlogPosting',
               headline: post.title[language],
               description: post.excerpt[language],
               datePublished: post.date,
-              image: window.location.origin + post.image,
+              dateModified: post.date,
+              image: post.image.startsWith('http') 
+                ? post.image 
+                : `${window.location.origin}${post.image}`,
               author: {
-                '@type': 'Organization',
-                name: language === 'zh' ? '小习惯团队' : 'Tiny Habits Team'
+                '@type': 'Person',
+                name: language === 'zh' ? '小习惯团队' : 'Tiny Habits Team',
+                url: 'https://tinyhabits.top'
               },
               publisher: {
                 '@type': 'Organization',
                 name: language === 'zh' ? '小习惯' : 'Tiny Habits',
                 logo: {
                   '@type': 'ImageObject',
-                  url: window.location.origin + '/app_icon.png'
+                  url: `${window.location.origin}/app_icon.png`,
+                  width: 512,
+                  height: 512
                 }
-              }
-            })
-          }}
-        />
+              },
+              mainEntityOfPage: {
+                '@type': 'WebPage',
+                '@id': window.location.href
+              },
+              articleSection: categoryName || (language === 'zh' ? '博客' : 'Blog'),
+              keywords: language === 'zh' 
+                ? '习惯养成,微习惯,时间管理,效率提升,自律,习惯追踪'
+                : 'habit building, micro habits, time management, productivity, self-discipline',
+              wordCount: post.content[language].replace(/<[^>]*>/g, '').split(/\s+/).length
+              })
+            }}
+          />
+          {/* 面包屑导航结构化数据 */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'BreadcrumbList',
+                itemListElement: [
+                  {
+                    '@type': 'ListItem',
+                    position: 1,
+                    name: language === 'zh' ? '首页' : 'Home',
+                    item: 'https://tinyhabits.top'
+                  },
+                  {
+                    '@type': 'ListItem',
+                    position: 2,
+                    name: language === 'zh' ? '博客' : 'Blog',
+                    item: 'https://tinyhabits.top/blog'
+                  },
+                  {
+                    '@type': 'ListItem',
+                    position: 3,
+                    name: post.title[language],
+                    item: window.location.href
+                  }
+                ]
+              })
+            }}
+          />
+        </>
       )}
 
       <Footer />

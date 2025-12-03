@@ -1,9 +1,17 @@
 User-agent: *
 Allow: /
 
-# Disallow common non-production paths (adjust if不需要)
+# Disallow common non-production paths
 Disallow: /dist/
 Disallow: /node_modules/
+Disallow: /.git/
+
+# Allow all search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
 
 Sitemap: https://tinyhabits.top/sitemap.xml
 

@@ -4,6 +4,8 @@ import { Calendar, Clock, BookOpen, ArrowLeft } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { blogPosts } from '../data/blogPosts'
 import Footer from '../components/Footer'
+import SEO from '../components/SEO'
+import { generatePostSlug } from '../utils/slug'
 
 // 博客分类配置（与首页博客区域保持一致）
 const categories = [
@@ -39,6 +41,14 @@ const BlogList = () => {
       return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
     }
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  }
+
+  // 获取文章的slug
+  const getPostSlug = (post) => {
+    if (post.slug && post.slug[language]) {
+      return post.slug[language]
+    }
+    return generatePostSlug(post.title[language], post.id, language)
   }
 
   // 在全局 smooth scroll 开启的情况下，程序触发的滚动改为「瞬间滚动」
@@ -79,8 +89,23 @@ const BlogList = () => {
     }
   }, [navigationType])
 
+  const seoConfig = language === 'zh' ? {
+    title: '博客文章 | 习惯养成、时间管理、效率提升 - Tiny Habits',
+    description: '探索微习惯、时间管理、效率提升等主题的深度文章。学习如何通过科学的方法养成好习惯，提升生活和工作效率。',
+    keywords: '习惯养成,时间管理,效率提升,微习惯,自律,番茄工作法,习惯追踪',
+    image: 'https://tinyhabits.top/app_icon.png',
+    type: 'website'
+  } : {
+    title: 'Blog Articles | Habit Building, Time Management, Productivity - Tiny Habits',
+    description: 'Explore in-depth articles on micro habits, time management, and productivity. Learn how to build good habits and improve your life with science-based methods.',
+    keywords: 'habit building, time management, productivity, micro habits, self-discipline, pomodoro technique',
+    image: 'https://tinyhabits.top/app_icon.png',
+    type: 'website'
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <SEO {...seoConfig} />
       <main className="py-20">
         <div className="container mx-auto px-6">
           {/* 标题区域 */}
@@ -132,7 +157,7 @@ const BlogList = () => {
             {filteredPosts.map((post) => (
               <Link
                 key={post.id}
-                to={`/blog/${post.id}`}
+                to={`/blog/${getPostSlug(post)}`}
                 state={{ from: 'blog-list' }}
                 className="block"
               >
