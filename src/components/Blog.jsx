@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, Clock, BookOpen } from 'lucide-react'
+import { Calendar, Clock, BookOpen, Eye } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { blogPosts } from '../data/blogPosts'
 import { generatePostSlug } from '../utils/slug'
+import { getViewCounts, formatViewCount } from '../utils/viewCounter'
 
 // 博客分类配置
 const categories = [
@@ -19,6 +20,7 @@ const categories = [
 const Blog = () => {
   const { t, language } = useLanguage()
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [viewCounts, setViewCounts] = useState({})
 
   // 先按时间从新到旧排序，再根据选择的分类筛选文章
   const sortedPosts = [...blogPosts].sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -29,6 +31,19 @@ const Blog = () => {
 
   // 首页只展示最多两行（每行 3 篇），共 6 篇文章
   const postsToShow = filteredPosts.slice(0, 6)
+
+  // 获取阅读数
+  useEffect(() => {
+    const fetchViewCounts = async () => {
+      const postIds = postsToShow.map(post => post.id)
+      const counts = await getViewCounts(postIds)
+      setViewCounts(counts)
+    }
+
+    if (postsToShow.length > 0) {
+      fetchViewCounts()
+    }
+  }, [postsToShow])
 
   // 获取当前语言的分类名称
   const getCategoryName = (categoryId) => {
@@ -137,6 +152,15 @@ const Blog = () => {
                     <div className="flex items-center gap-1">
                       <Clock size={16} />
                       <span>{post.readTime[language]}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Eye size={16} />
+                      <span>
+                        {viewCounts[post.id] !== undefined
+                          ? formatViewCount(viewCounts[post.id])
+                          : '--'
+                        }
+                      </span>
                     </div>
                   </div>
 

@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
-import { Calendar, Clock, ArrowLeft, Share2, Twitter, Facebook, BookOpen, ChevronRight, Home } from 'lucide-react'
+import { Calendar, Clock, ArrowLeft, Share2, Twitter, Facebook, BookOpen, ChevronRight, Home, Eye } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { getPostBySlug, getRelatedPostsWithFallback } from '../data/blogPosts'
 import { generatePostSlug } from '../utils/slug'
+import { incrementViewCount, getViewCount, formatViewCount } from '../utils/viewCounter'
 import Footer from '../components/Footer'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import SEO from '../components/SEO'
@@ -23,6 +24,7 @@ const BlogPost = () => {
   const location = useLocation()
   const { language } = useLanguage()
   const post = getPostBySlug(slug, language)
+  const [viewCount, setViewCount] = useState(null)
 
   // 在全局开启 smooth scroll 的情况下，程序触发的滚动改为「瞬间滚动」
   const scrollInstantly = (y = 0) => {
@@ -48,6 +50,26 @@ const BlogPost = () => {
       scrollInstantly(0)
     }
   }, [slug])
+
+  // 记录阅读次数并获取当前阅读数
+  useEffect(() => {
+    if (!post || !post.id) return
+
+    const recordView = async () => {
+      // 先获取当前阅读数
+      const currentCount = await getViewCount(post.id)
+      setViewCount(currentCount)
+
+      // 增加阅读次数（异步执行，不阻塞页面）
+      incrementViewCount(post.id).then((newCount) => {
+        if (newCount !== null) {
+          setViewCount(newCount)
+        }
+      })
+    }
+
+    recordView()
+  }, [post])
 
   // 返回：区分来源
   const handleBack = () => {
@@ -211,6 +233,15 @@ const BlogPost = () => {
             <div className="flex items-center gap-2">
               <Clock size={18} />
               <span>{post.readTime[language]}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Eye size={18} />
+              <span>
+                {viewCount !== null 
+                  ? `${formatViewCount(viewCount)} ${language === 'zh' ? '次阅读' : 'views'}`
+                  : '...'
+                }
+              </span>
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <button
