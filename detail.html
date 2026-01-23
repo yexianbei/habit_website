@@ -34,7 +34,7 @@
 
         .header {
             background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
-            padding: 20px;
+            padding: 20px 20px 50px 20px;
             color: white;
             border-radius: 0 0 24px 24px;
             box-shadow: 0 4px 12px rgba(255, 107, 157, 0.2);
@@ -630,6 +630,9 @@
             <div class="legend-item">
                 <span style="font-size: 12px; margin-right: 4px;">❤️</span>爱爱
             </div>
+            <div class="legend-item">
+                <span style="font-size: 12px; margin-right: 4px;">😊</span>心情
+            </div>
         </div>
     </div>
 
@@ -935,8 +938,15 @@
                             }
 
                             if (details.mood) {
-                                const dot = createDiv('item-dot dot-mood');
-                                el.appendChild(dot);
+                                const MAP_MOOD_ICON = { 1: "😊", 2: "😐", 3: "😢", 4: "😰", 5: "😠" };
+                                const moodIcon = document.createElement('div');
+                                moodIcon.textContent = MAP_MOOD_ICON[details.mood] || "😊";
+                                moodIcon.style.position = 'absolute';
+                                moodIcon.style.left = '1px';
+                                moodIcon.style.top = '0px';
+                                moodIcon.style.fontSize = '8px';
+                                moodIcon.style.lineHeight = '1';
+                                el.appendChild(moodIcon);
                             }
                             if (details.isLove === true || (details.loveMeasure !== undefined && details.loveMeasure !== null) || details.loveTime) {
                                 const loveIcon = document.createElement('div');
