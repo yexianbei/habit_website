@@ -569,10 +569,7 @@
     <!-- 详情弹窗 -->
     <div id="detailsModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                <span>日期:</span>
-                <input type="date" id="detailDateInput" class="form-input" style="width: auto; padding: 4px 8px;">
-            </div>
+            <div class="modal-header" id="detailDateTitle">2023-10-01</div>
 
             <div class="switch-container">
                 <span class="status-title" style="margin:0; font-size:16px;">大姨妈来了</span>
@@ -628,28 +625,214 @@
     </div>
 
     <script>
-        // ... (existing code) ...
+        // State
+        let currentDate = new Date();
+        let currentSelectedDate = null;
+        let periodLogs = [];
+        let config = { cycleLen: 28, periodLen: 5 }; // Defaults
 
-        // Updated openDetails
+        // Helpers
+        const formatDate = (d) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        };
+
+        const parseDate = (s) => new Date(s.replace(/-/g, '/')); // Compatible parsing
+        const addDays = (d, days) => new Date(d.getTime() + days * 86400000);
+
+        // Init
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchConfig();
+            fetchData();
+        });
+
+        let lastPeriodStart = null;
+
+        // ----------------- Data Ops -----------------
+        function fetchConfig() {
+            if (window.HabitNative && window.HabitNative.getPeriodConfig) {
+                try {
+                    const json = window.HabitNative.getPeriodConfig();
+                    const saved = JSON.parse(json || "{}");
+                    if (saved.cycleLen) config.cycleLen = saved.cycleLen;
+                    if (saved.periodLen) config.periodLen = saved.periodLen;
+                } catch (e) {
+                    console.error("Config parse error", e);
+                }
+            }
+        }
+
+        function fetchData() {
+            if (window.HabitNative) {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                const startDate = formatDate(new Date(year, month, 1));
+                const endDate = formatDate(new Date(year, month + 1, 0));
+
+                try {
+                    const pLogs = window.HabitNative.getPeriodLogs(startDate, endDate);
+                    periodLogs = JSON.parse(pLogs || "[]");
+
+                    if (window.HabitNative.getLastPeriodStartDate) {
+                        const lps = window.HabitNative.getLastPeriodStartDate();
+                        // Reset to null if empty, otherwise parse
+                        lastPeriodStart = lps ? parseDate(lps) : null;
+                    }
+
+                    renderCalendar();
+                    updateStatusCard();
+                    updateMoodList();
+                } catch (e) { console.error(e); }
+            }
+        }
+
+        // ----------------- Calendar -----------------
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            document.getElementById('currentMonthYear').textContent = `${year}年${month + 1}月`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const container = document.getElementById('calendarDays');
+            container.innerHTML = "";
+
+            for (let i = 0; i < firstDay; i++) {
+                container.appendChild(createDiv('day'));
+            }
+
+            const todayStr = formatDate(new Date());
+            const monthStart = new Date(year, month, 1);
+            const monthEnd = new Date(year, month + 1, 0);
+
+            // Prediction sets
+            let predictedDates = new Set();
+            let ovulationDates = new Set();
+            let peakOvulationDates = new Set();
+
+            if (lastPeriodStart && config.cycleLen > 0) {
+                // Calculate future periods relative to lastPeriodStart
+                // Iterate forward from lastPeriodStart until we pass this month
+                let nextStart = new Date(lastPeriodStart.getTime());
+                // Move to near current month
+                while (nextStart < monthEnd) {
+                    // Check if this period cycle falls in current month
+                    // Period Range: nextStart to nextStart + periodLen
+                    // Ovulation: nextStart + cycleLen - 14
+
+                    // Next Cycle Start (Hypothetical next)
+                    let cycleNext = addDays(nextStart, config.cycleLen);
+
+                    // If nextStart is in the past compared to lastPeriodStart, it's actual data (should be), 
+                    // but we use lastPeriodStart as the anchor of known truth.
+                    // IMPORTANT: We only predict FUTURE from lastPeriodStart
+                    if (nextStart > lastPeriodStart) {
+                        // Add predicted period days
+                        for (let d = 0; d < config.periodLen; d++) {
+                            const pDate = addDays(nextStart, d);
+                            if (pDate >= monthStart && pDate <= monthEnd) {
+                                predictedDates.add(formatDate(pDate));
+                            }
+                        }
+                    }
+
+                    // Ovulation for the cycle ending at cycleNext
+                    // Ovulation is roughly 14 days before NEXT period
+                    const ovDay = addDays(cycleNext, -14);
+                    if (ovDay >= monthStart && ovDay <= monthEnd) {
+                        // Peak Ovulation Day
+                        peakOvulationDates.add(formatDate(ovDay));
+
+                        // Ovulation Window: 5 days ending on ovulation day (inclusive)
+                        for (let w = -4; w <= 0; w++) {
+                            const fDate = addDays(ovDay, w);
+                            if (fDate >= monthStart && fDate <= monthEnd) {
+                                ovulationDates.add(formatDate(fDate));
+                            }
+                        }
+                    }
+
+                    nextStart = cycleNext;
+                }
+            }
+
+            for (let i = 1; i <= lastDate; i++) {
+                const date = new Date(year, month, i);
+                const dateStr = formatDate(date);
+                const el = createDiv('day');
+                el.textContent = i;
+                el.style.cursor = 'pointer';
+                el.onclick = () => openDetails(dateStr);
+
+                if (dateStr === todayStr) el.classList.add('today');
+
+                const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === dateStr);
+
+                // Priority: Actual Log > Ovulation > Predicted
+                if (log) {
+                    el.classList.add('period');
+                    el.classList.add('period-single');
+                    if (log.signUpId) {
+                        try {
+                            const details = JSON.parse(log.signUpId);
+                            if (details.mood) {
+                                const dot = createDiv('item-dot dot-mood');
+                                el.appendChild(dot);
+                            }
+                        } catch (e) { }
+                    }
+                } else if (peakOvulationDates.has(dateStr)) {
+                    el.classList.add('ovulation-day');
+                } else if (ovulationDates.has(dateStr)) {
+                    el.classList.add('ovulation-window');
+                } else if (predictedDates.has(dateStr)) {
+                    el.classList.add('predicted-period');
+                }
+
+                container.appendChild(el);
+            }
+        }
+
+        function createDiv(cls) {
+            const d = document.createElement('div');
+            d.className = cls;
+            return d;
+        }
+
+        function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); fetchData(); }
+        function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); fetchData(); }
+
+        // ----------------- Modals & Logic -----------------
+
+        function openSettings() {
+            document.getElementById('cycleLenInput').value = config.cycleLen;
+            document.getElementById('periodLenInput').value = config.periodLen;
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function saveSettings() {
+            const c = parseInt(document.getElementById('cycleLenInput').value);
+            const p = parseInt(document.getElementById('periodLenInput').value);
+            if (c > 0 && p > 0) {
+                config.cycleLen = c;
+                config.periodLen = p;
+                if (window.HabitNative && window.HabitNative.savePeriodConfig) {
+                    window.HabitNative.savePeriodConfig(c, p);
+                }
+                closeModal('settingsModal');
+                updateStatusCard(); // Re-calculate status
+            }
+        }
+
+        function openTodayDetails() {
+            openDetails(formatDate(new Date()));
+        }
+
         function openDetails(dateStr) {
             currentSelectedDate = dateStr;
-            const input = document.getElementById('detailDateInput');
-            input.value = dateStr;
-            input.onchange = (e) => updateModalForDate(e.target.value);
-
-            updateModalUI(dateStr);
-            document.getElementById('detailsModal').style.display = 'flex';
-        }
-
-        function updateModalForDate(dateStr) {
-            currentSelectedDate = dateStr;
-            updateModalUI(dateStr);
-        }
-
-        function updateModalUI(dateStr) {
-            // Find logic from periodLogs (note: periodLogs only has current month data!)
-            // If user picks date outside month, it might show empty even if data exists.
-            // But this is acceptable for "logging" new data.
+            document.getElementById('detailDateTitle').textContent = dateStr;
             const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === dateStr);
 
             const toggle = document.getElementById('periodToggle');
@@ -678,8 +861,9 @@
             toggle.onchange = (e) => {
                 detailSection.style.display = e.target.checked ? 'block' : 'none';
             };
-        }
 
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
 
         function bindSelectors() {
             document.querySelectorAll('.selector-chip').forEach(chip => {
