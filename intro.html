@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大姨妈管理 - 功能说明</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #ff6b9d;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .features {
+            margin: 30px 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: #ff6b9d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .feature-content h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .feature-content p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .add-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .add-button:active {
+            transform: scale(0.98);
+        }
+
+        .add-button:hover {
+            box-shadow: 0 5px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .tips {
+            margin-top: 30px;
+            padding: 15px;
+            background: #fff3f8;
+            border-radius: 12px;
+            border-left: 4px solid #ff6b9d;
+        }
+
+        .tips p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">🌸</div>
+            <h1>大姨妈管理</h1>
+            <p class="subtitle">记录经期，了解自己的身体，关爱自己的健康</p>
+        </div>
+
+        <div class="features">
+            <div class="feature-item">
+                <div class="feature-icon">📅</div>
+                <div class="feature-content">
+                    <h3>经期记录</h3>
+                    <p>轻松记录每次经期的开始和结束时间，自动计算周期</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <div class="feature-content">
+                    <h3>周期预测</h3>
+                    <p>根据历史数据智能预测下次经期时间，提前做好准备</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">💊</div>
+                <div class="feature-content">
+                    <h3>症状记录</h3>
+                    <p>记录经期相关症状，帮助了解自己的身体状况</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">📈</div>
+                <div class="feature-content">
+                    <h3>数据统计</h3>
+                    <p>查看经期历史数据，了解周期规律和变化趋势</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tips">
+            <p><strong>温馨提示：</strong>数据仅存储在本地，保护您的隐私安全。所有数据不会上传到服务器。</p>
+        </div>
+
+        <button class="add-button" onclick="addHabit()">添加到我的习惯</button>
+    </div>
+
+    <script>
+        // 添加习惯
+        function addHabit() {
+            // 调用原生方法添加习惯
+            if (window.HabitNative) {
+                // 这里可以调用原生接口添加习惯
+                // 暂时使用关闭页面，实际应该调用原生添加习惯的方法
+                window.HabitNative.close();
+            } else {
+                // 如果不是在App内，显示提示
+                alert('请在App内使用此功能');
+            }
+        }
+
+        // 监听原生注入的数据
+        window.onHabitDataReady = function(habitData) {
+            console.log('收到习惯数据:', habitData);
+        };
+    </script>
+</body>
+</html>
