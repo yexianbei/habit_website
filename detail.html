@@ -348,7 +348,10 @@
                 dayEl.className = 'day';
                 dayEl.textContent = i;
 
-                const dateStr = formatDate(new Date(year, month, i));
+                // Add click handler for interaction
+                const dateHelper = new Date(year, month, i);
+                const dateStr = formatDate(dateHelper);
+                dayEl.onclick = () => togglePeriod(dateStr);
 
                 // Today
                 if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
@@ -506,15 +509,25 @@
         }
 
         // ----------------- Actions -----------------
-        function checkInPeriod() {
+        function togglePeriod(dateStr) {
             if (window.HabitNative) {
-                // Call native checkIn which defaults to today
-                window.HabitNative.checkIn(JSON.stringify({}));
-                // Refresh data after delay
-                setTimeout(fetchData, 500);
+                // Check in for specific date
+                const data = {
+                    date: dateStr
+                };
+                window.HabitNative.checkIn(JSON.stringify(data));
+
+                // Optimistic UI update or wait for refresh
+                setTimeout(fetchData, 300);
             } else {
                 alert("请在App中操作");
             }
+        }
+
+        function checkInPeriod() {
+            // Check in for TODAY
+            const todayStr = formatDate(new Date());
+            togglePeriod(todayStr);
         }
 
         function recordMood() {
