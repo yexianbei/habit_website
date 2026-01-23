@@ -1,330 +1,541 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>大姨妈管理</title>
     <style>
+        :root {
+            --primary-color: #FF6B9D;
+            --primary-light: #FFF0F5;
+            --text-main: #333;
+            --text-secondary: #999;
+            --bg-color: #F8F9FA;
+            --card-bg: #FFFFFF;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-            background: #f5f5f5;
-            min-height: 100vh;
-            padding: 20px;
-            color: #333;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 80px;
         }
 
         .header {
-            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 100%);
-            border-radius: 20px;
-            padding: 30px;
+            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+            padding: 20px;
             color: white;
-            margin-bottom: 20px;
-            text-align: center;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.2);
         }
 
         .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 24px;
+            margin-bottom: 8px;
         }
 
-        .header .subtitle {
+        .header p {
             font-size: 14px;
             opacity: 0.9;
         }
 
         .card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin: 16px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
-        .card-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        .cycle-info {
-            display: flex;
-            justify-content: space-around;
-            margin: 20px 0;
-        }
-
-        .cycle-item {
+        /* Status Card */
+        .status-card {
             text-align: center;
+            padding: 24px;
+            margin-top: -30px;
+            position: relative;
+            z-index: 10;
         }
 
-        .cycle-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #ff6b9d;
-            margin-bottom: 5px;
-        }
-
-        .cycle-label {
+        .status-title {
             font-size: 14px;
-            color: #666;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
         }
 
-        .action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
+        .status-days {
+            font-size: 36px;
             font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            color: var(--primary-color);
         }
 
-        .btn:active {
-            transform: scale(0.98);
+        .status-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 100%);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 5px 20px rgba(255, 107, 157, 0.4);
-        }
-
-        .record-list {
-            list-style: none;
-        }
-
-        .record-item {
-            padding: 15px;
-            border-bottom: 1px solid #f0f0f0;
+        /* Calendar */
+        .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 16px;
         }
 
-        .record-item:last-child {
+        .month-selector {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .month-btn {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            color: var(--primary-color);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .day.today {
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .day.period {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .day.period-start {
+            border-radius: 50% 0 0 50%;
+        }
+
+        .day.period-end {
+            border-radius: 0 50% 50% 0;
+        }
+
+        .day.period-single {
+            border-radius: 50%;
+        }
+
+        .day.predicted {
+            border: 1px dashed var(--primary-color);
+            color: var(--primary-color);
+            opacity: 0.6;
+        }
+
+        .mood-dot {
+            width: 4px;
+            height: 4px;
+            background-color: #FFB347;
+            /* Orange for mood */
+            border-radius: 50%;
+            position: absolute;
+            bottom: 4px;
+        }
+
+        /* Actions */
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 0 16px;
+        }
+
+        .btn {
+            background: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-main);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+        }
+
+        .btn-period {
+            color: var(--primary-color);
+        }
+
+        .btn-mood {
+            color: #FFB347;
+        }
+
+        .btn i {
+            font-size: 20px;
+        }
+
+        /* Mood List */
+        .mood-list {
+            list-style: none;
+        }
+
+        .mood-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .mood-item:last-child {
             border-bottom: none;
         }
 
-        .record-date {
-            font-size: 16px;
-            color: #333;
-        }
-
-        .record-status {
-            padding: 4px 12px;
-            border-radius: 12px;
+        .mood-time {
             font-size: 12px;
-            background: #fff3f8;
-            color: #ff6b9d;
+            color: var(--text-secondary);
+            width: 60px;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #999;
+        .mood-value {
+            font-size: 14px;
+            color: var(--text-main);
         }
 
-        .empty-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #999;
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
+            font-size: 24px;
+            border: none;
+            z-index: 100;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🌸 大姨妈管理</h1>
-            <p class="subtitle">记录经期，关爱健康</p>
-        </div>
 
-        <div class="card">
-            <div class="card-title">周期信息</div>
-            <div class="cycle-info">
-                <div class="cycle-item">
-                    <div class="cycle-value" id="cycleDays">--</div>
-                    <div class="cycle-label">周期天数</div>
-                </div>
-                <div class="cycle-item">
-                    <div class="cycle-value" id="periodDays">--</div>
-                    <div class="cycle-label">经期天数</div>
-                </div>
-                <div class="cycle-item">
-                    <div class="cycle-value" id="nextPeriod">--</div>
-                    <div class="cycle-label">下次经期</div>
-                </div>
-            </div>
-        </div>
+    <div class="header">
+        <h1>大姨妈管理</h1>
+        <p>关爱自己，从记录开始</p>
+    </div>
 
-        <div class="card">
-            <div class="card-title">今日打卡</div>
-            <div class="action-buttons">
-                <button class="btn btn-primary" onclick="checkIn()">记录经期</button>
-                <button class="btn btn-secondary" onclick="viewHistory()">查看历史</button>
-            </div>
-        </div>
+    <!-- 状态卡片 -->
+    <div class="card status-card">
+        <div class="status-title">当前状态</div>
+        <div class="status-days" id="statusMain">--</div>
+        <div class="status-desc" id="statusSub">正在计算周期...</div>
+    </div>
 
-        <div class="card">
-            <div class="card-title">最近记录</div>
-            <ul class="record-list" id="recordList">
-                <li class="loading">加载中...</li>
-            </ul>
+    <!-- 日历卡片 -->
+    <div class="card">
+        <div class="calendar-header">
+            <button class="month-btn" onclick="prevMonth()">❮</button>
+            <div class="month-selector" id="currentMonthYear">2023年10月</div>
+            <button class="month-btn" onclick="nextMonth()">❯</button>
+        </div>
+        <div class="weekdays">
+            <div>日</div>
+            <div>一</div>
+            <div>二</div>
+            <div>三</div>
+            <div>四</div>
+            <div>五</div>
+            <div>六</div>
+        </div>
+        <div class="days" id="calendarDays">
+            <!-- Days injected by JS -->
         </div>
     </div>
 
-    <script>
-        let habitData = null;
-        let records = [];
+    <!-- 操作按钮 -->
+    <div class="actions">
+        <button class="btn btn-period" onclick="checkInPeriod()">
+            <i>🌸</i> 记经期
+        </button>
+        <button class="btn btn-mood" onclick="recordMood()">
+            <i>😊</i> 记心情
+        </button>
+    </div>
 
-        // 页面加载时获取习惯数据
-        window.addEventListener('DOMContentLoaded', function() {
-            loadHabitData();
-            loadRecords();
+    <!-- 心情记录 -->
+    <div class="card">
+        <div class="status-title" style="text-align: left; margin-bottom: 16px;">最近心情</div>
+        <ul class="mood-list" id="moodList">
+            <li class="mood-item" style="color: #999; justify-content: center;">暂无心情记录</li>
+        </ul>
+    </div>
+
+    <script>
+        // State
+        let currentDate = new Date();
+        let periodLogs = [];
+        let moodLogs = [];
+
+        // MOOD MAP (Native mapping fallback)
+        const MOOD_MAP = ["狂喜", "开心", "惊讶", "轻松", "一般", "无感", "难过", "焦虑", "生气", "想死"];
+
+        // Init
+        window.addEventListener('DOMContentLoaded', () => {
+            renderCalendar();
+            fetchData();
         });
 
-        // 加载习惯数据
-        function loadHabitData() {
-            if (window.HabitNative) {
-                try {
-                    const data = window.HabitNative.getHabitData();
-                    if (data) {
-                        habitData = JSON.parse(data);
-                        updateUI();
-                    }
-                } catch (e) {
-                    console.error('获取习惯数据失败:', e);
+        // ----------------- Calendar Logic -----------------
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            document.getElementById('currentMonthYear').textContent = `${year}年${month + 1}月`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const calendarDays = document.getElementById('calendarDays');
+            calendarDays.innerHTML = "";
+
+            // Empty slots
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'day';
+                calendarDays.appendChild(empty);
+            }
+
+            // Days
+            const today = new Date();
+            for (let i = 1; i <= lastDate; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'day';
+                dayEl.textContent = i;
+
+                const dateStr = formatDate(new Date(year, month, i));
+
+                // Today
+                if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
+                    dayEl.classList.add('today');
                 }
+
+                // Check Period Logs
+                if (isPeriodDate(dateStr)) {
+                    dayEl.classList.add('period');
+                    dayEl.classList.add('period-single'); // Simplification
+                }
+
+                // Check Mood Logs
+                if (hasMoodLog(dateStr)) {
+                    const dot = document.createElement('div');
+                    dot.className = 'mood-dot';
+                    dayEl.appendChild(dot);
+                }
+
+                calendarDays.appendChild(dayEl);
             }
         }
 
-        // 更新UI
-        function updateUI() {
-            if (!habitData) return;
-
-            // 更新周期信息（这里可以根据实际数据计算）
-            document.getElementById('cycleDays').textContent = '28';
-            document.getElementById('periodDays').textContent = '5';
-            document.getElementById('nextPeriod').textContent = '3天后';
+        function prevMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+            fetchData();
         }
 
-        // 加载记录
-        function loadRecords() {
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+            fetchData();
+        }
+
+        // ----------------- Data Fetching -----------------
+        function fetchData() {
             if (window.HabitNative) {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+
+                // Fetch for entire month (with padding)
+                const startDate = formatDate(new Date(year, month, 1));
+                const endDate = formatDate(new Date(year, month + 1, 0)); // Last day of month
+
                 try {
-                    const today = new Date().toISOString().split('T')[0];
-                    const data = window.HabitNative.getCheckInRecords(today);
-                    if (data) {
-                        records = JSON.parse(data);
-                        renderRecords();
-                    } else {
-                        showEmptyState();
-                    }
+                    // Fetch Period
+                    const pLogs = window.HabitNative.getPeriodLogs(startDate, endDate);
+                    periodLogs = JSON.parse(pLogs || "[]");
+
+                    // Fetch Mood
+                    const mLogs = window.HabitNative.getMoodLogs(startDate, endDate);
+                    moodLogs = JSON.parse(mLogs || "[]");
+
+                    renderCalendar();
+                    updateStatusCard();
+                    updateMoodList();
                 } catch (e) {
-                    console.error('获取记录失败:', e);
-                    showEmptyState();
+                    console.error("Fetch Error:", e);
                 }
             } else {
-                showEmptyState();
+                console.warn("HabitNative not found");
+                // Mock data for dev
+                // periodLogs = [{createTime: new Date().getTime()}];
+                // renderCalendar();
             }
         }
 
-        // 渲染记录列表
-        function renderRecords() {
-            const list = document.getElementById('recordList');
-            
-            if (records.length === 0) {
-                showEmptyState();
+        // ----------------- Helpers -----------------
+
+        // Check if date string matches any period log
+        function isPeriodDate(dateStr) {
+            return periodLogs.some(log => {
+                const logDate = new Date(log.createTime);
+                return formatDate(logDate) === dateStr;
+            });
+        }
+
+        function hasMoodLog(dateStr) {
+            return moodLogs.some(log => {
+                const logDate = new Date(log.createTime);
+                return formatDate(logDate) === dateStr;
+            });
+        }
+
+        function formatDate(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        // ----------------- UI Updates -----------------
+        function updateStatusCard() {
+            // Simple logic: Find last period date
+            // This is a placeholder for complex cycle logic
+            if (periodLogs.length > 0) {
+                // Sort logs desc
+                const sorted = periodLogs.sort((a, b) => b.createTime - a.createTime);
+                const lastPeriod = new Date(sorted[0].createTime);
+                const today = new Date();
+
+                const diffTime = Math.abs(today - lastPeriod);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (isSameDay(lastPeriod, today)) {
+                    document.getElementById('statusMain').textContent = `第 1 天`;
+                    document.getElementById('statusSub').textContent = `经期中`;
+                } else if (today > lastPeriod && diffDays < 7) {
+                    // Assuming 7 day period
+                    document.getElementById('statusMain').textContent = `第 ${diffDays} 天`;
+                    document.getElementById('statusSub').textContent = `经期中`;
+                } else {
+                    document.getElementById('statusMain').textContent = `第 ${diffDays} 天`;
+                    document.getElementById('statusSub').textContent = `距离下次经期还有 ${28 - diffDays} 天`; // 28 day cycle assumption
+                }
+            } else {
+                document.getElementById('statusMain').textContent = "未记录";
+                document.getElementById('statusSub').textContent = "请记录您的第一次经期";
+            }
+        }
+
+        function updateMoodList() {
+            const list = document.getElementById('moodList');
+            if (moodLogs.length === 0) {
+                list.innerHTML = '<li class="mood-item" style="color: #999; justify-content: center;">暂无心情记录</li>';
                 return;
             }
 
-            list.innerHTML = records.map(record => {
-                const date = new Date(record.createTime).toLocaleDateString('zh-CN');
+            // Sort by time desc
+            const sorted = moodLogs.sort((a, b) => b.createTime - a.createTime).slice(0, 5); // top 5
+
+            list.innerHTML = sorted.map(log => {
+                const idx = log.truCheckNum || 0;
+                const moodName = MOOD_MAP[idx] || "未知";
+                // You might map idx to icon here if available
                 return `
-                    <li class="record-item">
-                        <span class="record-date">${date}</span>
-                        <span class="record-status">已记录</span>
+                    <li class="mood-item">
+                        <span class="mood-time">${formatTime(log.createTime)}</span>
+                        <span class="mood-value">${moodName}</span>
                     </li>
-                `;
+                 `;
             }).join('');
         }
 
-        // 显示空状态
-        function showEmptyState() {
-            const list = document.getElementById('recordList');
-            list.innerHTML = `
-                <li class="empty-state">
-                    <div class="empty-icon">📝</div>
-                    <div>暂无记录</div>
-                </li>
-            `;
+        function isSameDay(d1, d2) {
+            return d1.getFullYear() === d2.getFullYear() &&
+                d1.getMonth() === d2.getMonth() &&
+                d1.getDate() === d2.getDate();
         }
 
-        // 打卡
-        function checkIn() {
+        // ----------------- Actions -----------------
+        function checkInPeriod() {
             if (window.HabitNative) {
-                const data = {
-                    type: 'menstrual',
-                    date: new Date().toISOString()
-                };
-                window.HabitNative.checkIn(JSON.stringify(data));
-                
-                // 刷新记录
-                setTimeout(() => {
-                    loadRecords();
-                }, 500);
+                // Call native checkIn which defaults to today
+                window.HabitNative.checkIn(JSON.stringify({}));
+                // Refresh data after delay
+                setTimeout(fetchData, 500);
             } else {
-                alert('请在App内使用此功能');
+                alert("请在App中操作");
             }
         }
 
-        // 查看历史
-        function viewHistory() {
-            // 可以跳转到历史记录页面
-            alert('历史记录功能开发中...');
+        function recordMood() {
+            if (window.HabitNative && window.HabitNative.openMoodRecord) {
+                window.HabitNative.openMoodRecord();
+                // Refresh data after delay
+                // Since we don't know when they return, maybe auto-refresh or poll? 
+                // Native side calls refresh event but H5 might not catch it unless reloaded.
+                // We can rely on onResume behavior if WebView reloads or implement a callback.
+                // For now, simple timeout or manual refresh via prev/next.
+            } else {
+                alert("功能开发中");
+            }
         }
 
-        // 监听原生注入的数据
-        window.onHabitDataReady = function(data) {
-            habitData = data;
-            updateUI();
+        // Listen to Native Events (if any additional injected)
+        window.onCheckInSuccess = function () {
+            fetchData();
         };
 
-        // 监听打卡成功
-        window.onCheckInSuccess = function() {
-            alert('打卡成功！');
-            loadRecords();
-        };
     </script>
 </body>
+
 </html>
