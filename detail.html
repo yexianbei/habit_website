@@ -932,10 +932,50 @@
 
         // ----------------- Status & Logic -----------------
         function updateStatusCard() {
-            // Just a basic status update for now
-            // Real prediction needs better history access
-            document.getElementById('statusMain').textContent = "检测中";
-            document.getElementById('statusSub').textContent = `周期: ${config.cycleLen}天`;
+            if (!lastPeriodStart) {
+                document.getElementById('statusMain').textContent = "未记录";
+                document.getElementById('statusSub').textContent = `点击"记经期"开始记录`;
+                return;
+            }
+
+            const today = new Date();
+            // Reset time part for accurate date diff
+            const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const l = new Date(lastPeriodStart.getFullYear(), lastPeriodStart.getMonth(), lastPeriodStart.getDate());
+
+            const diffTime = t - l;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // 1-based index
+
+            // Logic:
+            // 1. If diffDays <= periodLen -> In Period (Day X)
+            // 2. If diffDays <= cycleLen -> In Follicular/Luteal (Day X)
+            // 3. If diffDays > cycleLen -> Late (Day X)
+
+            // Text Display
+            // If in period: "第 X 天" (In Period)
+            // If not: "离下次经期还有 Y 天" (Y = cycleLen - diffDays + 1)
+
+            if (diffDays <= config.periodLen) {
+                document.getElementById('statusMain').textContent = `第 ${diffDays} 天`;
+                document.getElementById('statusSub').textContent = `经期中 | 周期: ${config.cycleLen}天`;
+            } else if (diffDays <= config.cycleLen) {
+                const remaining = config.cycleLen - diffDays + 1; // +1? Today is day X. 
+                // e.g. Cycle 28. Today Day 10. Remaining = 28 - 10 + 1 = 19? 
+                // Wait. Day 28 is the last day. Day 29 is new Day 1.
+                // So remaining days to NEXT Day 1: (CycleLen + 1) - DayX ?
+                // e.g. Cycle 28. Day 28. Remaining = 1.
+                // 28 - 28 = 0. So +1 is correct?
+                // Let's keep it simple: "还有 X 天"
+                const daysLeft = config.cycleLen - diffDays;
+                // If today is day 5, cycle 28. 28-5 = 23 days left.
+                document.getElementById('statusMain').textContent = `还有 ${daysLeft} 天`;
+                document.getElementById('statusSub').textContent = `距离下次经期`;
+            } else {
+                // Late
+                const late = diffDays - config.cycleLen;
+                document.getElementById('statusMain').textContent = `延后 ${late} 天`;
+                document.getElementById('statusSub').textContent = `建议注意休息`;
+            }
         }
 
         function updateMoodList() {
