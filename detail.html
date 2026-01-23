@@ -9,6 +9,9 @@
         :root {
             --primary-color: #FF6B9D;
             --primary-light: #FFF0F5;
+            --secondary-color: #9C27B0;
+            /* Ovulation */
+            --secondary-light: #F3E5F5;
             --text-main: #333;
             --text-secondary: #999;
             --bg-color: #F8F9FA;
@@ -35,6 +38,7 @@
             color: white;
             border-radius: 0 0 24px 24px;
             box-shadow: 0 4px 12px rgba(255, 107, 157, 0.2);
+            position: relative;
         }
 
         .header h1 {
@@ -45,6 +49,15 @@
         .header p {
             font-size: 14px;
             opacity: 0.9;
+        }
+
+        .settings-btn {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .card {
@@ -137,9 +150,30 @@
             font-weight: bold;
         }
 
+        /* Actual Period */
         .day.period {
             background-color: var(--primary-color);
             color: white;
+        }
+
+        /* Predicted Period */
+        .day.predicted-period {
+            border: 1px dashed var(--primary-color);
+            color: var(--primary-color);
+            background-color: var(--primary-light);
+        }
+
+        /* Ovulation Window */
+        .day.ovulation-window {
+            background-color: var(--secondary-light);
+        }
+
+        /* Ovulation Day */
+        .day.ovulation-day {
+            background-color: var(--secondary-light);
+            border: 2px solid var(--secondary-color);
+            color: var(--secondary-color);
+            font-weight: bold;
         }
 
         .day.period-start {
@@ -154,19 +188,23 @@
             border-radius: 50%;
         }
 
-        .day.predicted {
-            border: 1px dashed var(--primary-color);
-            color: var(--primary-color);
-            opacity: 0.6;
-        }
-
-        .mood-dot {
+        .item-dot {
             width: 4px;
             height: 4px;
-            background-color: #FFB347;
-            /* Orange for mood */
             border-radius: 50%;
             position: absolute;
+            bottom: 4px;
+        }
+
+        .dot-mood {
+            background-color: #FFB347;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .dot-flow {
+            background-color: white;
+            left: 30%;
             bottom: 4px;
         }
 
@@ -233,23 +271,166 @@
             color: var(--text-main);
         }
 
-        /* Floating Action Button */
-        .fab {
+        /* Modal */
+        .modal {
+            display: none;
             position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 28px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 320px;
+            border-radius: 20px;
+            padding: 24px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-full {
+            flex: 1;
+            padding: 12px;
+            border-radius: 24px;
+            border: none;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .btn-primary {
             background: var(--primary-color);
             color: white;
+        }
+
+        .btn-outline {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        /* Detail Selectors */
+        .selector-group {
             display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .selector-chip {
+            padding: 6px 16px;
+            border-radius: 20px;
+            background: #f5f5f5;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .selector-chip.active {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .switch-container {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
-            font-size: 24px;
-            border: none;
-            z-index: 100;
+            margin-bottom: 20px;
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
         }
     </style>
 </head>
@@ -259,20 +440,21 @@
     <div class="header">
         <h1>大姨妈管理</h1>
         <p>关爱自己，从记录开始</p>
+        <div class="settings-btn" onclick="openSettings()">⚙️</div>
     </div>
 
     <!-- 状态卡片 -->
     <div class="card status-card">
         <div class="status-title">当前状态</div>
         <div class="status-days" id="statusMain">--</div>
-        <div class="status-desc" id="statusSub">正在计算周期...</div>
+        <div class="status-desc" id="statusSub">正在计算...</div>
     </div>
 
     <!-- 日历卡片 -->
     <div class="card">
         <div class="calendar-header">
             <button class="month-btn" onclick="prevMonth()">❮</button>
-            <div class="month-selector" id="currentMonthYear">2023年10月</div>
+            <div class="month-selector" id="currentMonthYear">--</div>
             <button class="month-btn" onclick="nextMonth()">❯</button>
         </div>
         <div class="weekdays">
@@ -284,255 +466,442 @@
             <div>五</div>
             <div>六</div>
         </div>
-        <div class="days" id="calendarDays">
-            <!-- Days injected by JS -->
-        </div>
+        <div class="days" id="calendarDays"></div>
     </div>
 
     <!-- 操作按钮 -->
     <div class="actions">
-        <button class="btn btn-period" onclick="checkInPeriod()">
+        <button class="btn btn-period" onclick="openTodayDetails()">
             <i>🌸</i> 记经期
         </button>
-        <button class="btn btn-mood" onclick="recordMood()">
+        <button class="btn btn-mood" onclick="openTodayDetails()">
             <i>😊</i> 记心情
         </button>
     </div>
 
     <!-- 心情记录 -->
     <div class="card">
-        <div class="status-title" style="text-align: left; margin-bottom: 16px;">最近心情</div>
+        <div class="status-title" style="text-align: left; margin-bottom: 16px;">最近记录</div>
         <ul class="mood-list" id="moodList">
-            <li class="mood-item" style="color: #999; justify-content: center;">暂无心情记录</li>
+            <li class="mood-item" style="justify-content: center;">暂无记录</li>
         </ul>
+    </div>
+
+    <!-- 设置弹窗 -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">设置经期</div>
+            <div class="form-group">
+                <label>经期长度 (天)</label>
+                <input type="number" id="periodLenInput" class="form-input" value="5">
+            </div>
+            <div class="form-group">
+                <label>周期长度 (天)</label>
+                <input type="number" id="cycleLenInput" class="form-input" value="28">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-full btn-outline" onclick="closeModal('settingsModal')">取消</button>
+                <button class="btn-full btn-primary" onclick="saveSettings()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="detailDateTitle">2023-10-01</div>
+
+            <div class="switch-container">
+                <span class="status-title" style="margin:0; font-size:16px;">大姨妈来了</span>
+                <label class="switch">
+                    <input type="checkbox" id="periodToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div id="periodDetails" style="display: none;">
+                <div class="form-group">
+                    <label>流量</label>
+                    <div class="selector-group" id="flowSelector">
+                        <div class="selector-chip" data-val="1">少</div>
+                        <div class="selector-chip" data-val="2">中</div>
+                        <div class="selector-chip" data-val="3">多</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>痛经</label>
+                    <div class="selector-group" id="painSelector">
+                        <div class="selector-chip" data-val="0">无</div>
+                        <div class="selector-chip" data-val="1">轻度</div>
+                        <div class="selector-chip" data-val="2">重度</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>颜色</label>
+                    <div class="selector-group" id="colorSelector">
+                        <div class="selector-chip" data-val="1">鲜红</div>
+                        <div class="selector-chip" data-val="2">深红</div>
+                        <div class="selector-chip" data-val="3">褐色</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>心情</label>
+                <div class="selector-group" id="moodSelector">
+                    <div class="selector-chip" data-val="1">开心</div>
+                    <div class="selector-chip" data-val="2">平淡</div>
+                    <div class="selector-chip" data-val="3">难过</div>
+                    <div class="selector-chip" data-val="4">焦虑</div>
+                    <div class="selector-chip" data-val="5">生气</div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-full btn-outline" onclick="closeModal('detailsModal')">取消</button>
+                <button class="btn-full btn-primary" onclick="saveDetails()">保存</button>
+            </div>
+        </div>
     </div>
 
     <script>
         // State
         let currentDate = new Date();
+        let currentSelectedDate = null;
         let periodLogs = [];
-        let moodLogs = [];
+        let config = { cycleLen: 28, periodLen: 5 }; // Defaults
 
-        // MOOD MAP (Native mapping fallback)
-        const MOOD_MAP = ["狂喜", "开心", "惊讶", "轻松", "一般", "无感", "难过", "焦虑", "生气", "想死"];
+        // Helpers
+        const formatDate = (d) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        };
+
+        const parseDate = (s) => new Date(s.replace(/-/g, '/')); // Compatible parsing
+        const addDays = (d, days) => new Date(d.getTime() + days * 86400000);
 
         // Init
         window.addEventListener('DOMContentLoaded', () => {
-            renderCalendar();
+            fetchConfig();
             fetchData();
         });
 
-        // ----------------- Calendar Logic -----------------
-        function renderCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
+        let lastPeriodStart = null;
 
-            document.getElementById('currentMonthYear').textContent = `${year}年${month + 1}月`;
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const lastDate = new Date(year, month + 1, 0).getDate();
-            const calendarDays = document.getElementById('calendarDays');
-            calendarDays.innerHTML = "";
-
-            // Empty slots
-            for (let i = 0; i < firstDay; i++) {
-                const empty = document.createElement('div');
-                empty.className = 'day';
-                calendarDays.appendChild(empty);
-            }
-
-            // Days
-            const today = new Date();
-            for (let i = 1; i <= lastDate; i++) {
-                const dayEl = document.createElement('div');
-                dayEl.className = 'day';
-                dayEl.textContent = i;
-
-                // Add click event for toggling
-                dayEl.style.cursor = 'pointer';
-                const dateStr = formatDate(new Date(year, month, i));
-                dayEl.onclick = () => togglePeriod(dateStr);
-
-                // Today
-                if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
-                    dayEl.classList.add('today');
+        // ----------------- Data Ops -----------------
+        function fetchConfig() {
+            if (window.HabitNative && window.HabitNative.getPeriodConfig) {
+                try {
+                    const json = window.HabitNative.getPeriodConfig();
+                    const saved = JSON.parse(json || "{}");
+                    if (saved.cycleLen) config.cycleLen = saved.cycleLen;
+                    if (saved.periodLen) config.periodLen = saved.periodLen;
+                } catch (e) {
+                    console.error("Config parse error", e);
                 }
-
-                // Check Period Logs
-                if (isPeriodDate(dateStr)) {
-                    dayEl.classList.add('period');
-                    dayEl.classList.add('period-single'); // Simplification
-                }
-
-                // Check Mood Logs
-                if (hasMoodLog(dateStr)) {
-                    const dot = document.createElement('div');
-                    dot.className = 'mood-dot';
-                    dayEl.appendChild(dot);
-                }
-
-                calendarDays.appendChild(dayEl);
             }
         }
 
-        function prevMonth() {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar();
-            fetchData();
-        }
-
-        function nextMonth() {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar();
-            fetchData();
-        }
-
-        // ----------------- Data Fetching -----------------
         function fetchData() {
             if (window.HabitNative) {
                 const year = currentDate.getFullYear();
                 const month = currentDate.getMonth();
-
-                // Fetch for entire month (with padding)
                 const startDate = formatDate(new Date(year, month, 1));
-                const endDate = formatDate(new Date(year, month + 1, 0)); // Last day of month
+                const endDate = formatDate(new Date(year, month + 1, 0));
 
                 try {
-                    // Fetch Period
                     const pLogs = window.HabitNative.getPeriodLogs(startDate, endDate);
                     periodLogs = JSON.parse(pLogs || "[]");
 
-                    // Fetch Mood
-                    const mLogs = window.HabitNative.getMoodLogs(startDate, endDate);
-                    moodLogs = JSON.parse(mLogs || "[]");
+                    if (window.HabitNative.getLastPeriodStartDate) {
+                        const lps = window.HabitNative.getLastPeriodStartDate();
+                        if (lps) lastPeriodStart = parseDate(lps);
+                    }
 
                     renderCalendar();
                     updateStatusCard();
                     updateMoodList();
-                } catch (e) {
-                    console.error("Fetch Error:", e);
-                }
-            } else {
-                console.warn("HabitNative not found");
+                } catch (e) { console.error(e); }
             }
         }
 
-        // ----------------- Helpers -----------------
+        // ----------------- Calendar -----------------
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            document.getElementById('currentMonthYear').textContent = `${year}年${month + 1}月`;
 
-        // Check if date string matches any period log
-        function isPeriodDate(dateStr) {
-            return periodLogs.some(log => {
-                const logDate = new Date(log.createTime);
-                return formatDate(logDate) === dateStr;
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const container = document.getElementById('calendarDays');
+            container.innerHTML = "";
+
+            for (let i = 0; i < firstDay; i++) {
+                container.appendChild(createDiv('day'));
+            }
+
+            const todayStr = formatDate(new Date());
+            const monthStart = new Date(year, month, 1);
+            const monthEnd = new Date(year, month + 1, 0);
+
+            // Prediction sets
+            let predictedDates = new Set();
+            let ovulationDates = new Set();
+            let ovulationDay = null;
+
+            if (lastPeriodStart && config.cycleLen > 0) {
+                // Calculate future periods relative to lastPeriodStart
+                // Iterate forward from lastPeriodStart until we pass this month
+                let nextStart = new Date(lastPeriodStart.getTime());
+                // Move to near current month
+                while (nextStart < monthEnd) {
+                    // Check if this period cycle falls in current month
+                    // Period Range: nextStart to nextStart + periodLen
+                    // Ovulation: nextStart + cycleLen - 14
+
+                    // Next Cycle Start (Hypothetical next)
+                    let cycleNext = addDays(nextStart, config.cycleLen);
+
+                    // If nextStart is in the past compared to lastPeriodStart, it's actual data (should be), 
+                    // but we use lastPeriodStart as the anchor of known truth.
+                    // IMPORTANT: We only predict FUTURE from lastPeriodStart
+                    if (nextStart > lastPeriodStart) {
+                        // Add predicted period days
+                        for (let d = 0; d < config.periodLen; d++) {
+                            const pDate = addDays(nextStart, d);
+                            if (pDate >= monthStart && pDate <= monthEnd) {
+                                predictedDates.add(formatDate(pDate));
+                            }
+                        }
+                    }
+
+                    // Ovulation for the cycle ending at cycleNext
+                    // Ovulation is roughly 14 days before NEXT period
+                    const ovDay = addDays(cycleNext, -14);
+                    if (ovDay >= monthStart && ovDay <= monthEnd) {
+                        // Ovulation day
+                        // Also window: +/- 2 days?
+                        // Let's mark window
+                        for (let w = -4; w <= 0; w++) { // 5 day window ending on ovulation? Or centered?
+                            // Usually fertile window is 5 days before ovulation + ovulation day
+                            const fDate = addDays(ovDay, w);
+                            if (fDate >= monthStart && fDate <= monthEnd) {
+                                ovulationDates.add(formatDate(fDate));
+                            }
+                        }
+                    }
+
+                    nextStart = cycleNext;
+                }
+            }
+
+            for (let i = 1; i <= lastDate; i++) {
+                const date = new Date(year, month, i);
+                const dateStr = formatDate(date);
+                const el = createDiv('day');
+                el.textContent = i;
+                el.style.cursor = 'pointer';
+                el.onclick = () => openDetails(dateStr);
+
+                if (dateStr === todayStr) el.classList.add('today');
+
+                const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === dateStr);
+
+                // Priority: Actual Log > Ovulation > Predicted
+                if (log) {
+                    el.classList.add('period');
+                    el.classList.add('period-single');
+                    if (log.signUpId) {
+                        try {
+                            const details = JSON.parse(log.signUpId);
+                            if (details.mood) {
+                                const dot = createDiv('item-dot dot-mood');
+                                el.appendChild(dot);
+                            }
+                        } catch (e) { }
+                    }
+                } else if (ovulationDates.has(dateStr)) {
+                    el.classList.add('ovulation-window');
+                    // Check if it is the ovulation DAY (last of window in my logic)
+                    // Re-calc specific day to be sure or just check set?
+                    // Optimization: simple check
+                    // ... logic simplified above
+                    // For UI:
+                    // We need to differentiate Ovulation DAY
+                } else if (predictedDates.has(dateStr)) {
+                    el.classList.add('predicted-period');
+                }
+
+                // Specific Ovulation Day marker
+                // Re-run logic inside valid range or separate set?
+                // Let's improve the Set logic above slightly if needed, or just leave as window.
+
+                container.appendChild(el);
+            }
+        }
+
+        function createDiv(cls) {
+            const d = document.createElement('div');
+            d.className = cls;
+            return d;
+        }
+
+        function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); fetchData(); }
+        function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); fetchData(); }
+
+        // ----------------- Modals & Logic -----------------
+
+        function openSettings() {
+            document.getElementById('cycleLenInput').value = config.cycleLen;
+            document.getElementById('periodLenInput').value = config.periodLen;
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function saveSettings() {
+            const c = parseInt(document.getElementById('cycleLenInput').value);
+            const p = parseInt(document.getElementById('periodLenInput').value);
+            if (c > 0 && p > 0) {
+                config.cycleLen = c;
+                config.periodLen = p;
+                if (window.HabitNative && window.HabitNative.savePeriodConfig) {
+                    window.HabitNative.savePeriodConfig(c, p);
+                }
+                closeModal('settingsModal');
+                updateStatusCard(); // Re-calculate status
+            }
+        }
+
+        function openTodayDetails() {
+            openDetails(formatDate(new Date()));
+        }
+
+        function openDetails(dateStr) {
+            currentSelectedDate = dateStr;
+            document.getElementById('detailDateTitle').textContent = dateStr;
+            const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === dateStr);
+
+            const toggle = document.getElementById('periodToggle');
+            const detailSection = document.getElementById('periodDetails');
+
+            // Reset selectors
+            document.querySelectorAll('.selector-chip').forEach(el => el.classList.remove('active'));
+
+            if (log) {
+                toggle.checked = true;
+                detailSection.style.display = 'block';
+                if (log.signUpId) {
+                    try {
+                        const d = JSON.parse(log.signUpId);
+                        if (d.flow) activateSelector('flowSelector', d.flow);
+                        if (d.pain) activateSelector('painSelector', d.pain);
+                        if (d.color) activateSelector('colorSelector', d.color);
+                        if (d.mood) activateSelector('moodSelector', d.mood);
+                    } catch (e) { }
+                }
+            } else {
+                toggle.checked = false;
+                detailSection.style.display = 'none';
+            }
+
+            toggle.onchange = (e) => {
+                detailSection.style.display = e.target.checked ? 'block' : 'none';
+            };
+
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
+
+        function bindSelectors() {
+            document.querySelectorAll('.selector-chip').forEach(chip => {
+                chip.onclick = function () {
+                    const parent = this.parentElement;
+                    parent.querySelectorAll('.selector-chip').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                }
             });
         }
+        bindSelectors();
 
-        function hasMoodLog(dateStr) {
-            return moodLogs.some(log => {
-                const logDate = new Date(log.createTime);
-                return formatDate(logDate) === dateStr;
-            });
+        function activateSelector(id, val) {
+            const container = document.getElementById(id);
+            const target = container.querySelector(`[data-val="${val}"]`);
+            if (target) target.classList.add('active');
         }
 
-        function formatDate(date) {
-            const y = date.getFullYear();
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
+        function getSelectorVal(id) {
+            const active = document.getElementById(id).querySelector('.active');
+            return active ? active.getAttribute('data-val') : null;
         }
 
-        function formatTime(timestamp) {
-            const date = new Date(timestamp);
-            return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        function saveDetails() {
+            if (!currentSelectedDate) return;
+            const isPeriod = document.getElementById('periodToggle').checked;
+
+            // Logic:
+            // If OFF and log existed -> Delete (via togglePeriodLog)
+            // If ON -> Save Details
+
+            const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === currentSelectedDate);
+
+            if (!isPeriod && log) {
+                // Delete
+                if (window.HabitNative && window.HabitNative.togglePeriodLog) {
+                    window.HabitNative.togglePeriodLog(currentSelectedDate);
+                }
+            } else if (isPeriod) {
+                // Save / Update
+                const data = {
+                    flow: getSelectorVal('flowSelector'),
+                    pain: getSelectorVal('painSelector'),
+                    color: getSelectorVal('colorSelector'),
+                    mood: getSelectorVal('moodSelector')
+                };
+                if (window.HabitNative && window.HabitNative.savePeriodDetails) {
+                    window.HabitNative.savePeriodDetails(currentSelectedDate, JSON.stringify(data));
+                }
+            }
+
+            closeModal('detailsModal');
+            // Refresh will happen via callback
         }
 
-        // ----------------- UI Updates -----------------
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // ----------------- Status & Logic -----------------
         function updateStatusCard() {
-            // Simple logic: Find last period date
-            // This is a placeholder for complex cycle logic
-            if (periodLogs.length > 0) {
-                // Sort logs desc
-                const sorted = periodLogs.sort((a, b) => b.createTime - a.createTime);
-                const lastPeriod = new Date(sorted[0].createTime);
-                const today = new Date();
-
-                const diffTime = Math.abs(today - lastPeriod);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                if (isSameDay(lastPeriod, today)) {
-                    document.getElementById('statusMain').textContent = `第 1 天`;
-                    document.getElementById('statusSub').textContent = `经期中`;
-                } else if (today > lastPeriod && diffDays < 7) {
-                    // Assuming 7 day period
-                    document.getElementById('statusMain').textContent = `第 ${diffDays} 天`;
-                    document.getElementById('statusSub').textContent = `经期中`;
-                } else {
-                    document.getElementById('statusMain').textContent = `第 ${diffDays} 天`;
-                    document.getElementById('statusSub').textContent = `距离下次经期还有 ${28 - diffDays} 天`; // 28 day cycle assumption
-                }
-            } else {
-                document.getElementById('statusMain').textContent = "未记录";
-                document.getElementById('statusSub').textContent = "请记录您的第一次经期";
-            }
+            // Just a basic status update for now
+            // Real prediction needs better history access
+            document.getElementById('statusMain').textContent = "检测中";
+            document.getElementById('statusSub').textContent = `周期: ${config.cycleLen}天`;
         }
 
         function updateMoodList() {
             const list = document.getElementById('moodList');
-            if (moodLogs.length === 0) {
-                list.innerHTML = '<li class="mood-item" style="color: #999; justify-content: center;">暂无心情记录</li>';
+            // Filter logs with mood
+            const withMood = periodLogs.filter(l => l.signUpId && l.signUpId.includes('mood'));
+            if (withMood.length === 0) {
+                list.innerHTML = '<li class="mood-item" style="justify-content: center;">暂无记录</li>';
                 return;
             }
 
-            // Sort by time desc
-            const sorted = moodLogs.sort((a, b) => b.createTime - a.createTime).slice(0, 5); // top 5
+            const MOOD_NAMES = { 1: "开心", 2: "平淡", 3: "难过", 4: "焦虑", 5: "生气" };
 
-            list.innerHTML = sorted.map(log => {
-                const idx = log.truCheckNum || 0;
-                const moodName = MOOD_MAP[idx] || "未知";
-                // You might map idx to icon here if available
-                return `
-                    <li class="mood-item">
-                        <span class="mood-time">${formatTime(log.createTime)}</span>
-                        <span class="mood-value">${moodName}</span>
-                    </li>
-                 `;
+            list.innerHTML = withMood.sort((a, b) => b.createTime - a.createTime).slice(0, 5).map(l => {
+                let moodStr = "--";
+                try {
+                    const d = JSON.parse(l.signUpId);
+                    moodStr = MOOD_NAMES[d.mood] || "--";
+                } catch (e) { }
+                const date = new Date(l.createTime);
+                const timeStr = `${date.getMonth() + 1}-${date.getDate()}`;
+                return `<li class="mood-item"><span class="mood-time">${timeStr}</span><span class="mood-value">${moodStr}</span></li>`;
             }).join('');
         }
 
-        function isSameDay(d1, d2) {
-            return d1.getFullYear() === d2.getFullYear() &&
-                d1.getMonth() === d2.getMonth() &&
-                d1.getDate() === d2.getDate();
-        }
-
-        // ----------------- Actions -----------------
-        function checkInPeriod() {
-            // Action now relies on togglePeriodLog
-            const todayStr = formatDate(new Date());
-            togglePeriod(todayStr);
-        }
-
-        function togglePeriod(dateStr) {
-            if (window.HabitNative && window.HabitNative.togglePeriodLog) {
-                window.HabitNative.togglePeriodLog(dateStr);
-                // UI update will happen via callback onCheckInSuccess -> fetchData
-            } else if (window.HabitNative) {
-                // Fallback if app not updated yet (old checkIn)
-                window.HabitNative.checkIn(JSON.stringify({}));
-            } else {
-                alert("请在App中操作");
-            }
-        }
-
-        function recordMood() {
-            if (window.HabitNative && window.HabitNative.openMoodRecord) {
-                window.HabitNative.openMoodRecord();
-            } else {
-                alert("功能开发中");
-            }
-        }
-
-        // Listen to Native Events
+        // Native Callback
         window.onCheckInSuccess = function () {
             fetchData();
         };
