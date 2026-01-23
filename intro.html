@@ -186,9 +186,8 @@
         function addHabit() {
             // 调用原生方法添加习惯
             if (window.HabitNative) {
-                // 这里可以调用原生接口添加习惯
-                // 暂时使用关闭页面，实际应该调用原生添加习惯的方法
-                window.HabitNative.close();
+                // 调用原生接口添加习惯
+                window.HabitNative.addHabit('menstrual');
             } else {
                 // 如果不是在App内，显示提示
                 alert('请在App内使用此功能');
