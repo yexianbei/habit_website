@@ -331,15 +331,15 @@
         /* Amber */
 
         .tag-love {
-            background: #FCE4EC;
-            color: #E91E63;
+            background: #F3E5F5;
+            color: #9C27B0;
         }
 
-        /* Pink */
+        /* Purple */
 
         .btn-love {
-            color: #E91E63;
-            /* Pink */
+            color: #9C27B0;
+            /* Purple */
         }
 
         /* Time Input */
@@ -623,7 +623,7 @@
                 <div class="legend-dot ovulation-day"></div>排卵日
             </div>
             <div class="legend-item">
-                <span style="font-size: 12px; margin-right: 4px;">❤️</span>爱爱
+                <span style="font-size: 12px; margin-right: 4px;">💜</span>爱爱
             </div>
         </div>
     </div>
@@ -637,7 +637,7 @@
             <i>😊</i> 记心情
         </button>
         <button class="btn btn-love" onclick="openTodayDetails()">
-            <i>❤️</i> 记爱爱
+            <i>💜</i> 记爱爱
         </button>
     </div>
 
@@ -919,7 +919,7 @@
                             }
                             if (details.isLove === true || (details.loveMeasure !== undefined && details.loveMeasure !== null) || details.loveTime) {
                                 const loveIcon = document.createElement('div');
-                                loveIcon.textContent = '❤️';
+                                loveIcon.textContent = '💜';
                                 loveIcon.style.position = 'absolute';
                                 loveIcon.style.right = '0px';
                                 loveIcon.style.top = '0px';
@@ -1199,7 +1199,7 @@
                     if (d.isLove === true || (d.loveMeasure !== undefined && d.loveMeasure !== null)) {
                         let measure = (d.loveMeasure !== undefined && d.loveMeasure !== null) ? MAP_LOVE_MEASURE[d.loveMeasure] : "爱爱";
                         if (d.loveTime) measure += ` ${d.loveTime}`;
-                        tagsHtml += `<span class="tag tag-love">❤️ ${measure}</span>`;
+                        tagsHtml += `<span class="tag tag-love">💜 ${measure}</span>`;
                     }
                 } catch (e) { }
 
