@@ -370,9 +370,24 @@
             background: white;
             width: 90%;
             max-width: 320px;
+            max-height: 85vh;
+            /* Limit height */
             border-radius: 20px;
             padding: 24px;
             animation: slideUp 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            /* Flex layout */
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            /* Scrollable */
+            flex: 1;
+            margin-bottom: 16px;
+            /* Space before footer */
+            -webkit-overflow-scrolling: touch;
+            /* Smooth scrolling on iOS */
         }
 
         @keyframes slideUp {
@@ -658,80 +673,84 @@
         <div class="modal-content">
             <div class="modal-header" id="detailDateTitle">2023-10-01</div>
 
-            <div class="switch-container">
-                <span class="status-title" style="margin:0; font-size:16px;">大姨妈来了</span>
-                <label class="switch">
-                    <input type="checkbox" id="periodToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
+            <div class="modal-body">
 
-            <div id="periodDetails" style="display: none;">
-                <div class="form-group">
-                    <label>流量</label>
-                    <div class="selector-group" id="flowSelector">
-                        <div class="selector-chip" data-val="1">少</div>
-                        <div class="selector-chip" data-val="2">中</div>
-                        <div class="selector-chip" data-val="3">多</div>
+                <div class="switch-container">
+                    <span class="status-title" style="margin:0; font-size:16px;">大姨妈来了</span>
+                    <label class="switch">
+                        <input type="checkbox" id="periodToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="periodDetails" style="display: none;">
+                    <div class="form-group">
+                        <label>流量</label>
+                        <div class="selector-group" id="flowSelector">
+                            <div class="selector-chip" data-val="1">少</div>
+                            <div class="selector-chip" data-val="2">中</div>
+                            <div class="selector-chip" data-val="3">多</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>痛经</label>
+                        <div class="selector-group" id="painSelector">
+                            <div class="selector-chip" data-val="0">无</div>
+                            <div class="selector-chip" data-val="1">轻度</div>
+                            <div class="selector-chip" data-val="2">重度</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>颜色</label>
+                        <div class="selector-group" id="colorSelector">
+                            <div class="selector-chip" data-val="1">鲜红</div>
+                            <div class="selector-chip" data-val="2">深红</div>
+                            <div class="selector-chip" data-val="3">褐色</div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="form-group">
-                    <label>痛经</label>
-                    <div class="selector-group" id="painSelector">
-                        <div class="selector-chip" data-val="0">无</div>
-                        <div class="selector-chip" data-val="1">轻度</div>
-                        <div class="selector-chip" data-val="2">重度</div>
+                    <label>心情</label>
+                    <div class="selector-group" id="moodSelector">
+                        <div class="selector-chip" data-val="1">开心</div>
+                        <div class="selector-chip" data-val="2">平淡</div>
+                        <div class="selector-chip" data-val="3">难过</div>
+                        <div class="selector-chip" data-val="4">焦虑</div>
+                        <div class="selector-chip" data-val="5">生气</div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>颜色</label>
-                    <div class="selector-group" id="colorSelector">
-                        <div class="selector-chip" data-val="1">鲜红</div>
-                        <div class="selector-chip" data-val="2">深红</div>
-                        <div class="selector-chip" data-val="3">褐色</div>
+
+                <div class="switch-container"
+                    style="margin-top: 24px; margin-bottom: 12px; border-top: 1px solid #f0f0f0; padding-top: 16px;">
+                    <span class="status-title" style="margin:0; font-size:16px;">爱爱</span>
+                    <label class="switch">
+                        <input type="checkbox" id="loveToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="loveDetails" style="display: none;">
+                    <div class="form-group">
+                        <label>避孕措施</label>
+                        <div class="selector-group" id="loveMeasureSelector">
+                            <div class="selector-chip" data-val="0">无措施</div>
+                            <div class="selector-chip" data-val="1">避孕套</div>
+                            <div class="selector-chip" data-val="2">体外排精</div>
+                            <div class="selector-chip" data-val="3">未射精</div>
+                            <div class="selector-chip" data-val="4">紧急药</div>
+                            <div class="selector-chip" data-val="5">短效药</div>
+                            <div class="selector-chip" data-val="6">长效药</div>
+                            <div class="selector-chip" data-val="7">节育环</div>
+                            <div class="selector-chip" data-val="8">其他</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>爱爱时间</label>
+                        <input type="time" id="loveTimeInput" class="time-input">
                     </div>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label>心情</label>
-                <div class="selector-group" id="moodSelector">
-                    <div class="selector-chip" data-val="1">开心</div>
-                    <div class="selector-chip" data-val="2">平淡</div>
-                    <div class="selector-chip" data-val="3">难过</div>
-                    <div class="selector-chip" data-val="4">焦虑</div>
-                    <div class="selector-chip" data-val="5">生气</div>
-                </div>
-            </div>
-
-            <div class="switch-container"
-                style="margin-top: 24px; margin-bottom: 12px; border-top: 1px solid #f0f0f0; padding-top: 16px;">
-                <span class="status-title" style="margin:0; font-size:16px;">爱爱</span>
-                <label class="switch">
-                    <input type="checkbox" id="loveToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <div id="loveDetails" style="display: none;">
-                <div class="form-group">
-                    <label>避孕措施</label>
-                    <div class="selector-group" id="loveMeasureSelector">
-                        <div class="selector-chip" data-val="0">无措施</div>
-                        <div class="selector-chip" data-val="1">避孕套</div>
-                        <div class="selector-chip" data-val="2">体外排精</div>
-                        <div class="selector-chip" data-val="3">未射精</div>
-                        <div class="selector-chip" data-val="4">紧急药</div>
-                        <div class="selector-chip" data-val="5">短效药</div>
-                        <div class="selector-chip" data-val="6">长效药</div>
-                        <div class="selector-chip" data-val="7">节育环</div>
-                        <div class="selector-chip" data-val="8">其他</div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>爱爱时间</label>
-                    <input type="time" id="loveTimeInput" class="time-input">
-                </div>
             </div>
 
             <div class="modal-footer">
