@@ -917,7 +917,7 @@
                                 const dot = createDiv('item-dot dot-mood');
                                 el.appendChild(dot);
                             }
-                            if (details.isLove || details.loveMeasure !== undefined || details.loveTime) {
+                            if (details.isLove === true || (details.loveMeasure !== undefined && details.loveMeasure !== null) || details.loveTime) {
                                 const loveIcon = document.createElement('div');
                                 loveIcon.textContent = '❤️';
                                 loveIcon.style.position = 'absolute';
@@ -1196,8 +1196,8 @@
                     if (d.color) tagsHtml += `<span class="tag tag-color">${MAP_COLOR[d.color]}</span>`;
                     if (d.mood) tagsHtml += `<span class="tag tag-mood">${MAP_MOOD[d.mood]}</span>`;
 
-                    if (d.isLove || d.loveMeasure !== undefined) {
-                        let measure = d.loveMeasure !== undefined ? MAP_LOVE_MEASURE[d.loveMeasure] : "爱爱";
+                    if (d.isLove === true || (d.loveMeasure !== undefined && d.loveMeasure !== null)) {
+                        let measure = (d.loveMeasure !== undefined && d.loveMeasure !== null) ? MAP_LOVE_MEASURE[d.loveMeasure] : "爱爱";
                         if (d.loveTime) measure += ` ${d.loveTime}`;
                         tagsHtml += `<span class="tag tag-love">❤️ ${measure}</span>`;
                     }
