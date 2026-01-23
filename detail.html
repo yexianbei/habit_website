@@ -996,9 +996,9 @@
                         if (d.color) activateSelector('colorSelector', d.color);
 
                         // Love Specifics
-                        if (d.isLove || d.loveMeasure !== undefined || d.loveTime) {
+                        if (d.isLove === true || (d.loveMeasure !== undefined && d.loveMeasure !== null) || d.loveTime) {
                             isLove = true;
-                            if (d.loveMeasure !== undefined) activateSelector('loveMeasureSelector', d.loveMeasure);
+                            if (d.loveMeasure !== undefined && d.loveMeasure !== null) activateSelector('loveMeasureSelector', d.loveMeasure);
                             if (d.loveTime) document.getElementById('loveTimeInput').value = d.loveTime;
                         }
 
