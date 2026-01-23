@@ -244,32 +244,91 @@
             font-size: 20px;
         }
 
-        /* Mood List */
-        .mood-list {
+        /* Record List */
+        .record-list {
             list-style: none;
+            padding: 0;
         }
 
-        .mood-item {
+        .record-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             padding: 12px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #f0f0f0;
         }
 
-        .mood-item:last-child {
+        .record-item:last-child {
             border-bottom: none;
         }
 
-        .mood-time {
-            font-size: 12px;
-            color: var(--text-secondary);
-            width: 60px;
+        .record-date {
+            width: 50px;
+            /* narrowed */
+            margin-right: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fff5f8;
+            border-radius: 8px;
+            padding: 6px 0;
+            color: var(--primary-color);
+            flex-shrink: 0;
         }
 
-        .mood-value {
-            font-size: 14px;
-            color: var(--text-main);
+        .record-date .day {
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1.2;
         }
+
+        .record-date .month {
+            font-size: 10px;
+        }
+
+        .record-content {
+            flex: 1;
+        }
+
+        .record-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #f5f5f5;
+            color: #666;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Specific tag styles */
+        .tag-flow {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .tag-pain {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .tag-color {
+            background: #FBE9E7;
+            color: #D84315;
+        }
+
+        /* Deep Orange */
+        .tag-mood {
+            background: #FFF8E1;
+            color: #F57F17;
+        }
+
+        /* Amber */
 
         /* Modal */
         .modal {
@@ -539,11 +598,11 @@
         </button>
     </div>
 
-    <!-- 心情记录 -->
+    <!-- 详细记录 -->
     <div class="card">
         <div class="status-title" style="text-align: left; margin-bottom: 16px;">最近记录</div>
-        <ul class="mood-list" id="moodList">
-            <li class="mood-item" style="justify-content: center;">暂无记录</li>
+        <ul class="record-list" id="recordList">
+            <li class="record-item" style="justify-content: center;">暂无记录</li>
         </ul>
     </div>
 
@@ -683,7 +742,7 @@
 
                     renderCalendar();
                     updateStatusCard();
-                    updateMoodList();
+                    updateRecordList();
                 } catch (e) { console.error(e); }
             }
         }
@@ -971,26 +1030,53 @@
             }
         }
 
-        function updateMoodList() {
-            const list = document.getElementById('moodList');
-            // Filter logs with mood
-            const withMood = periodLogs.filter(l => l.signUpId && l.signUpId.includes('mood'));
-            if (withMood.length === 0) {
-                list.innerHTML = '<li class="mood-item" style="justify-content: center;">暂无记录</li>';
+        function updateRecordList() {
+            const list = document.getElementById('recordList');
+            // Filter logs that have details (signUpId is not null/empty)
+            const logsWithDetails = periodLogs.filter(l => l.signUpId && l.signUpId !== "{}");
+
+            if (logsWithDetails.length === 0) {
+                list.innerHTML = '<li class="record-item" style="justify-content: center; color: #999;">暂无详细记录</li>';
                 return;
             }
 
-            const MOOD_NAMES = { 1: "开心", 2: "平淡", 3: "难过", 4: "焦虑", 5: "生气" };
+            const MAP_FLOW = { 1: "流量:少", 2: "流量:中", 3: "流量:多" };
+            const MAP_PAIN = { 0: "无痛经", 1: "轻度痛经", 2: "痛经严重" };
+            const MAP_COLOR = { 1: "鲜红", 2: "深红", 3: "褐色" };
+            const MAP_MOOD = { 1: "心情:开心", 2: "心情:平淡", 3: "心情:难过", 4: "心情:焦虑", 5: "心情:生气" };
 
-            list.innerHTML = withMood.sort((a, b) => b.createTime - a.createTime).slice(0, 5).map(l => {
-                let moodStr = "--";
+            // Sort DESC
+            const sorted = logsWithDetails.sort((a, b) => b.createTime - a.createTime).slice(0, 10); // Show max 10
+
+            list.innerHTML = sorted.map(l => {
+                const date = new Date(l.createTime);
+                const dayStr = String(date.getDate()).padStart(2, '0');
+                const monthStr = (date.getMonth() + 1) + "月";
+
+                let tagsHtml = "";
                 try {
                     const d = JSON.parse(l.signUpId);
-                    moodStr = MOOD_NAMES[d.mood] || "--";
+
+                    if (d.flow) tagsHtml += `<span class="tag tag-flow">${MAP_FLOW[d.flow]}</span>`;
+                    if (d.pain && d.pain != 0) tagsHtml += `<span class="tag tag-pain">${MAP_PAIN[d.pain]}</span>`;
+                    if (d.color) tagsHtml += `<span class="tag tag-color">${MAP_COLOR[d.color]}</span>`;
+                    if (d.mood) tagsHtml += `<span class="tag tag-mood">${MAP_MOOD[d.mood]}</span>`;
                 } catch (e) { }
-                const date = new Date(l.createTime);
-                const timeStr = `${date.getMonth() + 1}-${date.getDate()}`;
-                return `<li class="mood-item"><span class="mood-time">${timeStr}</span><span class="mood-value">${moodStr}</span></li>`;
+
+                if (!tagsHtml) tagsHtml = `<span class="tag">打卡完成</span>`;
+
+                return `
+                <li class="record-item">
+                    <div class="record-date">
+                        <span class="day">${dayStr}</span>
+                        <span class="month">${monthStr}</span>
+                    </div>
+                    <div class="record-content">
+                        <div class="record-tags">
+                            ${tagsHtml}
+                        </div>
+                    </div>
+                </li>`;
             }).join('');
         }
 
