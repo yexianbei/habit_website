@@ -709,7 +709,7 @@
             // Prediction sets
             let predictedDates = new Set();
             let ovulationDates = new Set();
-            let ovulationDay = null;
+            let peakOvulationDates = new Set();
 
             if (lastPeriodStart && config.cycleLen > 0) {
                 // Calculate future periods relative to lastPeriodStart
@@ -741,11 +741,11 @@
                     // Ovulation is roughly 14 days before NEXT period
                     const ovDay = addDays(cycleNext, -14);
                     if (ovDay >= monthStart && ovDay <= monthEnd) {
-                        // Ovulation day
-                        // Also window: +/- 2 days?
-                        // Let's mark window
-                        for (let w = -4; w <= 0; w++) { // 5 day window ending on ovulation? Or centered?
-                            // Usually fertile window is 5 days before ovulation + ovulation day
+                        // Peak Ovulation Day
+                        peakOvulationDates.add(formatDate(ovDay));
+
+                        // Ovulation Window: 5 days ending on ovulation day (inclusive)
+                        for (let w = -4; w <= 0; w++) {
                             const fDate = addDays(ovDay, w);
                             if (fDate >= monthStart && fDate <= monthEnd) {
                                 ovulationDates.add(formatDate(fDate));
@@ -782,21 +782,13 @@
                             }
                         } catch (e) { }
                     }
+                } else if (peakOvulationDates.has(dateStr)) {
+                    el.classList.add('ovulation-day');
                 } else if (ovulationDates.has(dateStr)) {
                     el.classList.add('ovulation-window');
-                    // Check if it is the ovulation DAY (last of window in my logic)
-                    // Re-calc specific day to be sure or just check set?
-                    // Optimization: simple check
-                    // ... logic simplified above
-                    // For UI:
-                    // We need to differentiate Ovulation DAY
                 } else if (predictedDates.has(dateStr)) {
                     el.classList.add('predicted-period');
                 }
-
-                // Specific Ovulation Day marker
-                // Re-run logic inside valid range or separate set?
-                // Let's improve the Set logic above slightly if needed, or just leave as window.
 
                 container.appendChild(el);
             }
