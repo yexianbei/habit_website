@@ -677,7 +677,8 @@
 
                     if (window.HabitNative.getLastPeriodStartDate) {
                         const lps = window.HabitNative.getLastPeriodStartDate();
-                        if (lps) lastPeriodStart = parseDate(lps);
+                        // Reset to null if empty, otherwise parse
+                        lastPeriodStart = lps ? parseDate(lps) : null;
                     }
 
                     renderCalendar();
