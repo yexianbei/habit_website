@@ -348,9 +348,9 @@
                 dayEl.className = 'day';
                 dayEl.textContent = i;
 
-                // Add click handler for interaction
-                const dateHelper = new Date(year, month, i);
-                const dateStr = formatDate(dateHelper);
+                // Add click event for toggling
+                dayEl.style.cursor = 'pointer';
+                const dateStr = formatDate(new Date(year, month, i));
                 dayEl.onclick = () => togglePeriod(dateStr);
 
                 // Today
@@ -414,9 +414,6 @@
                 }
             } else {
                 console.warn("HabitNative not found");
-                // Mock data for dev
-                // periodLogs = [{createTime: new Date().getTime()}];
-                // renderCalendar();
             }
         }
 
@@ -509,41 +506,33 @@
         }
 
         // ----------------- Actions -----------------
-        function togglePeriod(dateStr) {
-            if (window.HabitNative) {
-                // Check in for specific date
-                const data = {
-                    date: dateStr
-                };
-                window.HabitNative.checkIn(JSON.stringify(data));
+        function checkInPeriod() {
+            // Action now relies on togglePeriodLog
+            const todayStr = formatDate(new Date());
+            togglePeriod(todayStr);
+        }
 
-                // Optimistic UI update or wait for refresh
-                setTimeout(fetchData, 300);
+        function togglePeriod(dateStr) {
+            if (window.HabitNative && window.HabitNative.togglePeriodLog) {
+                window.HabitNative.togglePeriodLog(dateStr);
+                // UI update will happen via callback onCheckInSuccess -> fetchData
+            } else if (window.HabitNative) {
+                // Fallback if app not updated yet (old checkIn)
+                window.HabitNative.checkIn(JSON.stringify({}));
             } else {
                 alert("请在App中操作");
             }
         }
 
-        function checkInPeriod() {
-            // Check in for TODAY
-            const todayStr = formatDate(new Date());
-            togglePeriod(todayStr);
-        }
-
         function recordMood() {
             if (window.HabitNative && window.HabitNative.openMoodRecord) {
                 window.HabitNative.openMoodRecord();
-                // Refresh data after delay
-                // Since we don't know when they return, maybe auto-refresh or poll? 
-                // Native side calls refresh event but H5 might not catch it unless reloaded.
-                // We can rely on onResume behavior if WebView reloads or implement a callback.
-                // For now, simple timeout or manual refresh via prev/next.
             } else {
                 alert("功能开发中");
             }
         }
 
-        // Listen to Native Events (if any additional injected)
+        // Listen to Native Events
         window.onCheckInSuccess = function () {
             fetchData();
         };
