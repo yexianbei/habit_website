@@ -330,6 +330,28 @@
 
         /* Amber */
 
+        .tag-love {
+            background: #FCE4EC;
+            color: #E91E63;
+        }
+
+        /* Pink */
+
+        .btn-love {
+            color: #E91E63;
+            /* Pink */
+        }
+
+        /* Time Input */
+        .time-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 8px;
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -585,16 +607,22 @@
             <div class="legend-item">
                 <div class="legend-dot ovulation-day"></div>排卵日
             </div>
+            <div class="legend-item">
+                <span style="font-size: 12px; margin-right: 4px;">❤️</span>爱爱
+            </div>
         </div>
     </div>
 
     <!-- 操作按钮 -->
-    <div class="actions">
+    <div class="actions" style="grid-template-columns: 1fr 1fr 1fr;">
         <button class="btn btn-period" onclick="openTodayDetails()">
             <i>🌸</i> 记经期
         </button>
         <button class="btn btn-mood" onclick="openTodayDetails()">
             <i>😊</i> 记心情
+        </button>
+        <button class="btn btn-love" onclick="openTodayDetails()">
+            <i>❤️</i> 记爱爱
         </button>
     </div>
 
@@ -673,6 +701,36 @@
                     <div class="selector-chip" data-val="3">难过</div>
                     <div class="selector-chip" data-val="4">焦虑</div>
                     <div class="selector-chip" data-val="5">生气</div>
+                </div>
+            </div>
+
+            <div class="switch-container"
+                style="margin-top: 24px; margin-bottom: 12px; border-top: 1px solid #f0f0f0; padding-top: 16px;">
+                <span class="status-title" style="margin:0; font-size:16px;">爱爱</span>
+                <label class="switch">
+                    <input type="checkbox" id="loveToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div id="loveDetails" style="display: none;">
+                <div class="form-group">
+                    <label>避孕措施</label>
+                    <div class="selector-group" id="loveMeasureSelector">
+                        <div class="selector-chip" data-val="0">无措施</div>
+                        <div class="selector-chip" data-val="1">避孕套</div>
+                        <div class="selector-chip" data-val="2">体外排精</div>
+                        <div class="selector-chip" data-val="3">未射精</div>
+                        <div class="selector-chip" data-val="4">紧急药</div>
+                        <div class="selector-chip" data-val="5">短效药</div>
+                        <div class="selector-chip" data-val="6">长效药</div>
+                        <div class="selector-chip" data-val="7">节育环</div>
+                        <div class="selector-chip" data-val="8">其他</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>爱爱时间</label>
+                    <input type="time" id="loveTimeInput" class="time-input">
                 </div>
             </div>
 
@@ -840,6 +898,15 @@
                                 const dot = createDiv('item-dot dot-mood');
                                 el.appendChild(dot);
                             }
+                            if (details.isLove || details.loveMeasure !== undefined || details.loveTime) {
+                                const loveIcon = document.createElement('div');
+                                loveIcon.textContent = '❤️';
+                                loveIcon.style.position = 'absolute';
+                                loveIcon.style.right = '0px';
+                                loveIcon.style.top = '0px';
+                                loveIcon.style.fontSize = '8px';
+                                el.appendChild(loveIcon);
+                            }
                         } catch (e) { }
                     }
                 } else if (peakOvulationDates.has(dateStr)) {
@@ -895,30 +962,72 @@
             const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === dateStr);
 
             const toggle = document.getElementById('periodToggle');
+            const loveToggle = document.getElementById('loveToggle');
             const detailSection = document.getElementById('periodDetails');
+            const loveSection = document.getElementById('loveDetails');
 
             // Reset selectors
             document.querySelectorAll('.selector-chip').forEach(el => el.classList.remove('active'));
+            document.getElementById('loveTimeInput').value = "";
+
+            // Default State
+            toggle.checked = false;
+            loveToggle.checked = false;
+            detailSection.style.display = 'none';
+            loveSection.style.display = 'none';
 
             if (log) {
-                toggle.checked = true;
-                detailSection.style.display = 'block';
+                // Heuristic: If log exists, assume Period is ON unless distinct Love data suggests otherwise?
+                // Actually, let's treat Period ON as default for existing logs for compatibility.
+                // But check keys to be smart.
+                let isPeriod = true;
+                let isLove = false;
+
                 if (log.signUpId) {
                     try {
                         const d = JSON.parse(log.signUpId);
+
+                        // Populate Shared Mood
+                        if (d.mood) activateSelector('moodSelector', d.mood);
+
+                        // Period Specifics
                         if (d.flow) activateSelector('flowSelector', d.flow);
                         if (d.pain) activateSelector('painSelector', d.pain);
                         if (d.color) activateSelector('colorSelector', d.color);
-                        if (d.mood) activateSelector('moodSelector', d.mood);
+
+                        // Love Specifics
+                        if (d.isLove || d.loveMeasure !== undefined || d.loveTime) {
+                            isLove = true;
+                            if (d.loveMeasure !== undefined) activateSelector('loveMeasureSelector', d.loveMeasure);
+                            if (d.loveTime) document.getElementById('loveTimeInput').value = d.loveTime;
+                        }
+
+                        // If it has ONLY love data and NO period data keys, turn off Period?
+                        // Keys that imply Period status: flow, pain, color. 
+                        // If none of these exist, AND love exists, maybe Period is OFF?
+                        // But "Period" is also just a flag.
+                        // Let's rely on presence of Period-specific data OR if it's a legacy Simple Checkin (empty json or just mood).
+                        const hasPeriodData = d.flow || d.pain || d.color;
+                        if (isLove && !hasPeriodData) {
+                            isPeriod = false;
+                        }
+
                     } catch (e) { }
                 }
-            } else {
-                toggle.checked = false;
-                detailSection.style.display = 'none';
+
+                toggle.checked = isPeriod;
+                detailSection.style.display = isPeriod ? 'block' : 'none';
+
+                loveToggle.checked = isLove;
+                loveSection.style.display = isLove ? 'block' : 'none';
             }
 
             toggle.onchange = (e) => {
                 detailSection.style.display = e.target.checked ? 'block' : 'none';
+            };
+
+            loveToggle.onchange = (e) => {
+                loveSection.style.display = e.target.checked ? 'block' : 'none';
             };
 
             document.getElementById('detailsModal').style.display = 'flex';
@@ -949,25 +1058,31 @@
         function saveDetails() {
             if (!currentSelectedDate) return;
             const isPeriod = document.getElementById('periodToggle').checked;
-
-            // Logic:
-            // If OFF and log existed -> Delete (via togglePeriodLog)
-            // If ON -> Save Details
+            const isLove = document.getElementById('loveToggle').checked;
 
             const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === currentSelectedDate);
 
-            if (!isPeriod && log) {
+            // Logic:
+            // If ALL OFF -> Delete (if log existed)
+            // If ANY ON -> Save
+
+            if (!isPeriod && !isLove && log) {
                 // Delete
                 if (window.HabitNative && window.HabitNative.togglePeriodLog) {
                     window.HabitNative.togglePeriodLog(currentSelectedDate);
                 }
-            } else if (isPeriod) {
+            } else if (isPeriod || isLove) {
                 // Save / Update
                 const data = {
-                    flow: getSelectorVal('flowSelector'),
-                    pain: getSelectorVal('painSelector'),
-                    color: getSelectorVal('colorSelector'),
-                    mood: getSelectorVal('moodSelector')
+                    flow: isPeriod ? getSelectorVal('flowSelector') : null,
+                    pain: isPeriod ? getSelectorVal('painSelector') : null,
+                    color: isPeriod ? getSelectorVal('colorSelector') : null,
+                    mood: getSelectorVal('moodSelector'), // Mood allowed always
+
+                    // Love
+                    isLove: isLove,
+                    loveMeasure: isLove ? getSelectorVal('loveMeasureSelector') : null,
+                    loveTime: isLove ? document.getElementById('loveTimeInput').value : null
                 };
                 if (window.HabitNative && window.HabitNative.savePeriodDetails) {
                     window.HabitNative.savePeriodDetails(currentSelectedDate, JSON.stringify(data));
@@ -975,7 +1090,6 @@
             }
 
             closeModal('detailsModal');
-            // Refresh will happen via callback
         }
 
         function closeModal(id) {
@@ -1044,6 +1158,7 @@
             const MAP_PAIN = { 0: "无痛经", 1: "轻度痛经", 2: "痛经严重" };
             const MAP_COLOR = { 1: "鲜红", 2: "深红", 3: "褐色" };
             const MAP_MOOD = { 1: "心情:开心", 2: "心情:平淡", 3: "心情:难过", 4: "心情:焦虑", 5: "心情:生气" };
+            const MAP_LOVE_MEASURE = { 0: "无措施", 1: "避孕套", 2: "体外排精", 3: "未射精", 4: "紧急药", 5: "短效药", 6: "长效药", 7: "节育环", 8: "其他" };
 
             // Sort DESC
             const sorted = logsWithDetails.sort((a, b) => b.createTime - a.createTime).slice(0, 10); // Show max 10
@@ -1061,6 +1176,12 @@
                     if (d.pain && d.pain != 0) tagsHtml += `<span class="tag tag-pain">${MAP_PAIN[d.pain]}</span>`;
                     if (d.color) tagsHtml += `<span class="tag tag-color">${MAP_COLOR[d.color]}</span>`;
                     if (d.mood) tagsHtml += `<span class="tag tag-mood">${MAP_MOOD[d.mood]}</span>`;
+
+                    if (d.isLove || d.loveMeasure !== undefined) {
+                        let measure = d.loveMeasure !== undefined ? MAP_LOVE_MEASURE[d.loveMeasure] : "爱爱";
+                        if (d.loveTime) measure += ` ${d.loveTime}`;
+                        tagsHtml += `<span class="tag tag-love">❤️ ${measure}</span>`;
+                    }
                 } catch (e) { }
 
                 if (!tagsHtml) tagsHtml = `<span class="tag">打卡完成</span>`;
