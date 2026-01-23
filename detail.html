@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大姨妈管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .cycle-info {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .cycle-item {
+            text-align: center;
+        }
+
+        .cycle-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ff6b9d;
+            margin-bottom: 5px;
+        }
+
+        .cycle-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff8fb3 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 5px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .record-list {
+            list-style: none;
+        }
+
+        .record-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .record-item:last-child {
+            border-bottom: none;
+        }
+
+        .record-date {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .record-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            background: #fff3f8;
+            color: #ff6b9d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌸 大姨妈管理</h1>
+            <p class="subtitle">记录经期，关爱健康</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">周期信息</div>
+            <div class="cycle-info">
+                <div class="cycle-item">
+                    <div class="cycle-value" id="cycleDays">--</div>
+                    <div class="cycle-label">周期天数</div>
+                </div>
+                <div class="cycle-item">
+                    <div class="cycle-value" id="periodDays">--</div>
+                    <div class="cycle-label">经期天数</div>
+                </div>
+                <div class="cycle-item">
+                    <div class="cycle-value" id="nextPeriod">--</div>
+                    <div class="cycle-label">下次经期</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">今日打卡</div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="checkIn()">记录经期</button>
+                <button class="btn btn-secondary" onclick="viewHistory()">查看历史</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">最近记录</div>
+            <ul class="record-list" id="recordList">
+                <li class="loading">加载中...</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let habitData = null;
+        let records = [];
+
+        // 页面加载时获取习惯数据
+        window.addEventListener('DOMContentLoaded', function() {
+            loadHabitData();
+            loadRecords();
+        });
+
+        // 加载习惯数据
+        function loadHabitData() {
+            if (window.HabitNative) {
+                try {
+                    const data = window.HabitNative.getHabitData();
+                    if (data) {
+                        habitData = JSON.parse(data);
+                        updateUI();
+                    }
+                } catch (e) {
+                    console.error('获取习惯数据失败:', e);
+                }
+            }
+        }
+
+        // 更新UI
+        function updateUI() {
+            if (!habitData) return;
+
+            // 更新周期信息（这里可以根据实际数据计算）
+            document.getElementById('cycleDays').textContent = '28';
+            document.getElementById('periodDays').textContent = '5';
+            document.getElementById('nextPeriod').textContent = '3天后';
+        }
+
+        // 加载记录
+        function loadRecords() {
+            if (window.HabitNative) {
+                try {
+                    const today = new Date().toISOString().split('T')[0];
+                    const data = window.HabitNative.getCheckInRecords(today);
+                    if (data) {
+                        records = JSON.parse(data);
+                        renderRecords();
+                    } else {
+                        showEmptyState();
+                    }
+                } catch (e) {
+                    console.error('获取记录失败:', e);
+                    showEmptyState();
+                }
+            } else {
+                showEmptyState();
+            }
+        }
+
+        // 渲染记录列表
+        function renderRecords() {
+            const list = document.getElementById('recordList');
+            
+            if (records.length === 0) {
+                showEmptyState();
+                return;
+            }
+
+            list.innerHTML = records.map(record => {
+                const date = new Date(record.createTime).toLocaleDateString('zh-CN');
+                return `
+                    <li class="record-item">
+                        <span class="record-date">${date}</span>
+                        <span class="record-status">已记录</span>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        // 显示空状态
+        function showEmptyState() {
+            const list = document.getElementById('recordList');
+            list.innerHTML = `
+                <li class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <div>暂无记录</div>
+                </li>
+            `;
+        }
+
+        // 打卡
+        function checkIn() {
+            if (window.HabitNative) {
+                const data = {
+                    type: 'menstrual',
+                    date: new Date().toISOString()
+                };
+                window.HabitNative.checkIn(JSON.stringify(data));
+                
+                // 刷新记录
+                setTimeout(() => {
+                    loadRecords();
+                }, 500);
+            } else {
+                alert('请在App内使用此功能');
+            }
+        }
+
+        // 查看历史
+        function viewHistory() {
+            // 可以跳转到历史记录页面
+            alert('历史记录功能开发中...');
+        }
+
+        // 监听原生注入的数据
+        window.onHabitDataReady = function(data) {
+            habitData = data;
+            updateUI();
+        };
+
+        // 监听打卡成功
+        window.onCheckInSuccess = function() {
+            alert('打卡成功！');
+            loadRecords();
+        };
+    </script>
+</body>
+</html>

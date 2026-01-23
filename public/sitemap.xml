@@ -1,97 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-  <!-- Home -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://tinyhabits.top/</loc>
-    <lastmod>2025-01-09</lastmod>
+    <loc>https://yourwebsite.com/</loc>
+    <lastmod>2024-11-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-
-  <!-- Blog list -->
   <url>
-    <loc>https://tinyhabits.top/blog</loc>
-    <lastmod>2025-01-09</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Blog posts with SEO-friendly slugs -->
-  <url>
-    <loc>https://tinyhabits.top/blog/micro-habits-why-1-minute-daily-beats-1-hour-weekly-1</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tinyhabits.top/blog/pomodoro-technique-boost-focus-in-25-minutes-2</loc>
-    <lastmod>2024-01-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tinyhabits.top/blog/5-golden-rules-of-time-management-3</loc>
-    <lastmod>2024-01-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tinyhabits.top/blog/from-zero-to-one-building-exercise-habits-4</loc>
-    <lastmod>2024-01-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tinyhabits.top/blog/meditation-101-10-minutes-daily-to-transform-your-life-5</loc>
-    <lastmod>2023-12-28</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tinyhabits.top/blog/the-essence-of-self-discipline-systems-not-willpower-6</loc>
-    <lastmod>2023-12-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tinyhabits.top/blog/from-theory-to-practice-using-micro-habits-to-implement-atomic-habits-7</loc>
-    <lastmod>2024-02-01</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tinyhabits.top/blog/bj-fogg-behavior-model-bmap-design-habits-that-dont-fail-8</loc>
-    <lastmod>2024-02-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tinyhabits.top/blog/make-habits-happen-automatically-a-practical-guide-to-environment-design-habit-stacking-9</loc>
-    <lastmod>2024-02-10</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://tinyhabits.top/blog/how-to-use-a-points-reward-system-to-build-kids-habits-without-overusing-prizes-10</loc>
-    <lastmod>2025-12-02</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- Privacy Policy -->
-  <url>
-    <loc>https://tinyhabits.top/privacy</loc>
-    <lastmod>2024-11-17</lastmod>
+    <loc>https://yourwebsite.com/privacy.html</loc>
+    <lastmod>2024-11-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
-
-  <!-- Terms of Service -->
   <url>
-    <loc>https://tinyhabits.top/terms</loc>
-    <lastmod>2024-11-17</lastmod>
+    <loc>https://yourwebsite.com/terms.html</loc>
+    <lastmod>2024-11-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 </urlset>
+
