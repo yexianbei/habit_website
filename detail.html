@@ -432,6 +432,50 @@
         input:checked+.slider:before {
             transform: translateX(22px);
         }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .legend-dot.period {
+            background-color: var(--primary-color);
+        }
+
+        .legend-dot.predicted {
+            border: 1px dashed var(--primary-color);
+            background-color: var(--primary-light);
+        }
+
+        .legend-dot.ovulation {
+            background-color: var(--secondary-light);
+        }
+
+        .legend-dot.ovulation-day {
+            background-color: var(--secondary-light);
+            border: 2px solid var(--secondary-color);
+        }
     </style>
 </head>
 
@@ -467,6 +511,22 @@
             <div>六</div>
         </div>
         <div class="days" id="calendarDays"></div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot period"></div>月经期
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot predicted"></div>预测经期
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot ovulation"></div>排卵期
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot ovulation-day"></div>排卵日
+            </div>
+        </div>
     </div>
 
     <!-- 操作按钮 -->
