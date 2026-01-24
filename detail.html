@@ -1049,6 +1049,26 @@
             openDetails(formatDate(new Date()));
         }
 
+        function checkIsStartDay(dateStr) {
+            // Logic: Is Previous Day a Period Day?
+            try {
+                const parts = dateStr.split('-');
+                const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                d.setDate(d.getDate() - 1);
+                const prevDateStr = formatDate(d);
+
+                const prevLog = periodLogs.find(l => formatDate(new Date(l.createTime)) === prevDateStr);
+                if (prevLog && prevLog.signUpId) {
+                    const json = JSON.parse(prevLog.signUpId);
+                    // If previous day has isPeriod=true (and NOT ended?), then today is NOT start.
+                    if (json.isPeriod && !json.periodEnded) {
+                        return false;
+                    }
+                }
+            } catch (e) { }
+            return true; // Default to true (Start Day) if no previous log found or prev log ended.
+        }
+
         function openDetails(dateStr) {
             currentSelectedDate = dateStr;
             document.getElementById('detailDateTitle').textContent = dateStr;
@@ -1136,21 +1156,42 @@
                 toggle.checked = isPeriod;
                 detailSection.style.display = isPeriod ? 'block' : 'none';
 
+                // Initial Load Visibility Check
+                if (isPeriod) {
+                    const isStart = checkIsStartDay(dateStr);
+                    document.getElementById('periodStartTimeContainer').style.display = isStart ? 'block' : 'none';
+                } else {
+                    document.getElementById('periodStartTimeContainer').style.display = 'none';
+                }
+
                 loveToggle.checked = isLove;
                 loveSection.style.display = isLove ? 'block' : 'none';
             }
 
             toggle.onchange = (e) => {
                 detailSection.style.display = e.target.checked ? 'block' : 'none';
-                if (!e.target.checked) {
+
+                // Only show start time if it's the FIRST day (Previous day is NOT period)
+                if (e.target.checked) {
+                    const isStart = checkIsStartDay(currentSelectedDate);
+                    document.getElementById('periodStartTimeContainer').style.display = isStart ? 'block' : 'none';
+                } else {
+                    document.getElementById('periodStartTimeContainer').style.display = 'none';
                     document.getElementById('periodEndedToggle').checked = false;
+                    document.getElementById('periodEndTimeContainer').style.display = 'none';
                 }
             };
 
             const periodEndedToggle = document.getElementById('periodEndedToggle');
             periodEndedToggle.onchange = (e) => {
+                document.getElementById('periodEndTimeContainer').style.display = e.target.checked ? 'block' : 'none';
                 if (e.target.checked) {
                     toggle.checked = true;
+                    // Check start Logic even here? If marking ended, usually not start day, so hidden.
+                    // But if it IS a 1-day period, logic holds: checkIsStartDay returns true.
+                    const isStart = checkIsStartDay(currentSelectedDate);
+                    document.getElementById('periodStartTimeContainer').style.display = isStart ? 'block' : 'none';
+
                     detailSection.style.display = 'block';
                 }
             };
