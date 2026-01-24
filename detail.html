@@ -1050,23 +1050,35 @@
         }
 
         function checkIsStartDay(dateStr) {
-            // Logic: Is Previous Day a Period Day?
+            // Logic: Is Previous 10 Days connected to this cycle?
+            // If we find a log within last 10 days that is Period=True and Ended=False, then Today is Continuation.
+            // If we find Ended=True within 10 days, then Today is valid Start.
+
             try {
                 const parts = dateStr.split('-');
-                const d = new Date(parts[0], parts[1] - 1, parts[2]);
-                d.setDate(d.getDate() - 1);
-                const prevDateStr = formatDate(d);
+                const currentD = new Date(parts[0], parts[1] - 1, parts[2]);
 
-                const prevLog = periodLogs.find(l => formatDate(new Date(l.createTime)) === prevDateStr);
-                if (prevLog && prevLog.signUpId) {
-                    const json = JSON.parse(prevLog.signUpId);
-                    // If previous day has isPeriod=true (and NOT ended?), then today is NOT start.
-                    if (json.isPeriod && !json.periodEnded) {
-                        return false;
+                // Check last 10 days (matching native gap tolerance)
+                for (let i = 1; i <= 10; i++) {
+                    const d = new Date(currentD);
+                    d.setDate(d.getDate() - i);
+                    const prevDateStr = formatDate(d);
+
+                    const prevLog = periodLogs.find(l => formatDate(new Date(l.createTime)) === prevDateStr);
+                    if (prevLog && prevLog.signUpId) {
+                        try {
+                            const json = JSON.parse(prevLog.signUpId);
+                            if (json.periodEnded) {
+                                return true; // Found an explicit end recently -> Today is new Start
+                            }
+                            if (json.isPeriod) {
+                                return false; // Found an active period day recently -> Today is Continuation
+                            }
+                        } catch (e) { }
                     }
                 }
             } catch (e) { }
-            return true; // Default to true (Start Day) if no previous log found or prev log ended.
+            return true; // Default to true if no conflicting history found
         }
 
         function openDetails(dateStr) {
