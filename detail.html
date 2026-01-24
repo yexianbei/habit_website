@@ -692,6 +692,12 @@
                 </div>
 
                 <div id="periodDetails" style="display: none;">
+                    <div style="margin-bottom: 12px; display: flex; align-items: center; padding-left: 4px;">
+                        <input type="checkbox" id="periodEndedCheckbox"
+                            style="width: 18px; height: 18px; margin-right: 8px; accent-color: var(--primary-color);">
+                        <label for="periodEndedCheckbox" style="font-size: 14px; color: var(--text-secondary);">经期今天结束
+                            (Period Ended)</label>
+                    </div>
                     <div class="form-group">
                         <label>流量</label>
                         <div class="selector-group" id="flowSelector">
@@ -1042,6 +1048,7 @@
             // Default State
             toggle.checked = false;
             loveToggle.checked = false;
+            document.getElementById('periodEndedCheckbox').checked = false;
             detailSection.style.display = 'none';
             loveSection.style.display = 'none';
 
@@ -1087,6 +1094,9 @@
                                 isPeriod = false;
                             }
                         }
+
+                        // Load Period Ended Flag
+                        if (d.periodEnded) document.getElementById('periodEndedCheckbox').checked = true;
 
                     } catch (e) { }
                 }
@@ -1151,6 +1161,7 @@
                 // Save / Update
                 const data = {
                     isPeriod: isPeriod, // Explicitly save flag
+                    periodEnded: isPeriod ? document.getElementById('periodEndedCheckbox').checked : false,
 
                     flow: isPeriod ? getSelectorVal('flowSelector') : null,
                     pain: isPeriod ? getSelectorVal('painSelector') : null,
@@ -1199,7 +1210,40 @@
             // If in period: "第 X 天" (In Period)
             // If not: "离下次经期还有 Y 天" (Y = cycleLen - diffDays + 1)
 
-            if (diffDays <= config.periodLen) {
+            // Check for explicit "Period Ended" flag in the current cycle
+            let hasEnded = false;
+            let endedDayIndex = 0;
+
+            if (diffDays > 0) {
+                const cycleLogs = periodLogs.filter(l => {
+                    const d = new Date(l.createTime);
+                    return d >= lastPeriodStart; // Simple filter
+                });
+
+                for (let l of cycleLogs) {
+                    if (l.signUpId) {
+                        try {
+                            const d = JSON.parse(l.signUpId);
+                            if (d.periodEnded) {
+                                hasEnded = true;
+                                const lDate = new Date(l.createTime);
+                                // Calculate index relative to start
+                                const lTime = new Date(lDate.getFullYear(), lDate.getMonth(), lDate.getDate());
+                                const lStart = new Date(lastPeriodStart.getFullYear(), lastPeriodStart.getMonth(), lastPeriodStart.getDate());
+                                const lDiff = Math.floor((lTime - lStart) / (1000 * 60 * 60 * 24)) + 1;
+                                endedDayIndex = Math.max(endedDayIndex, lDiff);
+                            }
+                        } catch (e) { }
+                    }
+                }
+            }
+
+            let inPeriod = diffDays <= config.periodLen;
+            if (hasEnded && diffDays > endedDayIndex) {
+                inPeriod = false;
+            }
+
+            if (inPeriod) {
                 document.getElementById('statusMain').textContent = `第 ${diffDays} 天`;
                 document.getElementById('statusSub').textContent = `经期中 | 周期: ${config.cycleLen}天`;
             } else if (diffDays <= config.cycleLen) {
