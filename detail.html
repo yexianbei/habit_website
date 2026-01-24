@@ -691,13 +691,26 @@
                     </label>
                 </div>
 
-                <div class="switch-container" style="justify-content: flex-start; margin-bottom: 12px;">
-                    <div style="display: flex; align-items: center;">
+                <div id="periodStartTimeContainer" style="display: none; margin-bottom: 20px; padding-left: 4px;">
+                    <label
+                        style="font-size: 14px; color: var(--text-secondary); display: block; margin-bottom: 6px;">开始时间</label>
+                    <input type="time" id="periodStartTimeInput" class="time-input">
+                </div>
+
+                <div class="switch-container"
+                    style="justify-content: flex-start; margin-bottom: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;">
                         <span class="status-title" style="margin:0; font-size:16px; margin-right: 12px;">经期走了</span>
                         <label class="switch">
                             <input type="checkbox" id="periodEndedToggle">
                             <span class="slider"></span>
                         </label>
+                    </div>
+                    <div id="periodEndTimeContainer"
+                        style="display: none; width: 100%; margin-top: 12px; padding-left: 4px;">
+                        <label
+                            style="font-size: 14px; color: var(--text-secondary); display: block; margin-bottom: 6px;">结束时间</label>
+                        <input type="time" id="periodEndTimeInput" class="time-input">
                     </div>
                 </div>
 
@@ -1049,6 +1062,8 @@
             // Reset selectors
             document.querySelectorAll('.selector-chip').forEach(el => el.classList.remove('active'));
             document.getElementById('loveTimeInput').value = "";
+            document.getElementById('periodStartTimeInput').value = "00:00"; // Default? Or current time?
+            document.getElementById('periodEndTimeInput').value = "00:00";
 
             // Default State
             toggle.checked = false;
@@ -1056,6 +1071,8 @@
             document.getElementById('periodEndedToggle').checked = false;
             detailSection.style.display = 'none';
             loveSection.style.display = 'none';
+            document.getElementById('periodStartTimeContainer').style.display = 'none';
+            document.getElementById('periodEndTimeContainer').style.display = 'none';
 
             if (log) {
                 // Heuristic: If log exists, assume Period is ON unless distinct Love data suggests otherwise?
@@ -1101,7 +1118,17 @@
                         }
 
                         // Load Period Ended Flag
-                        if (d.periodEnded) document.getElementById('periodEndedToggle').checked = true;
+                        if (d.periodEnded) {
+                            document.getElementById('periodEndedToggle').checked = true;
+                            document.getElementById('periodEndTimeContainer').style.display = 'block';
+                            if (d.periodEndTime) document.getElementById('periodEndTimeInput').value = d.periodEndTime;
+                        }
+
+                        // Load Start Time
+                        if (d.isPeriod) {
+                            document.getElementById('periodStartTimeContainer').style.display = 'block';
+                            if (d.periodStartTime) document.getElementById('periodStartTimeInput').value = d.periodStartTime;
+                        }
 
                     } catch (e) { }
                 }
@@ -1177,7 +1204,10 @@
                 // Save / Update
                 const data = {
                     isPeriod: isPeriod, // Explicitly save flag
+                    periodStartTime: isPeriod ? document.getElementById('periodStartTimeInput').value : null,
+
                     periodEnded: isPeriod ? document.getElementById('periodEndedToggle').checked : false,
+                    periodEndTime: (isPeriod && document.getElementById('periodEndedToggle').checked) ? document.getElementById('periodEndTimeInput').value : null,
 
                     flow: isPeriod ? getSelectorVal('flowSelector') : null,
                     pain: isPeriod ? getSelectorVal('painSelector') : null,
