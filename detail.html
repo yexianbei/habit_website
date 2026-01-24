@@ -1285,7 +1285,7 @@
             }
 
             let inPeriod = diffDays <= config.periodLen;
-            if (hasEnded && diffDays > endedDayIndex) {
+            if (hasEnded && diffDays >= endedDayIndex) {
                 inPeriod = false;
             }
 
