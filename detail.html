@@ -691,13 +691,18 @@
                     </label>
                 </div>
 
-                <div id="periodDetails" style="display: none;">
-                    <div style="margin-bottom: 12px; display: flex; align-items: center; padding-left: 4px;">
-                        <input type="checkbox" id="periodEndedCheckbox"
-                            style="width: 18px; height: 18px; margin-right: 8px; accent-color: var(--primary-color);">
-                        <label for="periodEndedCheckbox" style="font-size: 14px; color: var(--text-secondary);">经期今天结束
-                            (Period Ended)</label>
+                <div class="switch-container" style="justify-content: flex-start; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center;">
+                        <span class="status-title" style="margin:0; font-size:16px; margin-right: 12px;">经期走了</span>
+                        <label class="switch">
+                            <input type="checkbox" id="periodEndedToggle">
+                            <span class="slider"></span>
+                        </label>
                     </div>
+                </div>
+
+                <div id="periodDetails" style="display: none;">
+
                     <div class="form-group">
                         <label>流量</label>
                         <div class="selector-group" id="flowSelector">
@@ -1048,7 +1053,7 @@
             // Default State
             toggle.checked = false;
             loveToggle.checked = false;
-            document.getElementById('periodEndedCheckbox').checked = false;
+            document.getElementById('periodEndedToggle').checked = false;
             detailSection.style.display = 'none';
             loveSection.style.display = 'none';
 
@@ -1096,7 +1101,7 @@
                         }
 
                         // Load Period Ended Flag
-                        if (d.periodEnded) document.getElementById('periodEndedCheckbox').checked = true;
+                        if (d.periodEnded) document.getElementById('periodEndedToggle').checked = true;
 
                     } catch (e) { }
                 }
@@ -1110,6 +1115,17 @@
 
             toggle.onchange = (e) => {
                 detailSection.style.display = e.target.checked ? 'block' : 'none';
+                if (!e.target.checked) {
+                    document.getElementById('periodEndedToggle').checked = false;
+                }
+            };
+
+            const periodEndedToggle = document.getElementById('periodEndedToggle');
+            periodEndedToggle.onchange = (e) => {
+                if (e.target.checked) {
+                    toggle.checked = true;
+                    detailSection.style.display = 'block';
+                }
             };
 
             loveToggle.onchange = (e) => {
@@ -1161,7 +1177,7 @@
                 // Save / Update
                 const data = {
                     isPeriod: isPeriod, // Explicitly save flag
-                    periodEnded: isPeriod ? document.getElementById('periodEndedCheckbox').checked : false,
+                    periodEnded: isPeriod ? document.getElementById('periodEndedToggle').checked : false,
 
                     flow: isPeriod ? getSelectorVal('flowSelector') : null,
                     pain: isPeriod ? getSelectorVal('painSelector') : null,
