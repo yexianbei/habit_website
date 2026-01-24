@@ -1043,6 +1043,7 @@
                 closeModal('settingsModal');
                 updateStatusCard(); // Re-calculate status
             }
+            document.body.style.overflow = ''; // Restore scroll
         }
 
         function openTodayDetails() {
@@ -1217,6 +1218,7 @@
             };
 
             document.getElementById('detailsModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
         }
 
         function bindSelectors() {
@@ -1284,8 +1286,17 @@
             closeModal('detailsModal');
         }
 
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'flex';
+            // Load current config
+            document.getElementById('cycleLenInput').value = config.cycleLen;
+            document.getElementById('periodLenInput').value = config.periodLen;
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        }
+
         function closeModal(id) {
             document.getElementById(id).style.display = 'none';
+            document.body.style.overflow = ''; // Restore scroll
         }
 
         // ----------------- Status & Logic -----------------
