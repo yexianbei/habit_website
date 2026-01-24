@@ -1094,8 +1094,12 @@
             // Reset selectors
             document.querySelectorAll('.selector-chip').forEach(el => el.classList.remove('active'));
             document.getElementById('loveTimeInput').value = "";
-            document.getElementById('periodStartTimeInput').value = "00:00"; // Default? Or current time?
-            document.getElementById('periodEndTimeInput').value = "00:00";
+
+            // Set Default Time to Current Time
+            const now = new Date();
+            const nowTime = ('0' + now.getHours()).slice(-2) + ":" + ('0' + now.getMinutes()).slice(-2);
+            document.getElementById('periodStartTimeInput').value = nowTime;
+            document.getElementById('periodEndTimeInput').value = nowTime;
 
             // Default State
             toggle.checked = false;
