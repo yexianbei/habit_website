@@ -74,6 +74,14 @@ const diffDays = (date1, date2) => {
 // ============ 日历组件 ============
 
 const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, periodLogs, predictions }) => {
+  const [touchStart, setTouchStart] = useState(null)
+  const [touchEnd, setTouchEnd] = useState(null)
+  const [slideDirection, setSlideDirection] = useState(null) // 'left' | 'right' | null
+  const [isAnimating, setIsAnimating] = useState(false)
+  
+  // 最小滑动距离
+  const minSwipeDistance = 50
+  
   const getDaysInMonth = (date) => {
     const year = date.getFullYear()
     const month = date.getMonth()
@@ -116,18 +124,76 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
     return info
   }
   
+  // 触摸事件处理
+  const onTouchStart = (e) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+  
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+  
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+    
+    if (isLeftSwipe) {
+      // 向左滑动 -> 下个月
+      goToNextMonth()
+    } else if (isRightSwipe) {
+      // 向右滑动 -> 上个月
+      goToPrevMonth()
+    }
+  }
+  
+  const goToPrevMonth = () => {
+    if (isAnimating) return
+    setIsAnimating(true)
+    setSlideDirection('right')
+    
+    setTimeout(() => {
+      setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
+      setSlideDirection(null)
+      setIsAnimating(false)
+    }, 200)
+  }
+  
+  const goToNextMonth = () => {
+    if (isAnimating) return
+    setIsAnimating(true)
+    setSlideDirection('left')
+    
+    setTimeout(() => {
+      setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
+      setSlideDirection(null)
+      setIsAnimating(false)
+    }, 200)
+  }
+  
   const days = getDaysInMonth(currentMonth)
   const weekDays = ['日', '一', '二', '三', '四', '五', '六']
   const todayStr = formatDate(new Date())
   const MOOD_ICONS = { 1: '😊', 2: '😐', 3: '😢', 4: '😰', 5: '😠' }
   
+  // 动画类名
+  const getAnimationClass = () => {
+    if (slideDirection === 'left') return 'animate-slideOutLeft'
+    if (slideDirection === 'right') return 'animate-slideOutRight'
+    return 'animate-fadeIn'
+  }
+  
   return (
-    <div className="bg-white rounded-3xl p-5 shadow-sm">
+    <div className="bg-white rounded-3xl p-5 shadow-sm overflow-hidden">
       {/* 月份导航 */}
       <div className="flex items-center justify-between mb-5">
         <button 
-          onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
-          className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center text-pink-500 active:bg-pink-100"
+          onClick={goToPrevMonth}
+          disabled={isAnimating}
+          className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center text-pink-500 active:bg-pink-100 disabled:opacity-50"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -137,8 +203,9 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
           {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
         </span>
         <button 
-          onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
-          className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center text-pink-500 active:bg-pink-100"
+          onClick={goToNextMonth}
+          disabled={isAnimating}
+          className="w-10 h-10 rounded-full bg-pink-50 flex items-center justify-center text-pink-500 active:bg-pink-100 disabled:opacity-50"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -155,60 +222,69 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
         ))}
       </div>
       
-      {/* 日期网格 */}
-      <div className="grid grid-cols-7 gap-1.5">
-        {days.map((date, index) => {
-          if (!date) return <div key={index} className="aspect-square" />
-          
-          const dateStr = formatDate(date)
-          const info = getDateInfo(date)
-          const isSelected = selectedDate && dateStr === formatDate(selectedDate)
-          const isToday = dateStr === todayStr
-          
-          const statusStyles = {
-            [PERIOD_STATUS.PERIOD]: 'bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200',
-            [PERIOD_STATUS.PREDICTED]: 'bg-pink-100 text-pink-600 border-2 border-dashed border-pink-300',
-            [PERIOD_STATUS.OVULATION]: 'bg-gradient-to-br from-purple-500 to-violet-500 text-white shadow-md shadow-purple-200',
-            [PERIOD_STATUS.FERTILE]: 'bg-purple-100 text-purple-600',
-            [PERIOD_STATUS.LOVE]: 'bg-purple-100 text-purple-600',
-          }
-          
-          // 判断是否有任何图标需要显示
-          const hasMood = info.mood
-          const hasLove = info.hasLove
-          
-          return (
-            <button
-              key={index}
-              onClick={() => onDateSelect(date)}
-              className={`
-                aspect-square rounded-xl flex flex-col items-center justify-center text-sm relative overflow-visible
-                transition-all duration-200 active:scale-95
-                ${statusStyles[info.status] || ''}
-                ${isToday && info.status === PERIOD_STATUS.NONE ? 'bg-gray-100 font-bold text-pink-500' : ''}
-                ${isSelected ? 'ring-2 ring-pink-500 ring-offset-2' : ''}
-              `}
-            >
-              <span className="font-medium">{date.getDate()}</span>
-              {/* 心情图标 - 左上角 */}
-              {hasMood && (
-                <span className="absolute -top-1 -left-1 text-[10px] drop-shadow-sm">
-                  {MOOD_ICONS[info.mood]}
-                </span>
-              )}
-              {/* 爱爱图标 - 右上角 */}
-              {hasLove && (
-                <span className="absolute -top-1 -right-1 text-[10px] drop-shadow-sm">
-                  ❤️
-                </span>
-              )}
-            </button>
-          )
-        })}
+      {/* 可滑动的日期网格 */}
+      <div 
+        className="touch-pan-y"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <div className={`grid grid-cols-7 gap-1.5 transition-all duration-200 ${getAnimationClass()}`}>
+          {days.map((date, index) => {
+            if (!date) return <div key={index} className="aspect-square" />
+            
+            const dateStr = formatDate(date)
+            const info = getDateInfo(date)
+            const isSelected = selectedDate && dateStr === formatDate(selectedDate)
+            const isToday = dateStr === todayStr
+            
+            const statusStyles = {
+              [PERIOD_STATUS.PERIOD]: 'bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200',
+              [PERIOD_STATUS.PREDICTED]: 'bg-pink-100 text-pink-600 border-2 border-dashed border-pink-300',
+              [PERIOD_STATUS.OVULATION]: 'bg-gradient-to-br from-purple-500 to-violet-500 text-white shadow-md shadow-purple-200',
+              [PERIOD_STATUS.FERTILE]: 'bg-purple-100 text-purple-600',
+              [PERIOD_STATUS.LOVE]: 'bg-purple-100 text-purple-600',
+            }
+            
+            const hasMood = info.mood
+            const hasLove = info.hasLove
+            
+            return (
+              <button
+                key={index}
+                onClick={() => onDateSelect(date)}
+                className={`
+                  aspect-square rounded-xl flex flex-col items-center justify-center text-sm relative overflow-visible
+                  transition-all duration-200 active:scale-95
+                  ${statusStyles[info.status] || ''}
+                  ${isToday && info.status === PERIOD_STATUS.NONE ? 'bg-gray-100 font-bold text-pink-500' : ''}
+                  ${isSelected ? 'ring-2 ring-pink-500 ring-offset-2' : ''}
+                `}
+              >
+                <span className="font-medium">{date.getDate()}</span>
+                {hasMood && (
+                  <span className="absolute -top-1 -left-1 text-[10px] drop-shadow-sm">
+                    {MOOD_ICONS[info.mood]}
+                  </span>
+                )}
+                {hasLove && (
+                  <span className="absolute -top-1 -right-1 text-[10px] drop-shadow-sm">
+                    ❤️
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      
+      {/* 滑动提示 */}
+      <div className="flex justify-center mt-3 mb-2">
+        <span className="text-[10px] text-gray-300">← 左右滑动切换月份 →</span>
       </div>
       
       {/* 图例 */}
-      <div className="flex flex-wrap items-center justify-center gap-3 mt-5 pt-4 border-t border-gray-100">
+      <div className="flex flex-wrap items-center justify-center gap-3 pt-3 border-t border-gray-100">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-md bg-gradient-to-br from-pink-500 to-rose-500" />
           <span className="text-xs text-gray-500">经期</span>
