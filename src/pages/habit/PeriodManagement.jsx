@@ -156,7 +156,7 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
       </div>
       
       {/* 日期网格 */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1.5">
         {days.map((date, index) => {
           if (!date) return <div key={index} className="aspect-square" />
           
@@ -173,12 +173,16 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
             [PERIOD_STATUS.LOVE]: 'bg-purple-100 text-purple-600',
           }
           
+          // 判断是否有任何图标需要显示
+          const hasMood = info.mood
+          const hasLove = info.hasLove
+          
           return (
             <button
               key={index}
               onClick={() => onDateSelect(date)}
               className={`
-                aspect-square rounded-xl flex flex-col items-center justify-center text-sm relative
+                aspect-square rounded-xl flex flex-col items-center justify-center text-sm relative overflow-visible
                 transition-all duration-200 active:scale-95
                 ${statusStyles[info.status] || ''}
                 ${isToday && info.status === PERIOD_STATUS.NONE ? 'bg-gray-100 font-bold text-pink-500' : ''}
@@ -186,18 +190,25 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
               `}
             >
               <span className="font-medium">{date.getDate()}</span>
-              {/* 图标 */}
-              <div className="absolute -top-0.5 left-0 right-0 flex justify-between px-0.5">
-                {info.mood && <span className="text-[8px]">{MOOD_ICONS[info.mood]}</span>}
-                {info.hasLove && <span className="text-[8px] ml-auto">❤️</span>}
-              </div>
+              {/* 心情图标 - 左上角 */}
+              {hasMood && (
+                <span className="absolute -top-1 -left-1 text-[10px] drop-shadow-sm">
+                  {MOOD_ICONS[info.mood]}
+                </span>
+              )}
+              {/* 爱爱图标 - 右上角 */}
+              {hasLove && (
+                <span className="absolute -top-1 -right-1 text-[10px] drop-shadow-sm">
+                  ❤️
+                </span>
+              )}
             </button>
           )
         })}
       </div>
       
       {/* 图例 */}
-      <div className="flex flex-wrap items-center justify-center gap-4 mt-5 pt-4 border-t border-gray-100">
+      <div className="flex flex-wrap items-center justify-center gap-3 mt-5 pt-4 border-t border-gray-100">
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-md bg-gradient-to-br from-pink-500 to-rose-500" />
           <span className="text-xs text-gray-500">经期</span>
@@ -213,6 +224,14 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
         <div className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-md bg-gradient-to-br from-purple-500 to-violet-500" />
           <span className="text-xs text-gray-500">排卵日</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs">😊</span>
+          <span className="text-xs text-gray-500">心情</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs">❤️</span>
+          <span className="text-xs text-gray-500">爱爱</span>
         </div>
       </div>
     </div>

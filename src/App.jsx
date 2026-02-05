@@ -132,10 +132,22 @@ const Home = () => {
   )
 }
 
+// 条件渲染语言切换器（在 /habit/ 路径下不显示）
+const ConditionalLanguageSwitcher = () => {
+  const { pathname } = useLocation()
+  
+  // 在习惯功能页面不显示语言切换器
+  if (pathname.startsWith('/habit/')) {
+    return null
+  }
+  
+  return <LanguageSwitcher />
+}
+
 function App() {
   return (
     <div className="min-h-screen">
-      <LanguageSwitcher />
+      <ConditionalLanguageSwitcher />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
