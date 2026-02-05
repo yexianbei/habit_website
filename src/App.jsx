@@ -17,6 +17,9 @@ const Download = lazy(() => import('./components/Download'))
 const BlogPost = lazy(() => import('./pages/BlogPost'))
 const BlogList = lazy(() => import('./pages/BlogList'))
 
+// 习惯功能页面（App 内 WebView 使用）
+const PeriodManagement = lazy(() => import('./pages/habit/PeriodManagement'))
+
 // 加载中的占位组件
 const LoadingPlaceholder = ({ height = '200px' }) => (
   <div 
@@ -148,6 +151,15 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="800px" />}>
               <BlogPost />
+            </Suspense>
+          } 
+        />
+        {/* 习惯功能页面 - App 内 WebView 使用 */}
+        <Route 
+          path="/habit/period" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <PeriodManagement />
             </Suspense>
           } 
         />
