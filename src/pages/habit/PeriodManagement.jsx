@@ -1,6 +1,12 @@
 /**
  * 经期管理页面
  * 用于 App 内 WebView 打开，通过 NativeBridge 与原生通信
+ * 
+ * 功能：
+ * - 记录经期开始/结束
+ * - 日历视图展示经期、排卵日、易孕期
+ * - 智能预测下次经期
+ * - 设置周期和经期长度
  */
 
 import React, { useState, useEffect, useCallback } from 'react'
@@ -13,6 +19,7 @@ const PERIOD_STATUS = {
   FERTILE: 'fertile',     // 易孕期
   OVULATION: 'ovulation', // 排卵日
   SAFE: 'safe',           // 安全期
+  PREDICTED: 'predicted', // 预测经期
 }
 
 // 获取状态颜色
@@ -20,6 +27,8 @@ const getStatusColor = (status) => {
   switch (status) {
     case PERIOD_STATUS.PERIOD:
       return '#FF6B8A'
+    case PERIOD_STATUS.PREDICTED:
+      return '#FFAFC5'
     case PERIOD_STATUS.FERTILE:
       return '#FFB84D'
     case PERIOD_STATUS.OVULATION:
@@ -36,6 +45,8 @@ const getStatusText = (status) => {
   switch (status) {
     case PERIOD_STATUS.PERIOD:
       return '经期中'
+    case PERIOD_STATUS.PREDICTED:
+      return '预测经期'
     case PERIOD_STATUS.FERTILE:
       return '易孕期'
     case PERIOD_STATUS.OVULATION:
@@ -80,16 +91,23 @@ const Calendar = ({ selectedDate, onDateSelect, periodDates, predictions }) => {
     if (!date) return PERIOD_STATUS.NONE
     const dateStr = formatDate(date)
     
+    // 已记录的经期
     if (periodDates.includes(dateStr)) {
       return PERIOD_STATUS.PERIOD
     }
+    // 预测的经期
+    if (predictions?.predictedDates?.includes(dateStr)) {
+      return PERIOD_STATUS.PREDICTED
+    }
+    // 排卵日
     if (predictions?.ovulationDate === dateStr) {
       return PERIOD_STATUS.OVULATION
     }
+    // 易孕期
     if (predictions?.fertileDates?.includes(dateStr)) {
       return PERIOD_STATUS.FERTILE
     }
-    return PERIOD_STATUS.SAFE
+    return PERIOD_STATUS.NONE
   }
   
   const days = getDaysInMonth(currentMonth)
@@ -107,7 +125,7 @@ const Calendar = ({ selectedDate, onDateSelect, periodDates, predictions }) => {
     <div className="bg-white rounded-2xl p-4 shadow-sm">
       {/* 月份导航 */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-full">
+        <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-full active:bg-gray-200">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -115,7 +133,7 @@ const Calendar = ({ selectedDate, onDateSelect, periodDates, predictions }) => {
         <span className="text-lg font-medium">
           {currentMonth.getFullYear()}年{currentMonth.getMonth() + 1}月
         </span>
-        <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-full">
+        <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-full active:bg-gray-200">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
@@ -141,25 +159,29 @@ const Calendar = ({ selectedDate, onDateSelect, periodDates, predictions }) => {
           const status = getDateStatus(date)
           const isSelected = selectedDate && formatDate(date) === formatDate(selectedDate)
           const isToday = formatDate(date) === formatDate(new Date())
+          const hasStatus = status !== PERIOD_STATUS.NONE
           
           return (
             <button
               key={index}
               onClick={() => onDateSelect(date)}
               className={`
-                aspect-square rounded-full flex items-center justify-center text-sm
-                transition-all duration-200
-                ${isSelected ? 'ring-2 ring-pink-500 ring-offset-2' : ''}
+                aspect-square rounded-full flex items-center justify-center text-sm relative
+                transition-all duration-200 active:scale-95
+                ${isSelected ? 'ring-2 ring-pink-500 ring-offset-1' : ''}
                 ${isToday ? 'font-bold' : ''}
               `}
               style={{
-                backgroundColor: status !== PERIOD_STATUS.SAFE ? getStatusColor(status) + '30' : 'transparent',
-                color: status === PERIOD_STATUS.PERIOD ? '#FF6B8A' : 'inherit',
+                backgroundColor: hasStatus ? getStatusColor(status) + '30' : 'transparent',
+                color: (status === PERIOD_STATUS.PERIOD || status === PERIOD_STATUS.PREDICTED) ? '#FF6B8A' : 'inherit',
               }}
             >
               {date.getDate()}
               {status === PERIOD_STATUS.PERIOD && (
-                <span className="absolute bottom-1 w-1 h-1 bg-pink-500 rounded-full" />
+                <span className="absolute bottom-0.5 w-1.5 h-1.5 bg-pink-500 rounded-full" />
+              )}
+              {status === PERIOD_STATUS.PREDICTED && (
+                <span className="absolute bottom-0.5 w-1.5 h-1.5 bg-pink-300 rounded-full" />
               )}
             </button>
           )
@@ -167,10 +189,14 @@ const Calendar = ({ selectedDate, onDateSelect, periodDates, predictions }) => {
       </div>
       
       {/* 图例 */}
-      <div className="flex items-center justify-center gap-4 mt-4 text-xs text-gray-500">
+      <div className="flex flex-wrap items-center justify-center gap-3 mt-4 text-xs text-gray-500">
         <div className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-full" style={{ backgroundColor: getStatusColor(PERIOD_STATUS.PERIOD) }} />
           <span>经期</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: getStatusColor(PERIOD_STATUS.PREDICTED) }} />
+          <span>预测</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-full" style={{ backgroundColor: getStatusColor(PERIOD_STATUS.OVULATION) }} />
