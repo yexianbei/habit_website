@@ -540,6 +540,40 @@ class NativeBridge {
     return this.callNative('ui.share', data)
   }
 
+  /**
+   * 页面跳转（在 App 内打开新的 WebView 页面）
+   * @param {string} url - 目标 URL
+   * @param {object} options - 可选参数
+   */
+  navigateTo(url, options = {}) {
+    return this.callNative('ui.navigateTo', { url, ...options })
+  }
+
+  /**
+   * 显示操作菜单
+   * @param {string} title - 标题
+   * @param {Array} options - 选项数组
+   */
+  showActionSheet(title, options = []) {
+    return this.callNative('ui.showActionSheet', { title, options })
+  }
+
+  /**
+   * 显示日期选择器
+   * @param {object} params - 参数
+   */
+  showDatePicker(params = {}) {
+    return this.callNative('ui.showDatePicker', params)
+  }
+
+  /**
+   * 显示时间选择器
+   * @param {object} params - 参数
+   */
+  showTimePicker(params = {}) {
+    return this.callNative('ui.showTimePicker', params)
+  }
+
   // ==================== 设备相关便捷方法 ====================
 
   /**

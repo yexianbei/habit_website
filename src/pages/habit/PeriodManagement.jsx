@@ -224,6 +224,7 @@ export default function PeriodManagement() {
     getPeriodRecords,
     predictNextPeriod,
     showDatePicker,
+    showActionSheet,
     callNative,
   } = useNativeBridge()
   
@@ -382,14 +383,12 @@ export default function PeriodManagement() {
         
         <div className="grid grid-cols-2 gap-3">
           <button
-            onClick={() => callNative('ui.showActionSheet', {
-              title: '周期长度',
-              options: ['25天', '26天', '27天', '28天', '29天', '30天', '31天', '32天']
-            }).then(res => {
+            onClick={async () => {
+              const res = await showActionSheet('周期长度', ['25天', '26天', '27天', '28天', '29天', '30天', '31天', '32天'])
               if (res?.index !== undefined) {
                 setCycleLength(25 + res.index)
               }
-            })}
+            }}
             className="py-3 bg-white rounded-xl text-gray-700 shadow-sm"
           >
             <div className="text-xs text-gray-500">周期长度</div>
@@ -397,14 +396,12 @@ export default function PeriodManagement() {
           </button>
           
           <button
-            onClick={() => callNative('ui.showActionSheet', {
-              title: '经期长度',
-              options: ['3天', '4天', '5天', '6天', '7天', '8天']
-            }).then(res => {
+            onClick={async () => {
+              const res = await showActionSheet('经期长度', ['3天', '4天', '5天', '6天', '7天', '8天'])
               if (res?.index !== undefined) {
                 setPeriodLength(3 + res.index)
               }
-            })}
+            }}
             className="py-3 bg-white rounded-xl text-gray-700 shadow-sm"
           >
             <div className="text-xs text-gray-500">经期长度</div>

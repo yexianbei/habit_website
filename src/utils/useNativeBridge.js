@@ -67,6 +67,10 @@ export function useNativeBridge() {
     setTitle: bridge.setTitle.bind(bridge),
     setNavBarColor: bridge.setNavBarColor.bind(bridge),
     share: bridge.share.bind(bridge),
+    navigateTo: bridge.navigateTo.bind(bridge),
+    showActionSheet: bridge.showActionSheet.bind(bridge),
+    showDatePicker: bridge.showDatePicker.bind(bridge),
+    showTimePicker: bridge.showTimePicker.bind(bridge),
     
     // 设备相关
     getDeviceInfo: bridge.getDeviceInfo.bind(bridge),

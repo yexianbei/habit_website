@@ -39,6 +39,7 @@ export default function PeriodIntro() {
     showLoading, 
     hideLoading,
     closePage,
+    navigateTo,
   } = useNativeBridge()
   
   const [isAdding, setIsAdding] = useState(false)
@@ -78,7 +79,7 @@ export default function PeriodIntro() {
     
     if (hasAdded) {
       // 已添加，直接进入管理页面
-      await callNative('ui.navigateTo', { url: 'https://tinyhabits.top/habit/period' })
+      await navigateTo('https://tinyhabits.top/habit/period')
       return
     }
     
@@ -98,14 +99,14 @@ export default function PeriodIntro() {
       
       await hideLoading()
       
-      if (result?.success) {
-        await showToast('添加成功')
+      if (result?.success || result?.habitId) {
+        await showToast('添加成功，请在首页查看')
         setHasAdded(true)
         
-        // 延迟后关闭页面，让用户从首页进入
-        setTimeout(() => {
-          closePage()
-        }, 1000)
+        // 延迟后关闭页面，返回首页
+        setTimeout(async () => {
+          await closePage()
+        }, 1200)
       } else {
         await showToast(result?.message || '添加失败')
       }
@@ -123,7 +124,7 @@ export default function PeriodIntro() {
       alert('请在 App 内使用此功能')
       return
     }
-    await callNative('ui.navigateTo', { url: 'https://tinyhabits.top/habit/period' })
+    await navigateTo('https://tinyhabits.top/habit/period')
   }
   
   // 非 App 环境的提示
