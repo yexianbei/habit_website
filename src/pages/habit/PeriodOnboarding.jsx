@@ -13,13 +13,23 @@ const formatDate = (date) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+// 用于 <input type="datetime-local"> 的默认值：YYYY-MM-DDTHH:mm
+const formatDateTimeLocal = (date) => {
+  if (!date) return ''
+  const d = new Date(date)
+  const datePart = formatDate(d)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${datePart}T${hh}:${mm}`
+}
+
 export default function PeriodOnboarding() {
   const navigate = useNavigate()
   const { isInApp, setTitle, showToast, showLoading, hideLoading, callNative } = useNativeBridge()
 
   const [cycleLen, setCycleLen] = useState(28)
   const [periodLen, setPeriodLen] = useState(5)
-  const [lastStart, setLastStart] = useState(formatDate(new Date()))
+  const [lastStart, setLastStart] = useState(formatDateTimeLocal(new Date()))
 
   const canSubmit = useMemo(() => {
     const c = Number(cycleLen)
@@ -61,11 +71,15 @@ export default function PeriodOnboarding() {
         periodLength: Number(periodLen),
       })
 
-      // 2) 写入一条“经期开始”的记录（不写结束时间）
+      // 2) 写入一条“经期开始”的记录（不写结束时间），日期和时间分开处理
+      const [datePart, timePartRaw] = String(lastStart || '').split('T')
+      const timePart = timePartRaw && timePartRaw.length >= 5 ? timePartRaw.slice(0, 5) : null
+
       await callNative('period.save', {
-        date: lastStart,
+        date: datePart,
         details: JSON.stringify({
           isPeriod: true,
+          periodStartTime: timePart,
           // 不强制：用户以后记录时再补充 flow/pain/color
           mood: null,
           isLove: false,
@@ -138,14 +152,14 @@ export default function PeriodOnboarding() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">上一次经期开始日期</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">上一次经期开始时间</label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={lastStart}
                   onChange={(e) => setLastStart(e.target.value)}
                   className="w-full max-w-full min-w-0 box-border px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
                 />
-                <p className="text-xs text-gray-400 mt-2">这是预测的关键数据</p>
+                <p className="text-xs text-gray-400 mt-2">这是预测的关键数据，精确到时分</p>
               </div>
 
               <button
