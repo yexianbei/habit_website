@@ -99,7 +99,7 @@ export default function PeriodOnboarding() {
     <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-pink-50">
       <div className="px-6 pt-10 pb-8">
         <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 overflow-hidden">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-200">
                 <span className="text-2xl">⚙️</span>
@@ -119,7 +119,7 @@ export default function PeriodOnboarding() {
                   max="45"
                   value={cycleLen}
                   onChange={(e) => setCycleLen(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                  className="w-full max-w-full min-w-0 box-border px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
                 />
                 <p className="text-xs text-gray-400 mt-2">推荐范围 20–45，默认 28</p>
               </div>
@@ -132,7 +132,7 @@ export default function PeriodOnboarding() {
                   max="10"
                   value={periodLen}
                   onChange={(e) => setPeriodLen(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                  className="w-full max-w-full min-w-0 box-border px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
                 />
                 <p className="text-xs text-gray-400 mt-2">推荐范围 2–10，默认 5</p>
               </div>
@@ -143,7 +143,7 @@ export default function PeriodOnboarding() {
                   type="date"
                   value={lastStart}
                   onChange={(e) => setLastStart(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                  className="w-full max-w-full min-w-0 box-border px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
                 />
                 <p className="text-xs text-gray-400 mt-2">这是预测的关键数据</p>
               </div>
@@ -157,7 +157,7 @@ export default function PeriodOnboarding() {
               </button>
 
               <button
-                onClick={() => navigate('/habit/period', { replace: true })}
+                onClick={() => navigate('/habit/period?skipOnboarding=1', { replace: true })}
                 className="w-full py-2 text-sm text-gray-400"
               >
                 稍后再填

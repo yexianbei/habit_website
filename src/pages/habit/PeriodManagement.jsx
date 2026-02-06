@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useNativeBridge, useNativeEvent } from '../../utils/useNativeBridge'
 
 // ============ 常量定义 ============
@@ -732,6 +732,7 @@ const RecentRecords = ({ logs }) => {
 
 export default function PeriodManagement() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { isInApp, setTitle, showToast, showLoading, hideLoading, callNative } = useNativeBridge()
   
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -761,6 +762,9 @@ export default function PeriodManagement() {
   
   const loadData = async () => {
     try {
+      const params = new URLSearchParams(location.search)
+      const skipOnboarding = params.get('skipOnboarding') === '1'
+
       const year = currentMonth.getFullYear()
       const month = currentMonth.getMonth()
       const startDate = formatDate(new Date(year, month - 1, 1))
@@ -771,7 +775,8 @@ export default function PeriodManagement() {
         setPeriodLogs(result.records)
         if (result.lastPeriodStart) setLastPeriodStart(parseDate(result.lastPeriodStart))
         // 如果没有任何“经期开始”数据，引导用户先做初始化（不强制结束时间）
-        if (!result.lastPeriodStart) {
+        // 但如果带了 skipOnboarding=1，则尊重用户“稍后再填”的选择，不再强制跳转
+        if (!result.lastPeriodStart && !skipOnboarding) {
           navigate('/habit/period/onboarding', { replace: true })
           return
         }
