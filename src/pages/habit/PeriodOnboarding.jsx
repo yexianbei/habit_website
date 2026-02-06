@@ -29,17 +29,18 @@ export default function PeriodOnboarding() {
 
   const [cycleLen, setCycleLen] = useState(28)
   const [periodLen, setPeriodLen] = useState(5)
-  const [lastStart, setLastStart] = useState(formatDateTimeLocal(new Date()))
+  const [lastStartDate, setLastStartDate] = useState(formatDate(new Date()))
+  const [lastStartTime, setLastStartTime] = useState('08:00')
 
   const canSubmit = useMemo(() => {
     const c = Number(cycleLen)
     const p = Number(periodLen)
     return (
-      !!lastStart &&
+      !!lastStartDate &&
       Number.isFinite(c) && c >= 20 && c <= 45 &&
       Number.isFinite(p) && p >= 2 && p <= 10
     )
-  }, [cycleLen, periodLen, lastStart])
+  }, [cycleLen, periodLen, lastStartDate])
 
   useEffect(() => {
     if (isInApp) setTitle('经期管理')
@@ -72,14 +73,11 @@ export default function PeriodOnboarding() {
       })
 
       // 2) 写入一条“经期开始”的记录（不写结束时间），日期和时间分开处理
-      const [datePart, timePartRaw] = String(lastStart || '').split('T')
-      const timePart = timePartRaw && timePartRaw.length >= 5 ? timePartRaw.slice(0, 5) : null
-
       await callNative('period.save', {
-        date: datePart,
+        date: lastStartDate,
         details: JSON.stringify({
           isPeriod: true,
-          periodStartTime: timePart,
+          periodStartTime: lastStartTime || null,
           // 不强制：用户以后记录时再补充 flow/pain/color
           mood: null,
           isLove: false,
@@ -153,12 +151,20 @@ export default function PeriodOnboarding() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">上一次经期开始时间</label>
-                <input
-                  type="datetime-local"
-                  value={lastStart}
-                  onChange={(e) => setLastStart(e.target.value)}
-                  className="w-full max-w-full min-w-0 box-border px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
-                />
+                <div className="flex gap-3">
+                  <input
+                    type="date"
+                    value={lastStartDate}
+                    onChange={(e) => setLastStartDate(e.target.value)}
+                    className="flex-1 max-w-full min-w-0 box-border px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                  />
+                  <input
+                    type="time"
+                    value={lastStartTime}
+                    onChange={(e) => setLastStartTime(e.target.value)}
+                    className="w-28 box-border px-3 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                  />
+                </div>
                 <p className="text-xs text-gray-400 mt-2">这是预测的关键数据，精确到时分</p>
               </div>
 
