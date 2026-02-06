@@ -826,7 +826,7 @@ export default function PeriodManagement() {
       {/* 头部状态 */}
       <div className="relative overflow-hidden">
         <div 
-          className="px-6 pt-6 pb-8"
+          className="px-6 pt-6 pb-8 relative z-10"
           style={{ background: 'linear-gradient(135deg, #FF6B8A 0%, #FF8E53 100%)' }}
         >
           <div className="flex items-start justify-between">
@@ -865,8 +865,9 @@ export default function PeriodManagement() {
         </div>
         
         {/* 装饰圆形 */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full" />
-        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full" />
+        {/* 注意：装饰层必须禁用 pointer events，否则会挡住右上角按钮点击 */}
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full pointer-events-none" />
+        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full pointer-events-none" />
       </div>
       
       {/* 日历 */}

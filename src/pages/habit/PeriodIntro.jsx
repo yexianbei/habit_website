@@ -92,7 +92,7 @@ export default function PeriodIntro() {
       const result = await callNative('habit.create', {
         type: 16,  // 经期管理类型
         name: '经期管理',
-        icon: 'period_icon',
+        icon: 'ic_habit_lib_1',  // 使用本地图标名称
         bgColor: '#FF6B8A',
         description: '记录和预测经期，关爱女性健康'
       })
