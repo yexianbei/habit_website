@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useNativeBridge, useNativeEvent } from '../../utils/useNativeBridge'
 
 // ============ 常量定义 ============
@@ -365,8 +366,15 @@ const Toggle = ({ checked, onChange, color = 'pink' }) => {
 
 // ============ 详情弹窗组件 ============
 
-const DetailModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelete }) => {
-  const [isPeriod, setIsPeriod] = useState(false)
+const MoodSection = ({ mood, setMood }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-600 mb-2">今日心情</label>
+    <SelectorChip options={MOOD_OPTIONS} value={mood} onChange={setMood} />
+  </div>
+)
+
+const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelete }) => {
+  const [isPeriod, setIsPeriod] = useState(true)
   const [periodEnded, setPeriodEnded] = useState(false)
   const [periodStartTime, setPeriodStartTime] = useState('')
   const [periodEndTime, setPeriodEndTime] = useState('')
@@ -374,59 +382,45 @@ const DetailModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
   const [pain, setPain] = useState(null)
   const [color, setColor] = useState(null)
   const [mood, setMood] = useState(null)
-  const [isLove, setIsLove] = useState(false)
-  const [loveMeasure, setLoveMeasure] = useState(null)
-  const [loveTime, setLoveTime] = useState('')
-  
+
   useEffect(() => {
-    if (isOpen) {
-      const now = new Date()
-      const nowTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-      
-      if (existingLog?.signUpId) {
-        try {
-          const d = JSON.parse(existingLog.signUpId)
-          setIsPeriod(d.isPeriod !== false)
-          setPeriodEnded(d.periodEnded || false)
-          setPeriodStartTime(d.periodStartTime || nowTime)
-          setPeriodEndTime(d.periodEndTime || nowTime)
-          setFlow(d.flow || null)
-          setPain(d.pain || null)
-          setColor(d.color || null)
-          setMood(d.mood || null)
-          setIsLove(d.isLove || false)
-          setLoveMeasure(d.loveMeasure ?? null)
-          setLoveTime(d.loveTime || '')
-        } catch (e) {
-          resetForm(nowTime)
-        }
-      } else {
-        resetForm(nowTime)
+    if (!isOpen) return
+    const now = new Date()
+    const nowTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    if (existingLog?.signUpId) {
+      try {
+        const d = JSON.parse(existingLog.signUpId)
+        setIsPeriod(d.isPeriod !== false) // 兼容旧数据
+        setPeriodEnded(d.periodEnded || false)
+        setPeriodStartTime(d.periodStartTime || nowTime)
+        setPeriodEndTime(d.periodEndTime || nowTime)
+        setFlow(d.flow || null)
+        setPain(d.pain || null)
+        setColor(d.color || null)
+        setMood(d.mood || null)
+      } catch (e) {
+        setIsPeriod(true)
+        setPeriodEnded(false)
+        setPeriodStartTime(nowTime)
+        setPeriodEndTime(nowTime)
+        setFlow(null); setPain(null); setColor(null); setMood(null)
       }
+    } else {
+      setIsPeriod(true)
+      setPeriodEnded(false)
+      setPeriodStartTime(nowTime)
+      setPeriodEndTime(nowTime)
+      setFlow(null); setPain(null); setColor(null); setMood(null)
     }
   }, [isOpen, existingLog])
-  
-  const resetForm = (nowTime) => {
-    setIsPeriod(false)
-    setPeriodEnded(false)
-    setPeriodStartTime(nowTime)
-    setPeriodEndTime(nowTime)
-    setFlow(null)
-    setPain(null)
-    setColor(null)
-    setMood(null)
-    setIsLove(false)
-    setLoveMeasure(null)
-    setLoveTime('')
-  }
-  
+
   const handleSave = () => {
-    if (!isPeriod && !isLove && !mood) {
+    // 允许只记录心情：把 isPeriod 关掉即可
+    if (!isPeriod && !mood) {
       if (existingLog) onDelete()
       else onClose()
       return
     }
-    
     onSave({
       isPeriod,
       periodStartTime: isPeriod ? periodStartTime : null,
@@ -436,68 +430,54 @@ const DetailModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
       pain: isPeriod ? pain : null,
       color: isPeriod ? color : null,
       mood,
-      isLove,
-      loveMeasure: isLove ? loveMeasure : null,
-      loveTime: isLove ? loveTime : null,
+      isLove: false,
+      loveMeasure: null,
+      loveTime: null,
     })
   }
-  
+
   if (!isOpen) return null
-  
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div 
-        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* 标题 */}
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <button onClick={onClose} className="text-gray-400 text-sm">取消</button>
           <span className="font-bold text-gray-800">{formatDate(selectedDate)}</span>
           <button onClick={handleSave} className="text-pink-500 font-medium text-sm">保存</button>
         </div>
-        
-        {/* 内容区域 */}
+
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* 大姨妈来了 */}
           <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🌸</span>
-                <span className="font-bold text-gray-800">大姨妈来了</span>
+                <span className="font-bold text-gray-800">经期</span>
               </div>
               <Toggle checked={isPeriod} onChange={(v) => { setIsPeriod(v); if (!v) setPeriodEnded(false) }} />
             </div>
-            
+
             {isPeriod && (
               <div className="space-y-3 mt-4">
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-500 w-16">开始时间</span>
-                  <input 
-                    type="time" value={periodStartTime} onChange={e => setPeriodStartTime(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm"
-                  />
+                  <input type="time" value={periodStartTime} onChange={e => setPeriodStartTime(e.target.value)} className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm" />
                 </div>
-                
+
                 <div className="flex items-center justify-between pt-2 border-t border-pink-100">
-                  <span className="text-sm text-gray-600">经期走了</span>
+                  <span className="text-sm text-gray-600">经期结束</span>
                   <Toggle checked={periodEnded} onChange={setPeriodEnded} />
                 </div>
-                
+
                 {periodEnded && (
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-gray-500 w-16">结束时间</span>
-                    <input 
-                      type="time" value={periodEndTime} onChange={e => setPeriodEndTime(e.target.value)}
-                      className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm"
-                    />
+                    <input type="time" value={periodEndTime} onChange={e => setPeriodEndTime(e.target.value)} className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm" />
                   </div>
                 )}
               </div>
             )}
           </div>
-          
-          {/* 经期详情 */}
+
           {isPeriod && (
             <div className="space-y-4">
               <div>
@@ -514,14 +494,78 @@ const DetailModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
               </div>
             </div>
           )}
-          
-          {/* 心情 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">今日心情</label>
-            <SelectorChip options={MOOD_OPTIONS} value={mood} onChange={setMood} />
-          </div>
-          
-          {/* 爱爱 */}
+
+          <MoodSection mood={mood} setMood={setMood} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelete }) => {
+  const [isLove, setIsLove] = useState(true)
+  const [loveMeasure, setLoveMeasure] = useState(null)
+  const [loveTime, setLoveTime] = useState('')
+  const [mood, setMood] = useState(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+    const now = new Date()
+    const nowTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    if (existingLog?.signUpId) {
+      try {
+        const d = JSON.parse(existingLog.signUpId)
+        setIsLove(d.isLove !== false) // 兼容旧数据
+        setLoveMeasure(d.loveMeasure ?? null)
+        setLoveTime(d.loveTime || nowTime)
+        setMood(d.mood || null)
+      } catch (e) {
+        setIsLove(true)
+        setLoveMeasure(null)
+        setLoveTime(nowTime)
+        setMood(null)
+      }
+    } else {
+      setIsLove(true)
+      setLoveMeasure(null)
+      setLoveTime(nowTime)
+      setMood(null)
+    }
+  }, [isOpen, existingLog])
+
+  const handleSave = () => {
+    // 允许只记录心情：把 isLove 关掉即可
+    if (!isLove && !mood) {
+      if (existingLog) onDelete()
+      else onClose()
+      return
+    }
+    onSave({
+      isPeriod: false,
+      periodStartTime: null,
+      periodEnded: false,
+      periodEndTime: null,
+      flow: null,
+      pain: null,
+      color: null,
+      mood,
+      isLove,
+      loveMeasure: isLove ? loveMeasure : null,
+      loveTime: isLove ? loveTime : null,
+    })
+  }
+
+  if (!isOpen) return null
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <button onClick={onClose} className="text-gray-400 text-sm">取消</button>
+          <span className="font-bold text-gray-800">{formatDate(selectedDate)}</span>
+          <button onClick={handleSave} className="text-purple-600 font-medium text-sm">保存</button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -530,7 +574,7 @@ const DetailModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
               </div>
               <Toggle checked={isLove} onChange={setIsLove} color="purple" />
             </div>
-            
+
             {isLove && (
               <div className="space-y-3 mt-4">
                 <div>
@@ -539,14 +583,13 @@ const DetailModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
                 </div>
                 <div className="flex items-center gap-3 pt-2">
                   <span className="text-sm text-gray-500 w-16">时间</span>
-                  <input 
-                    type="time" value={loveTime} onChange={e => setLoveTime(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm"
-                  />
+                  <input type="time" value={loveTime} onChange={e => setLoveTime(e.target.value)} className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm" />
                 </div>
               </div>
             )}
           </div>
+
+          <MoodSection mood={mood} setMood={setMood} />
         </div>
       </div>
     </div>
@@ -688,6 +731,7 @@ const RecentRecords = ({ logs }) => {
 // ============ 主页面组件 ============
 
 export default function PeriodManagement() {
+  const navigate = useNavigate()
   const { isInApp, setTitle, showToast, showLoading, hideLoading, callNative } = useNativeBridge()
   
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -696,7 +740,8 @@ export default function PeriodManagement() {
   const [predictions, setPredictions] = useState(null)
   const [config, setConfig] = useState({ cycleLen: 28, periodLen: 5 })
   const [lastPeriodStart, setLastPeriodStart] = useState(null)
-  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [showPeriodModal, setShowPeriodModal] = useState(false)
+  const [showLoveModal, setShowLoveModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   
   useEffect(() => {
@@ -725,6 +770,11 @@ export default function PeriodManagement() {
       if (result?.records) {
         setPeriodLogs(result.records)
         if (result.lastPeriodStart) setLastPeriodStart(parseDate(result.lastPeriodStart))
+        // 如果没有任何“经期开始”数据，引导用户先做初始化（不强制结束时间）
+        if (!result.lastPeriodStart) {
+          navigate('/habit/period/onboarding', { replace: true })
+          return
+        }
       }
       
       const pred = await callNative('period.predict')
@@ -769,7 +819,8 @@ export default function PeriodManagement() {
       await callNative('period.save', { date: formatDate(selectedDate), details: JSON.stringify(data) })
       await hideLoading()
       await showToast('保存成功')
-      setShowDetailModal(false)
+      setShowPeriodModal(false)
+      setShowLoveModal(false)
       loadData()
     } catch (e) {
       await hideLoading()
@@ -781,7 +832,8 @@ export default function PeriodManagement() {
     try {
       await callNative('period.delete', { date: formatDate(selectedDate) })
       await showToast('已删除')
-      setShowDetailModal(false)
+      setShowPeriodModal(false)
+      setShowLoveModal(false)
       loadData()
     } catch (e) { await showToast('删除失败: ' + e.message) }
   }
@@ -848,13 +900,17 @@ export default function PeriodManagement() {
           {/* 快捷操作 */}
           <div className="flex gap-3 mt-6">
             {[
-              { icon: '🌸', label: '记经期', color: 'from-white/30 to-white/20' },
-              { icon: '😊', label: '记心情', color: 'from-white/30 to-white/20' },
-              { icon: '❤️', label: '记爱爱', color: 'from-white/30 to-white/20' },
+              { icon: '🌸', label: '记经期', color: 'from-white/30 to-white/20', action: 'period' },
+              { icon: '😊', label: '记心情', color: 'from-white/30 to-white/20', action: 'period' },
+              { icon: '❤️', label: '记爱爱', color: 'from-white/30 to-white/20', action: 'love' },
             ].map((item, i) => (
               <button 
                 key={i}
-                onClick={() => { setSelectedDate(new Date()); setShowDetailModal(true) }}
+                onClick={() => {
+                  setSelectedDate(new Date())
+                  if (item.action === 'love') setShowLoveModal(true)
+                  else setShowPeriodModal(true)
+                }}
                 className={`flex-1 py-3 rounded-2xl bg-gradient-to-br ${item.color} backdrop-blur-sm text-white font-medium active:scale-95 transition-transform`}
               >
                 <span className="mr-1">{item.icon}</span>
@@ -876,7 +932,7 @@ export default function PeriodManagement() {
           currentMonth={currentMonth}
           setCurrentMonth={setCurrentMonth}
           selectedDate={selectedDate}
-          onDateSelect={(date) => { setSelectedDate(date); setShowDetailModal(true) }}
+          onDateSelect={(date) => { setSelectedDate(date); setShowPeriodModal(true) }}
           periodLogs={periodLogs}
           predictions={predictions}
         />
@@ -888,8 +944,13 @@ export default function PeriodManagement() {
       </div>
       
       {/* 弹窗 */}
-      <DetailModal 
-        isOpen={showDetailModal} onClose={() => setShowDetailModal(false)}
+      <PeriodModal 
+        isOpen={showPeriodModal} onClose={() => setShowPeriodModal(false)}
+        selectedDate={selectedDate} existingLog={getSelectedDateLog()}
+        onSave={handleSaveDetails} onDelete={handleDeleteRecord}
+      />
+      <LoveModal 
+        isOpen={showLoveModal} onClose={() => setShowLoveModal(false)}
         selectedDate={selectedDate} existingLog={getSelectedDateLog()}
         onSave={handleSaveDetails} onDelete={handleDeleteRecord}
       />
