@@ -11,8 +11,6 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         privacy: resolve(__dirname, 'privacy.html'),
         terms: resolve(__dirname, 'terms.html'),
-        detail: resolve(__dirname, 'detail.html'),
-        intro: resolve(__dirname, 'intro.html'),
       },
       output: {
         // 代码分割配置

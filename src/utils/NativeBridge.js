@@ -92,16 +92,28 @@ class NativeBridge {
 
   /**
    * 检测 Android 环境
+   * 安卓端注入的是 JSBridge（invoke 同步返回），与 iOS 的 HabitBridge 不同
    */
   _isAndroid() {
-    return !!(window.HabitBridge || window.AndroidBridge)
+    return !!(
+      window.HabitBridge ||
+      window.AndroidBridge ||
+      (window.JSBridge && typeof window.JSBridge.invoke === 'function')
+    )
   }
 
   /**
    * 获取 Android Bridge 对象
    */
   _getAndroidBridge() {
-    return window.HabitBridge || window.AndroidBridge
+    return window.HabitBridge || window.AndroidBridge || window.JSBridge
+  }
+
+  /**
+   * 是否使用 JSBridge 同步 invoke（当前安卓端仅注入 JSBridge.invoke）
+   */
+  _isAndroidJSBridgeSync() {
+    return !!(window.JSBridge && typeof window.JSBridge.invoke === 'function')
   }
 
   // ==================== 核心调用方法 ====================
@@ -146,14 +158,34 @@ class NativeBridge {
           // iOS: WKWebView
           window.webkit.messageHandlers.HabitBridge.postMessage(message)
         } else if (this._isAndroid()) {
-          // Android: WebView
-          const androidBridge = this._getAndroidBridge()
-          if (androidBridge.postMessage) {
-            // 方式1: postMessage
-            androidBridge.postMessage(JSON.stringify(message))
-          } else if (androidBridge.callNative) {
-            // 方式2: 直接调用方法
-            androidBridge.callNative(method, JSON.stringify(params), callbackId)
+          // Android: 优先使用 JSBridge.invoke（同步返回 JSON 字符串，与 HabitWebViewActivity 一致）
+          if (this._isAndroidJSBridgeSync()) {
+            try {
+              const paramsStr = typeof params === 'string' ? params : JSON.stringify(params || {})
+              const resultStr = window.JSBridge.invoke(method, paramsStr)
+              clearTimeout(timeoutId)
+              delete this.callbacks[callbackId]
+              let data = null
+              if (resultStr && resultStr.trim() !== '') {
+                try {
+                  data = JSON.parse(resultStr)
+                } catch (_) {
+                  data = resultStr
+                }
+              }
+              resolve(data)
+            } catch (e) {
+              clearTimeout(timeoutId)
+              delete this.callbacks[callbackId]
+              reject(e)
+            }
+          } else {
+            const androidBridge = this._getAndroidBridge()
+            if (androidBridge.postMessage) {
+              androidBridge.postMessage(JSON.stringify(message))
+            } else if (androidBridge.callNative) {
+              androidBridge.callNative(method, JSON.stringify(params), callbackId)
+            }
           }
         } else {
           // 浏览器环境：模拟响应或降级处理
