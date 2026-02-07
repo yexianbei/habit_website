@@ -10,8 +10,17 @@
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
     <link rel="dns-prefetch" href="https://plus.unsplash.com" />
     
-    <!-- Primary Meta Tags -->
-    <title>Tiny Habits - Habit Tracker & Time Management App | Build Better Habits</title>
+    <!-- 标题由脚本根据 path 立即设置，避免经期页先显示整站英文标题再闪成中文 -->
+    <title></title>
+    <script>
+      (function(){
+        var p = window.location.pathname;
+        if (p.indexOf('/habit/period/intro') !== -1) document.title = '经期管理介绍';
+        else if (p.indexOf('/habit/period/onboarding') !== -1) document.title = '经期管理';
+        else if (p.indexOf('/habit/period') !== -1) document.title = '经期管理';
+        else document.title = 'Tiny Habits - Habit Tracker & Time Management App | Build Better Habits';
+      })();
+    </script>
     <meta name="title" content="Tiny Habits - Habit Tracker & Time Management App | Build Better Habits" />
     <meta name="description" content="Build lasting habits with Tiny Habits - A powerful habit tracker and time management app. Use micro-habits method, AI coach, and Pomodoro timer to achieve your goals. Start free today!" />
     <meta name="keywords" content="habit tracker, habit building, time management, productivity app, micro habits, tiny habits, pomodoro timer, goal tracking, daily habits, habit formation, behavior change, self improvement, AI coach" />
