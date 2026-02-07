@@ -425,7 +425,9 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
       else onClose()
       return
     }
-    onSave({
+    
+    // 构建保存数据，明确不包含爱爱相关字段（因为这是经期记录弹窗，不是爱爱弹窗）
+    const saveData = {
       isPeriod,
       periodStartTime: isPeriod ? periodStartTime : null,
       periodEnded: isPeriod ? periodEnded : false,
@@ -434,10 +436,11 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
       pain: isPeriod ? pain : null,
       color: isPeriod ? color : null,
       mood,
-      isLove: false,
-      loveMeasure: null,
-      loveTime: null,
-    })
+      isLove: false, // 明确标记不是爱爱记录
+      // 不传递 loveMeasure 和 loveTime，避免 iOS 端误判
+    }
+    
+    onSave(saveData)
   }
 
   if (!isOpen) return null
