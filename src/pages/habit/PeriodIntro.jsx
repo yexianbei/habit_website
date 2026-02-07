@@ -99,7 +99,16 @@ export default function PeriodIntro() {
       
       await hideLoading()
       
-      if (result?.success || result?.habitId) {
+      // 调试日志
+      console.log('[PeriodIntro] habit.create 返回结果:', result)
+      
+      // 判断成功：success 为 true，或者有 habitId（兼容不同返回格式）
+      const isSuccess = result && (
+        result.success === true || 
+        (result.habitId && result.habitId.length > 0)
+      )
+      
+      if (isSuccess) {
         await showToast('添加成功，请在首页查看')
         setHasAdded(true)
         
@@ -108,11 +117,15 @@ export default function PeriodIntro() {
           await closePage()
         }, 1200)
       } else {
-        await showToast(result?.message || '添加失败')
+        // 失败：显示错误信息
+        const errorMsg = result?.message || '添加失败，请重试'
+        console.error('[PeriodIntro] 添加失败:', errorMsg, result)
+        await showToast(errorMsg)
       }
     } catch (error) {
       await hideLoading()
-      await showToast('添加失败: ' + error.message)
+      console.error('[PeriodIntro] 添加异常:', error)
+      await showToast('添加失败: ' + (error.message || '未知错误'))
     } finally {
       setIsAdding(false)
     }
