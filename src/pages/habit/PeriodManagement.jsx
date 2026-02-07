@@ -503,7 +503,6 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
 }
 
 const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelete }) => {
-  const [isLove, setIsLove] = useState(true)
   const [loveMeasure, setLoveMeasure] = useState(null)
   const [loveTime, setLoveTime] = useState('')
   const [mood, setMood] = useState(null)
@@ -515,18 +514,16 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
     if (existingLog?.signUpId) {
       try {
         const d = JSON.parse(existingLog.signUpId)
-        setIsLove(d.isLove !== false) // 兼容旧数据
+        // 不再需要 isLove 开关：只要走到这个弹窗并保存，就认为是爱爱
         setLoveMeasure(d.loveMeasure ?? null)
         setLoveTime(d.loveTime || nowTime)
         setMood(d.mood || null)
       } catch (e) {
-        setIsLove(true)
         setLoveMeasure(null)
         setLoveTime(nowTime)
         setMood(null)
       }
     } else {
-      setIsLove(true)
       setLoveMeasure(null)
       setLoveTime(nowTime)
       setMood(null)
@@ -534,8 +531,8 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
   }, [isOpen, existingLog])
 
   const handleSave = () => {
-    // 允许只记录心情：把 isLove 关掉即可
-    if (!isLove && !mood) {
+    // 如果完全没有填写（既没心情、也没时间与避孕信息），当作删除/取消
+    if (!mood && !loveMeasure && !loveTime) {
       if (existingLog) onDelete()
       else onClose()
       return
@@ -549,9 +546,9 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
       pain: null,
       color: null,
       mood,
-      isLove,
-      loveMeasure: isLove ? loveMeasure : null,
-      loveTime: isLove ? loveTime : null,
+      isLove: true,
+      loveMeasure,
+      loveTime,
     })
   }
 
@@ -572,21 +569,23 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
                 <span className="text-2xl">❤️</span>
                 <span className="font-bold text-gray-800">爱爱</span>
               </div>
-              <Toggle checked={isLove} onChange={setIsLove} color="purple" />
             </div>
 
-            {isLove && (
-              <div className="space-y-3 mt-4">
-                <div>
-                  <label className="block text-sm text-gray-500 mb-2">避孕措施</label>
-                  <SelectorChip options={CONTRACEPTION_OPTIONS} value={loveMeasure} onChange={setLoveMeasure} />
-                </div>
-                <div className="flex items-center gap-3 pt-2">
-                  <span className="text-sm text-gray-500 w-16">时间</span>
-                  <input type="time" value={loveTime} onChange={e => setLoveTime(e.target.value)} className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm" />
-                </div>
+            <div className="space-y-3 mt-4">
+              <div>
+                <label className="block text-sm text-gray-500 mb-2">避孕措施</label>
+                <SelectorChip options={CONTRACEPTION_OPTIONS} value={loveMeasure} onChange={setLoveMeasure} />
               </div>
-            )}
+              <div className="flex items-center gap-3 pt-2">
+                <span className="text-sm text-gray-500 w-16">时间</span>
+                <input
+                  type="time"
+                  value={loveTime}
+                  onChange={e => setLoveTime(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm"
+                />
+              </div>
+            </div>
           </div>
 
           <MoodSection mood={mood} setMood={setMood} />
