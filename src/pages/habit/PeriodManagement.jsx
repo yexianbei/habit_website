@@ -373,8 +373,9 @@ const MoodSection = ({ mood, setMood }) => (
   </div>
 )
 
-const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelete }) => {
-  const [isPeriod, setIsPeriod] = useState(true)
+const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelete, isInitialized }) => {
+  // 如果没有初始化，默认关闭经期开关；如果已初始化，默认开启
+  const [isPeriod, setIsPeriod] = useState(isInitialized !== false)
   const [periodEnded, setPeriodEnded] = useState(false)
   const [periodStartTime, setPeriodStartTime] = useState('')
   const [periodEndTime, setPeriodEndTime] = useState('')
@@ -399,20 +400,22 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
         setColor(d.color || null)
         setMood(d.mood || null)
       } catch (e) {
-        setIsPeriod(true)
+        // 解析失败时，根据是否初始化决定默认值
+        setIsPeriod(isInitialized !== false)
         setPeriodEnded(false)
         setPeriodStartTime(nowTime)
         setPeriodEndTime(nowTime)
         setFlow(null); setPain(null); setColor(null); setMood(null)
       }
     } else {
-      setIsPeriod(true)
+      // 没有现有记录时，根据是否初始化决定默认值
+      setIsPeriod(isInitialized !== false)
       setPeriodEnded(false)
       setPeriodStartTime(nowTime)
       setPeriodEndTime(nowTime)
       setFlow(null); setPain(null); setColor(null); setMood(null)
     }
-  }, [isOpen, existingLog])
+  }, [isOpen, existingLog, isInitialized])
 
   const handleSave = () => {
     // 允许只记录心情：把 isPeriod 关掉即可
@@ -957,6 +960,7 @@ export default function PeriodManagement() {
         isOpen={showPeriodModal} onClose={() => setShowPeriodModal(false)}
         selectedDate={selectedDate} existingLog={getSelectedDateLog()}
         onSave={handleSaveDetails} onDelete={handleDeleteRecord}
+        isInitialized={lastPeriodStart !== null}
       />
       <LoveModal 
         isOpen={showLoveModal} onClose={() => setShowLoveModal(false)}
