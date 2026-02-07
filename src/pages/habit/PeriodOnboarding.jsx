@@ -42,8 +42,12 @@ export default function PeriodOnboarding() {
     )
   }, [cycleLen, periodLen, lastStartDate])
 
+  const pageTitle = '经期管理'
   useEffect(() => {
-    if (isInApp) setTitle('经期管理')
+    document.title = pageTitle
+  }, [])
+  useEffect(() => {
+    if (isInApp) setTitle(pageTitle)
   }, [isInApp, setTitle])
 
   useEffect(() => {

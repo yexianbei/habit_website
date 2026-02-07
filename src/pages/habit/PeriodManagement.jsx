@@ -744,8 +744,13 @@ export default function PeriodManagement() {
   const [showLoveModal, setShowLoveModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   
+  // 设置页面标题（document.title 让 WebView/浏览器标题栏立即显示正确文案；App 内再同步到原生标题栏）
+  const pageTitle = '经期管理'
   useEffect(() => {
-    if (isInApp) setTitle('经期管理')
+    document.title = pageTitle
+  }, [])
+  useEffect(() => {
+    if (isInApp) setTitle(pageTitle)
   }, [isInApp, setTitle])
   
   useEffect(() => {
