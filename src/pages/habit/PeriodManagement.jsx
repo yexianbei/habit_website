@@ -116,7 +116,8 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
       } catch (e) {
         info.status = PERIOD_STATUS.PERIOD
       }
-    } else if (predictions) {
+    } else if (predictions && predictions.hasData === true) {
+      // 只有在有有效预测数据时才显示预测信息
       if (predictions.predictedDates?.includes(dateStr)) info.status = PERIOD_STATUS.PREDICTED
       else if (predictions.ovulationDate === dateStr) info.status = PERIOD_STATUS.OVULATION
       else if (predictions.fertileDates?.includes(dateStr)) info.status = PERIOD_STATUS.FERTILE
@@ -789,8 +790,20 @@ export default function PeriodManagement() {
         }
       }
       
-      const pred = await callNative('period.predict')
-      if (pred) setPredictions(pred)
+      // 只有在已初始化（有 lastPeriodStart）时才获取预测
+      const hasInitialized = !!(result?.lastPeriodStart || lastPeriodStart)
+      if (hasInitialized) {
+        const pred = await callNative('period.predict')
+        // 只有当 hasData 为 true 时才设置预测数据
+        if (pred?.hasData === true) {
+          setPredictions(pred)
+        } else {
+          setPredictions(null)
+        }
+      } else {
+        // 没有初始化时，清空预测数据，不显示任何预测信息
+        setPredictions(null)
+      }
     } catch (e) { console.error('加载数据失败:', e) }
   }
   
