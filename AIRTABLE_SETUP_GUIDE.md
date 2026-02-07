@@ -77,7 +77,7 @@ ViewCounts Table
    - 访问 https://airtable.com/api
    - 点击你创建的 Base（Blog Statistics）
    - 在页面顶部找到 "Authentication" 部分
-   - 复制 **Personal access token**（API Key）
+   - 复制 **Personal access token**（API Key），格式类似：`patXXXXXXXXXXXXXX.XXXXXXXXXX`
    - 💡 如果没有 Personal access token，点击 "Create token" 创建一个
      - Token 名称：`Blog View Counter`
      - Scopes：选择 `data.records:read` 和 `data.records:write`

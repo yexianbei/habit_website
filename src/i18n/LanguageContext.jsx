@@ -11,18 +11,48 @@ export const useLanguage = () => {
   return context
 }
 
-export const LanguageProvider = ({ children }) => {
-  // 从 localStorage 读取语言偏好，默认英文
-  const [language, setLanguage] = useState(() => {
-    const saved = localStorage.getItem('language')
-    return saved || 'en'
-  })
+// 只在初始化时执行一次的语言检测逻辑
+const getInitialLanguage = () => {
+  // 1）优先使用用户在 localStorage 中保存的选择
+  if (typeof window !== 'undefined') {
+    try {
+      const saved = window.localStorage.getItem('language')
+      if (saved === 'zh' || saved === 'en') {
+        return saved
+      }
+    } catch {
+      // 忽略隐私模式等场景下的报错，继续做浏览器语言检测
+    }
 
-  // 保存语言偏好到 localStorage
+    // 2）第一次访问：根据浏览器语言进行自动检测
+    const navLang =
+      (window.navigator.language || window.navigator.userLanguage || '').toLowerCase()
+
+    if (navLang.startsWith('zh')) {
+      return 'zh'
+    }
+  }
+
+  // 3）兜底：默认英文（或你网站的主语言）
+  return 'en'
+}
+
+export const LanguageProvider = ({ children }) => {
+  // 只在第一次渲染时执行 getInitialLanguage（“只做一次自动检测”）
+  const [language, setLanguage] = useState(getInitialLanguage)
+
+  // 保存语言偏好到 localStorage，并同步 <html lang="">
   useEffect(() => {
-    localStorage.setItem('language', language)
-    // 更新 HTML lang 属性，使用标准语言代码
-    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem('language', language)
+      } catch {
+        // 忽略写入失败（比如无痕模式）
+      }
+      if (typeof document !== 'undefined') {
+        document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'
+      }
+    }
   }, [language])
 
   // 切换语言
