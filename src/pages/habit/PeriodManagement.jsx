@@ -694,11 +694,11 @@ const RecentRecords = ({ logs }) => {
   
   return (
     <div className="bg-white rounded-3xl p-5 shadow-sm">
-      <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+      <h3 className="font-bold text-gray-800 mb-5 flex items-center gap-2">
         <span className="text-lg">📋</span>
         最近记录
       </h3>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {logsWithDetails.map((log, idx) => {
           const date = new Date(log.createTime)
           let details = {}
@@ -713,15 +713,40 @@ const RecentRecords = ({ logs }) => {
           }
           if (tags.length === 0) tags.push({ text: '✓ 已记录', bg: 'from-gray-100 to-slate-100', color: 'text-gray-500' })
           
+          // 格式化日期显示：今天/昨天/具体日期
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+          const logDate = new Date(date)
+          logDate.setHours(0, 0, 0, 0)
+          const diffDays = Math.floor((today - logDate) / (1000 * 60 * 60 * 24))
+          
+          let dateLabel = ''
+          if (diffDays === 0) dateLabel = '今天'
+          else if (diffDays === 1) dateLabel = '昨天'
+          else if (diffDays === 2) dateLabel = '前天'
+          else dateLabel = `${date.getMonth() + 1}/${date.getDate()}`
+          
           return (
-            <div key={idx} className="flex items-center gap-4">
-              <div className="w-14 text-center bg-gradient-to-br from-pink-100 to-rose-100 rounded-xl py-2 flex-shrink-0">
-                <div className="text-lg font-bold text-pink-600">{String(date.getDate()).padStart(2, '0')}</div>
-                <div className="text-[10px] text-pink-400">{date.getMonth() + 1}月</div>
+            <div 
+              key={idx} 
+              className="flex items-center gap-4 p-3 rounded-2xl bg-gradient-to-r from-gray-50 to-pink-50/30 border border-gray-100 hover:border-pink-200 hover:shadow-sm transition-all"
+            >
+              {/* 日期卡片 - 更大更明显 */}
+              <div className="w-16 text-center bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl py-2.5 flex-shrink-0 shadow-sm">
+                <div className="text-xl font-bold text-white">{String(date.getDate()).padStart(2, '0')}</div>
+                <div className="text-[10px] text-pink-100 font-medium mt-0.5">{date.getMonth() + 1}月</div>
+                {diffDays <= 2 && (
+                  <div className="text-[9px] text-pink-100 mt-1 opacity-90">{dateLabel}</div>
+                )}
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              
+              {/* 标签区域 - 增加间距和视觉层次 */}
+              <div className="flex-1 flex flex-wrap gap-2 min-h-[40px] items-center">
                 {tags.map((tag, i) => (
-                  <span key={i} className={`text-xs px-2.5 py-1 rounded-lg bg-gradient-to-r ${tag.bg} ${tag.color} font-medium`}>
+                  <span 
+                    key={i} 
+                    className={`text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r ${tag.bg} ${tag.color} font-medium shadow-sm`}
+                  >
                     {tag.text}
                   </span>
                 ))}
