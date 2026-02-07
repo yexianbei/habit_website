@@ -45,10 +45,14 @@ export default function PeriodIntro() {
   const [isAdding, setIsAdding] = useState(false)
   const [hasAdded, setHasAdded] = useState(false)
   
-  // 设置页面标题
+  // 设置页面标题（document.title 让 WebView/浏览器标题栏立即显示正确文案；App 内再同步到原生标题栏）
+  const pageTitle = '经期管理介绍'
+  useEffect(() => {
+    document.title = pageTitle
+  }, [])
   useEffect(() => {
     if (isInApp) {
-      setTitle('经期管理')
+      setTitle(pageTitle)
     }
   }, [isInApp, setTitle])
   
