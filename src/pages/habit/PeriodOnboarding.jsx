@@ -155,18 +155,18 @@ export default function PeriodOnboarding() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">上一次经期开始时间</label>
-                <div className="flex gap-3">
+                <div className="flex gap-2 sm:gap-3 items-stretch min-w-0">
                   <input
                     type="date"
                     value={lastStartDate}
                     onChange={(e) => setLastStartDate(e.target.value)}
-                    className="flex-1 max-w-full min-w-0 box-border px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                    className="flex-1 min-w-0 box-border px-3 sm:px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200 text-sm max-[400px]:text-xs"
                   />
                   <input
                     type="time"
                     value={lastStartTime}
                     onChange={(e) => setLastStartTime(e.target.value)}
-                    className="w-28 box-border px-3 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200"
+                    className="flex-shrink-0 w-24 sm:w-28 min-w-0 box-border px-2 sm:px-3 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-200 text-sm max-[400px]:text-xs"
                   />
                 </div>
                 <p className="text-xs text-gray-400 mt-2">这是预测的关键数据，精确到时分</p>
