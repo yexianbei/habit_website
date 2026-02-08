@@ -96,7 +96,7 @@ export default function QuitManagement() {
 
   // 随机切换激励语（每5秒）
   useEffect(() => {
-    if (!quitDate || !quitTime) {
+    if (!quitDate) {
       setCurrentMotivation('')
       setMotivationKey(0)
       setIsMotivationVisible(true)
@@ -123,7 +123,7 @@ export default function QuitManagement() {
     }, 5000)
 
     return () => clearInterval(interval)
-  }, [quitDate, quitTime])
+  }, [quitDate])
 
   const loadData = async () => {
     try {
