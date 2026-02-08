@@ -1,6 +1,6 @@
 /**
  * 戒烟管理介绍页面
- * 用户从习惯库点击后先看到此页面，点击开始使用后进入戒烟功能
+ * 用户从习惯库点击后先看到此页面，点击添加到首页后创建戒烟习惯
  */
 
 import React, { useState, useEffect } from 'react'
@@ -33,28 +33,127 @@ const features = [
 export default function QuitIntro() {
   const { 
     isInApp, 
+    callNative,
     setTitle,
+    showToast, 
+    showLoading, 
+    hideLoading,
+    closePage,
     navigateTo,
   } = useNativeBridge()
   
-  // 设置页面标题
+  const [isAdding, setIsAdding] = useState(false)
+  const [hasAdded, setHasAdded] = useState(false)
+  
+  // 设置页面标题（document.title 让 WebView/浏览器标题栏立即显示正确文案；App 内再同步到原生标题栏）
   const pageTitle = '戒烟管理介绍'
   useEffect(() => {
     document.title = pageTitle
   }, [])
   useEffect(() => {
-    if (isInApp && setTitle) {
+    if (isInApp) {
       setTitle(pageTitle)
     }
   }, [isInApp, setTitle])
   
-  // 开始使用戒烟功能
-  const handleStart = async () => {
+  // 检查是否已添加此习惯
+  useEffect(() => {
+    checkIfAdded()
+  }, [isInApp])
+  
+  const checkIfAdded = async () => {
+    if (!isInApp) return
+    
+    try {
+      const result = await callNative('habit.getList', { type: 17 })
+      console.log('[QuitIntro] checkIfAdded 返回结果:', result)
+      if (result && result.habits && Array.isArray(result.habits) && result.habits.length > 0) {
+        console.log('[QuitIntro] 已找到戒烟习惯，数量:', result.habits.length)
+        setHasAdded(true)
+      } else {
+        console.log('[QuitIntro] 未找到戒烟习惯')
+        setHasAdded(false)
+      }
+    } catch (error) {
+      console.error('[QuitIntro] 检查习惯失败:', error)
+      setHasAdded(false)
+    }
+  }
+  
+  // 添加戒烟习惯
+  const handleAddHabit = async () => {
     if (!isInApp) {
       alert('请在 App 内使用此功能')
       return
     }
-    // 直接进入戒烟管理页面，如果未设置会自动跳转到引导页
+    
+    // 如果已添加，不应该执行这个函数，应该显示"进入戒烟管理"按钮
+    // 但为了安全，还是检查一下
+    if (hasAdded) {
+      console.log('[QuitIntro] 习惯已添加，应该显示"进入戒烟管理"按钮')
+      return
+    }
+    
+    setIsAdding(true)
+    
+    try {
+      await showLoading('添加中...')
+      
+      // 创建戒烟习惯
+      const result = await callNative('habit.create', {
+        type: 17,  // 戒烟类型
+        name: '戒烟',
+        icon: 'ic_habit_lib_quit',  // 使用本地图标名称
+        bgColor: '#00E300',
+        description: '记录戒烟天数，追踪健康改善和节省金额'
+      })
+      
+      await hideLoading()
+      
+      // 调试日志
+      console.log('[QuitIntro] habit.create 返回结果:', result)
+      
+      // 判断成功：success 为 true，或者有 habitId（兼容不同返回格式）
+      const isSuccess = result && (
+        result.success === true || 
+        (result.habitId && result.habitId.length > 0)
+      )
+      
+      if (isSuccess) {
+        await showToast('添加成功，请在首页查看')
+        setHasAdded(true)
+        
+        // 延迟后关闭页面，返回首页（不跳转到其他页面）
+        setTimeout(async () => {
+          try {
+            await closePage()
+          } catch (error) {
+            console.error('[QuitIntro] 关闭页面失败:', error)
+            // 如果 closePage 失败，尝试使用 navigateTo 返回首页
+            // 但这里不应该跳转到戒烟管理页面，应该返回首页
+          }
+        }, 1200)
+      } else {
+        // 失败：显示错误信息
+        const errorMsg = result?.message || '添加失败，请重试'
+        console.error('[QuitIntro] 添加失败:', errorMsg, result)
+        await showToast(errorMsg)
+      }
+    } catch (error) {
+      await hideLoading()
+      console.error('[QuitIntro] 添加异常:', error)
+      await showToast('添加失败: ' + (error.message || '未知错误'))
+    } finally {
+      setIsAdding(false)
+    }
+  }
+  
+  // 进入戒烟管理页面
+  const handleEnter = async () => {
+    if (!isInApp) {
+      alert('请在 App 内使用此功能')
+      return
+    }
     await navigateTo('https://tinyhabits.top/habit/quit')
   }
   
@@ -152,16 +251,27 @@ export default function QuitIntro() {
       {/* 底部按钮 */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <div className="max-w-md mx-auto">
-          <button
-            onClick={handleStart}
-            className="w-full py-4 bg-gradient-to-r from-quit-green to-quit-green-dark text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform"
-            style={{ boxShadow: '0 4px 20px rgba(0, 227, 0, 0.4)' }}
-          >
-            开始使用
-          </button>
+          {hasAdded ? (
+            <button
+              onClick={handleEnter}
+              className="w-full py-4 bg-gradient-to-r from-quit-green to-quit-green-dark text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform"
+              style={{ boxShadow: '0 4px 20px rgba(0, 227, 0, 0.4)' }}
+            >
+              进入戒烟管理
+            </button>
+          ) : (
+            <button
+              onClick={handleAddHabit}
+              disabled={isAdding}
+              className="w-full py-4 bg-gradient-to-r from-quit-green to-quit-green-dark text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform disabled:opacity-70"
+              style={{ boxShadow: '0 4px 20px rgba(0, 227, 0, 0.4)' }}
+            >
+              {isAdding ? '添加中...' : '添加到首页'}
+            </button>
+          )}
           
           <p className="text-center text-xs text-gray-400 mt-3">
-            点击开始，设置戒烟日期即可使用
+            {hasAdded ? '可在首页快速进入' : '添加后可在首页快速进入'}
           </p>
         </div>
       </div>
