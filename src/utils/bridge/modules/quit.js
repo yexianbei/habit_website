@@ -29,6 +29,15 @@ export const QUIT = {
   // 设置
   GET_SETTINGS: 'quit.getSettings',         // 获取设置
   UPDATE_SETTINGS: 'quit.updateSettings',   // 更新设置
+  
+  // 渐进式戒烟
+  SET_GRADUAL_PLAN: 'quit.setGradualPlan',           // 设置渐进式戒烟计划
+  GET_GRADUAL_PLAN: 'quit.getGradualPlan',           // 获取渐进式戒烟计划
+  SAVE_DAILY_COUNT: 'quit.saveDailyCount',           // 保存每日吸烟根数
+  GET_DAILY_COUNT: 'quit.getDailyCount',             // 获取指定日期的吸烟根数
+  GET_COUNT_RECORDS: 'quit.getCountRecords',         // 获取吸烟根数记录列表
+  GET_GRADUAL_STATS: 'quit.getGradualStats',         // 获取渐进式戒烟统计数据
+  GET_LAST_SMOKE_TIME: 'quit.getLastSmokeTime',      // 获取上次吸烟时间
 }
 
 // 导出默认对象（兼容性）

@@ -136,4 +136,74 @@ export class QuitBridge extends BaseBridge {
   updateSettings(settings) {
     return this.callNative(QUIT.UPDATE_SETTINGS, settings)
   }
+
+  // ==================== 渐进式戒烟 ====================
+
+  /**
+   * 设置渐进式戒烟计划
+   * @param {object} plan - 计划数据
+   * @param {number} plan.initialCount - 初始每日根数
+   * @param {number} plan.targetCount - 目标每日根数（通常为0）
+   * @param {number} plan.weeks - 计划周期（周数）
+   * @param {string} plan.startDate - 开始日期 (YYYY-MM-DD)
+   * @returns {Promise<object>}
+   */
+  setGradualPlan(plan) {
+    return this.callNative(QUIT.SET_GRADUAL_PLAN, plan)
+  }
+
+  /**
+   * 获取渐进式戒烟计划
+   * @returns {Promise<object|null>}
+   */
+  getGradualPlan() {
+    return this.callNative(QUIT.GET_GRADUAL_PLAN)
+  }
+
+  /**
+   * 保存每日吸烟根数
+   * @param {string} date - 日期 (YYYY-MM-DD)
+   * @param {number} count - 吸烟根数
+   * @param {object} details - 详细信息（可选）
+   * @returns {Promise<object>}
+   */
+  saveDailyCount(date, count, details = {}) {
+    return this.callNative(QUIT.SAVE_DAILY_COUNT, { date, count, ...details })
+  }
+
+  /**
+   * 获取指定日期的吸烟根数
+   * @param {string} date - 日期 (YYYY-MM-DD)
+   * @returns {Promise<number|null>}
+   */
+  getDailyCount(date) {
+    return this.callNative(QUIT.GET_DAILY_COUNT, { date })
+  }
+
+  /**
+   * 获取吸烟根数记录列表
+   * @param {string} startDate - 开始日期 (YYYY-MM-DD)
+   * @param {string} endDate - 结束日期 (YYYY-MM-DD)
+   * @returns {Promise<Array>}
+   */
+  getCountRecords(startDate, endDate) {
+    return this.callNative(QUIT.GET_COUNT_RECORDS, { startDate, endDate })
+  }
+
+  /**
+   * 获取渐进式戒烟统计数据
+   * @param {string} period - 统计周期 ('week' | 'month')
+   * @returns {Promise<object>}
+   */
+  getGradualStats(period = 'week') {
+    return this.callNative(QUIT.GET_GRADUAL_STATS, { period })
+  }
+
+  /**
+   * 获取上次吸烟时间
+   * @returns {Promise<string|null>} ISO 日期字符串
+   */
+  getLastSmokeTime() {
+    return this.callNative(QUIT.GET_LAST_SMOKE_TIME)
+  }
 }

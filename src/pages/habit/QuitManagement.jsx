@@ -465,6 +465,27 @@ export default function QuitManagement() {
           </div>
         )}
 
+        {/* 渐进式戒烟入口 */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                <span className="text-2xl">📉</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-800">渐进式戒烟</h3>
+                <p className="text-sm text-gray-500">逐步减少吸烟量，科学戒烟</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/habit/quit/gradual/stats')}
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl text-sm font-medium active:scale-95 transition-transform"
+            >
+              进入
+            </button>
+          </div>
+        </div>
+
         {/* 激励内容 */}
         {motivation && <MotivationSection motivation={motivation} />}
 

@@ -70,6 +70,35 @@ export function useQuitBridge() {
     return bridge.quit.updateSettings(settings)
   }, [])
 
+  // 渐进式戒烟
+  const setGradualPlan = useCallback((plan) => {
+    return bridge.quit.setGradualPlan(plan)
+  }, [])
+
+  const getGradualPlan = useCallback(() => {
+    return bridge.quit.getGradualPlan()
+  }, [])
+
+  const saveDailyCount = useCallback((date, count, details) => {
+    return bridge.quit.saveDailyCount(date, count, details)
+  }, [])
+
+  const getDailyCount = useCallback((date) => {
+    return bridge.quit.getDailyCount(date)
+  }, [])
+
+  const getCountRecords = useCallback((startDate, endDate) => {
+    return bridge.quit.getCountRecords(startDate, endDate)
+  }, [])
+
+  const getGradualStats = useCallback((period) => {
+    return bridge.quit.getGradualStats(period)
+  }, [])
+
+  const getLastSmokeTime = useCallback(() => {
+    return bridge.quit.getLastSmokeTime()
+  }, [])
+
   // UI 相关方法（从父 Bridge 获取）
   const setTitle = useCallback((title) => {
     return bridge.callNative('ui.setTitle', { title })
@@ -110,6 +139,15 @@ export function useQuitBridge() {
     // 设置
     getSettings,
     updateSettings,
+    
+    // 渐进式戒烟
+    setGradualPlan,
+    getGradualPlan,
+    saveDailyCount,
+    getDailyCount,
+    getCountRecords,
+    getGradualStats,
+    getLastSmokeTime,
     
     // UI 相关
     setTitle,

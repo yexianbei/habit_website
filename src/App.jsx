@@ -24,6 +24,8 @@ const PeriodOnboarding = lazy(() => import('./pages/habit/PeriodOnboarding'))
 const QuitIntro = lazy(() => import('./pages/habit/QuitIntro'))
 const QuitManagement = lazy(() => import('./pages/habit/QuitManagement'))
 const QuitOnboarding = lazy(() => import('./pages/habit/QuitOnboarding'))
+const GradualQuitConfig = lazy(() => import('./pages/habit/GradualQuitConfig'))
+const GradualQuitStats = lazy(() => import('./pages/habit/GradualQuitStats'))
 
 // 加载中的占位组件
 const LoadingPlaceholder = ({ height = '200px' }) => (
@@ -217,6 +219,22 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <QuitOnboarding />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/quit/gradual/config" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <GradualQuitConfig />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/quit/gradual/stats" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <GradualQuitStats />
             </Suspense>
           } 
         />
