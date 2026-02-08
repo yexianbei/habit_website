@@ -70,6 +70,23 @@ export function useQuitBridge() {
     return bridge.quit.updateSettings(settings)
   }, [])
 
+  // UI 相关方法（从父 Bridge 获取）
+  const setTitle = useCallback((title) => {
+    return bridge.callNative('ui.setTitle', { title })
+  }, [])
+  
+  const showToast = useCallback((message, duration) => {
+    return bridge.callNative('ui.showToast', { message, duration })
+  }, [])
+  
+  const showLoading = useCallback((message) => {
+    return bridge.callNative('ui.showLoading', { message })
+  }, [])
+  
+  const hideLoading = useCallback(() => {
+    return bridge.callNative('ui.hideLoading')
+  }, [])
+
   return {
     // 戒烟日期管理
     setQuitDate,
@@ -93,6 +110,12 @@ export function useQuitBridge() {
     // 设置
     getSettings,
     updateSettings,
+    
+    // UI 相关
+    setTitle,
+    showToast,
+    showLoading,
+    hideLoading,
     
     // 平台信息
     isInApp: bridge.isInApp(),
