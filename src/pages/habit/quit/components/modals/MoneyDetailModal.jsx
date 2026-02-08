@@ -94,6 +94,15 @@ export const MoneyDetailModal = ({
         onDailyCostChange(newDailyCost)
       }
       
+      // 通知父组件更新设置
+      if (onSettingsChange) {
+        onSettingsChange({
+          cigarettesPerDay: cigarettes,
+          pricePerCigarette: price,
+          dailyCost: newDailyCost,
+        })
+      }
+      
       safeShowToast('设置已保存')
     } catch (error) {
       console.error('保存设置失败:', error)
@@ -113,7 +122,8 @@ export const MoneyDetailModal = ({
   const weekly = calculatedDailyCost * 7
   const monthly = calculatedDailyCost * 30
   const yearly = calculatedDailyCost * 365
-  const currentSavedMoney = days * calculatedDailyCost
+  // 使用传入的 savedMoney（已经是精确计算的），如果没有则使用天数计算作为后备
+  const currentSavedMoney = savedMoney > 0 ? savedMoney : (days * calculatedDailyCost)
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -132,9 +142,13 @@ export const MoneyDetailModal = ({
         <div className="p-6 space-y-4">
           {/* 已节省金额 */}
           <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 text-center">
-            <div className="text-3xl font-bold text-amber-600 mb-2">¥{formatNumber(currentSavedMoney || 0)}</div>
+            <div className="text-3xl font-bold text-amber-600 mb-2">¥{(currentSavedMoney || 0).toFixed(2)}</div>
             <div className="text-sm text-gray-600">已节省金额</div>
-            <div className="text-xs text-gray-500 mt-1">坚持 {days} 天 × 每天 ¥{calculatedDailyCost.toFixed(2)}</div>
+            <div className="text-xs text-gray-500 mt-1">
+              {cigarettesPerDay > 0 && pricePerCigarette > 0 
+                ? `每天 ${cigarettesPerDay} 根 × ¥${parseFloat(pricePerCigarette).toFixed(2)} = ¥${calculatedDailyCost.toFixed(2)}`
+                : `坚持 ${days} 天 × 每天 ¥${calculatedDailyCost.toFixed(2)}`}
+            </div>
           </div>
 
           {/* 设置区域 */}
@@ -238,15 +252,15 @@ export const MoneyDetailModal = ({
           {/* 统计卡片 */}
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-white rounded-xl p-3 text-center border border-gray-100">
-              <div className="text-lg font-bold text-gray-800">¥{formatNumber(weekly)}</div>
+              <div className="text-lg font-bold text-gray-800">¥{weekly.toFixed(2)}</div>
               <div className="text-xs text-gray-500 mt-1">每周</div>
             </div>
             <div className="bg-white rounded-xl p-3 text-center border border-gray-100">
-              <div className="text-lg font-bold text-gray-800">¥{formatNumber(monthly)}</div>
+              <div className="text-lg font-bold text-gray-800">¥{monthly.toFixed(2)}</div>
               <div className="text-xs text-gray-500 mt-1">每月</div>
             </div>
             <div className="bg-white rounded-xl p-3 text-center border border-gray-100">
-              <div className="text-lg font-bold text-gray-800">¥{formatNumber(yearly)}</div>
+              <div className="text-lg font-bold text-gray-800">¥{yearly.toFixed(2)}</div>
               <div className="text-xs text-gray-500 mt-1">每年</div>
             </div>
           </div>

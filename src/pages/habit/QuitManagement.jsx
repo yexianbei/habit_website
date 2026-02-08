@@ -44,6 +44,8 @@ export default function QuitManagement() {
   const [lastRelapseDate, setLastRelapseDate] = useState(null) // 最后一次破戒时间
   const [stats, setStats] = useState(null)
   const [dailyCost, setDailyCost] = useState(0)
+  const [cigarettesPerDay, setCigarettesPerDay] = useState(0) // 每天抽多少根
+  const [pricePerCigarette, setPricePerCigarette] = useState(0) // 每根多少钱
   const [motivation, setMotivation] = useState(null)
   const [milestones, setMilestones] = useState([])
   const [loading, setLoading] = useState(true)
@@ -52,6 +54,7 @@ export default function QuitManagement() {
   const [showMoneyModal, setShowMoneyModal] = useState(false)
   const [showRelapseModal, setShowRelapseModal] = useState(false)
   const [quitTime, setQuitTime] = useState(null) // 实时更新的坚持时间
+  const [savedMoney, setSavedMoney] = useState(0) // 实时更新的节省金额
   const [currentMotivation, setCurrentMotivation] = useState('') // 当前显示的激励语
   const [motivationKey, setMotivationKey] = useState(0) // 用于触发动画的key
   const [isMotivationVisible, setIsMotivationVisible] = useState(true) // 控制文本显示/隐藏，用于淡出淡入效果
@@ -77,6 +80,7 @@ export default function QuitManagement() {
   useEffect(() => {
     if (!quitDate) {
       setQuitTime(null)
+      setSavedMoney(0)
       return
     }
 
@@ -93,6 +97,35 @@ export default function QuitManagement() {
 
     return () => clearInterval(interval)
   }, [quitDate, lastRelapseDate])
+
+  // 实时更新节省金额（跟随quitTime更新，每秒更新显示，但计算基于分钟）
+  useEffect(() => {
+    if (!quitDate || !quitTime) {
+      setSavedMoney(0)
+      return
+    }
+
+    // 计算节省金额：根据戒烟时间（分钟）和每分钟的成本
+    if (cigarettesPerDay > 0 && pricePerCigarette > 0) {
+      // 计算总分钟数（包括秒数转换为分钟的小数部分，精确计算）
+      const totalMinutes = quitTime.days * 24 * 60 + quitTime.hours * 60 + quitTime.minutes + quitTime.seconds / 60
+      
+      // 计算每分钟的成本：每天花费 / 每天分钟数
+      const costPerMinute = (cigarettesPerDay * pricePerCigarette) / (24 * 60)
+      
+      // 计算节省金额，精确到小数点后两位
+      const saved = totalMinutes * costPerMinute
+      setSavedMoney(parseFloat(saved.toFixed(2)))
+    } else if (dailyCost > 0) {
+      // 如果没有设置根数和单价，使用旧的按天计算方式（也精确到分钟）
+      const totalMinutes = quitTime.days * 24 * 60 + quitTime.hours * 60 + quitTime.minutes + quitTime.seconds / 60
+      const costPerMinute = dailyCost / (24 * 60)
+      const saved = totalMinutes * costPerMinute
+      setSavedMoney(parseFloat(saved.toFixed(2)))
+    } else {
+      setSavedMoney(0)
+    }
+  }, [quitDate, quitTime, cigarettesPerDay, pricePerCigarette, dailyCost])
 
   // 随机切换激励语（每5秒）
   useEffect(() => {
@@ -203,13 +236,22 @@ export default function QuitManagement() {
       
       // 优先使用设置中的 dailyCost，如果没有则使用 getDailyCost 的结果
       let finalDailyCost = costResult || 0
-      if (settingsResult && settingsResult.dailyCost) {
-        finalDailyCost = settingsResult.dailyCost
-      } else if (settingsResult && settingsResult.cigarettesPerDay && settingsResult.pricePerCigarette) {
-        // 如果有设置但没有 dailyCost，则计算
-        finalDailyCost = settingsResult.cigarettesPerDay * settingsResult.pricePerCigarette
+      let finalCigarettesPerDay = 0
+      let finalPricePerCigarette = 0
+      
+      if (settingsResult) {
+        if (settingsResult.cigarettesPerDay && settingsResult.pricePerCigarette) {
+          finalCigarettesPerDay = settingsResult.cigarettesPerDay
+          finalPricePerCigarette = settingsResult.pricePerCigarette
+          finalDailyCost = finalCigarettesPerDay * finalPricePerCigarette
+        } else if (settingsResult.dailyCost) {
+          finalDailyCost = settingsResult.dailyCost
+        }
       }
+      
       setDailyCost(finalDailyCost)
+      setCigarettesPerDay(finalCigarettesPerDay)
+      setPricePerCigarette(finalPricePerCigarette)
       
       setMotivation(motivationResult)
       setMilestones(milestonesResult || [])
@@ -257,7 +299,8 @@ export default function QuitManagement() {
       }
     }
 
-    const savedMoney = days * dailyCost
+    // 使用实时计算的 savedMoney，如果还没有则使用旧的计算方式作为后备
+    const calculatedSavedMoney = savedMoney > 0 ? savedMoney : (days * dailyCost)
     const healthImprovements = {
       heartRate: Math.min(20, days * 0.5), // 心率改善（最多20%）
       oxygen: Math.min(15, days * 0.3),    // 血氧改善（最多15%）
@@ -268,7 +311,7 @@ export default function QuitManagement() {
       sub: days > 0 ? '坚持就是胜利！' : '今天开始戒烟',
       emoji: days >= 30 ? '🎉' : days >= 7 ? '💪' : '🚭',
       days,
-      savedMoney,
+      savedMoney: calculatedSavedMoney,
       healthImprovements,
     }
   }
@@ -398,8 +441,8 @@ export default function QuitManagement() {
             <CompactStatsCard
               icon="💰"
               title="节省金额"
-              value={`¥${formatNumber(status.savedMoney || 0)}`}
-              subtitle={`每天¥${dailyCost}`}
+              value={`¥${(status.savedMoney || 0).toFixed(2)}`}
+              subtitle={dailyCost > 0 ? `每天¥${dailyCost.toFixed(2)}` : '未设置'}
               gradient="bg-gradient-to-br from-amber-500 to-orange-500"
               onClick={() => setShowMoneyModal(true)}
             />
@@ -498,6 +541,14 @@ export default function QuitManagement() {
         days={status.days}
         onDailyCostChange={(newCost) => {
           setDailyCost(newCost)
+        }}
+        onSettingsChange={(settings) => {
+          if (settings.cigarettesPerDay) {
+            setCigarettesPerDay(settings.cigarettesPerDay)
+          }
+          if (settings.pricePerCigarette) {
+            setPricePerCigarette(settings.pricePerCigarette)
+          }
         }}
         showToast={showToast}
         showLoading={showLoading}
