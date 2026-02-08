@@ -215,6 +215,11 @@ export default function QuitManagement() {
         sub: '点击设置戒烟日期开始',
         emoji: '🚭',
         days: 0,
+        savedMoney: 0,
+        healthImprovements: {
+          heartRate: 0,
+          oxygen: 0,
+        },
       }
     }
 
@@ -229,6 +234,11 @@ export default function QuitManagement() {
         sub: '请设置正确的戒烟日期',
         emoji: '📅',
         days: 0,
+        savedMoney: 0,
+        healthImprovements: {
+          heartRate: 0,
+          oxygen: 0,
+        },
       }
     }
 
@@ -365,7 +375,7 @@ export default function QuitManagement() {
       {/* 主要内容区域 */}
       <div className={`px-4 ${quitDate ? 'pt-4' : '-mt-4'} relative z-10 space-y-4 pb-8`}>
         {/* 紧凑型统计卡片 - 单行显示，适合手机 */}
-        {quitDate && stats && (
+        {quitDate && (
           <div className="flex gap-3">
             <CompactStatsCard
               icon="💰"
