@@ -53,6 +53,7 @@ export default function QuitManagement() {
   const [showRelapseModal, setShowRelapseModal] = useState(false)
   const [quitTime, setQuitTime] = useState(null) // 实时更新的坚持时间
   const [currentMotivation, setCurrentMotivation] = useState('') // 当前显示的激励语
+  const [motivationKey, setMotivationKey] = useState(0) // 用于触发动画的key
 
   const pageTitle = '戒烟管理'
   
@@ -96,14 +97,19 @@ export default function QuitManagement() {
   useEffect(() => {
     if (!quitDate || !quitTime) {
       setCurrentMotivation('')
+      setMotivationKey(0)
       return
     }
 
     // 立即设置第一个激励语
-    setCurrentMotivation(getRandomMotivation())
+    const firstMotivation = getRandomMotivation()
+    setCurrentMotivation(firstMotivation)
+    setMotivationKey(0)
 
     // 每5秒切换一次
     const interval = setInterval(() => {
+      // 同时更新key和文本，key变化会触发重新渲染和淡入动画
+      setMotivationKey(prev => prev + 1)
       setCurrentMotivation(getRandomMotivation())
     }, 5000)
 
@@ -327,7 +333,10 @@ export default function QuitManagement() {
                 </div>
               </div>
               
-              <p className="text-white text-xs font-medium drop-shadow-md transition-opacity duration-500 animate-fade-in">
+              <p 
+                key={motivationKey}
+                className="text-white text-xs font-medium drop-shadow-md motivation-text"
+              >
                 {currentMotivation || '每一秒都是向健康迈进的步伐 💪'}
               </p>
             </div>
@@ -554,6 +563,23 @@ export default function QuitManagement() {
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes motivationFadeIn {
+          from { 
+            opacity: 0; 
+            transform: translateY(10px) scale(0.96); 
+            filter: blur(2px);
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+            filter: blur(0);
+          }
+        }
+        .motivation-text {
+          animation: motivationFadeIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+          will-change: opacity, transform, filter;
+          transition: opacity 0.3s ease-out;
+        }
       `}</style>
     </div>
   )
