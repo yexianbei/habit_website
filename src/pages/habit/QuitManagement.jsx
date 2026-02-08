@@ -173,6 +173,7 @@ export default function QuitManagement() {
       // 如果没有任何戒烟日期数据，引导用户先做初始化
       // 但如果带了 skipOnboarding=1，则尊重用户"稍后再填"的选择，不再强制跳转
       if (!quitDateResult && !skipOnboarding) {
+        setLoading(false)
         navigate('/habit/quit/onboarding', { replace: true })
         return
       }

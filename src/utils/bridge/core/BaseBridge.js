@@ -76,13 +76,30 @@ export class BaseBridge {
    * 调用原生方法（核心方法）
    * @param {string} method - 方法名
    * @param {object} params - 参数
+   * @param {number} timeout - 超时时间(ms)，默认 10 秒
    */
-  callNative(method, params = {}) {
+  callNative(method, params = {}, timeout = 10000) {
     const bridge = this._bridge
     return new Promise((resolve, reject) => {
       const callbackId = `cb_${Date.now()}_${++bridge.callbackId}`
       
-      bridge.callbacks[callbackId] = { resolve, reject }
+      // 设置超时
+      const timeoutId = setTimeout(() => {
+        delete bridge.callbacks[callbackId]
+        console.warn(`[Bridge] 调用超时: ${method} (${timeout}ms)`)
+        reject(new Error(`Bridge call timeout: ${method}`))
+      }, timeout)
+      
+      bridge.callbacks[callbackId] = { 
+        resolve: (data) => {
+          clearTimeout(timeoutId)
+          resolve(data)
+        },
+        reject: (error) => {
+          clearTimeout(timeoutId)
+          reject(error)
+        }
+      }
       
       const message = {
         method,
@@ -102,11 +119,17 @@ export class BaseBridge {
               try {
                 const parsed = JSON.parse(result)
                 if (parsed.success) {
+                  clearTimeout(timeoutId)
+                  delete bridge.callbacks[callbackId]
                   resolve(parsed.data)
                 } else {
+                  clearTimeout(timeoutId)
+                  delete bridge.callbacks[callbackId]
                   reject(new Error(parsed.error || '调用失败'))
                 }
               } catch (e) {
+                clearTimeout(timeoutId)
+                delete bridge.callbacks[callbackId]
                 reject(new Error('解析返回结果失败'))
               }
             } else {
@@ -116,16 +139,22 @@ export class BaseBridge {
           } else if (window.AndroidBridge) {
             window.AndroidBridge.invoke(JSON.stringify(message))
           } else {
+            clearTimeout(timeoutId)
+            delete bridge.callbacks[callbackId]
             reject(new Error('Android Bridge 未找到'))
           }
         } else {
           // 浏览器环境：模拟返回
+          clearTimeout(timeoutId)
+          delete bridge.callbacks[callbackId]
           console.warn('[Bridge] 浏览器环境，模拟调用:', method, params)
           setTimeout(() => {
             resolve({ mock: true, method, params })
           }, 100)
         }
       } catch (error) {
+        clearTimeout(timeoutId)
+        delete bridge.callbacks[callbackId]
         reject(error)
       }
     })
@@ -136,14 +165,18 @@ export class BaseBridge {
    */
   _handleCallback(callbackId, success, data, error) {
     const bridge = this._bridge
-    const callback = bridge.callbacks[callbackId]
+    // callbackId 可能是字符串或数字，需要转换为字符串进行匹配
+    const callbackIdStr = String(callbackId)
+    const callback = bridge.callbacks[callbackIdStr]
     if (callback) {
       if (success) {
         callback.resolve(data)
       } else {
         callback.reject(new Error(error || '调用失败'))
       }
-      delete bridge.callbacks[callbackId]
+      delete bridge.callbacks[callbackIdStr]
+    } else {
+      console.warn(`[Bridge] 未找到回调: callbackId=${callbackIdStr}, 当前回调列表:`, Object.keys(bridge.callbacks))
     }
   }
 
