@@ -9,6 +9,12 @@ export default {
       colors: {
         primary: '#FFCE00',
         dark: '#1a1a1a',
+        // 戒烟功能绿色主题
+        quit: {
+          green: '#00e300',
+          'green-dark': '#00e500',
+          'green-light': '#00ff00',
+        },
       },
       animation: {
         'fade-in': 'fadeIn 0.6s ease-in',

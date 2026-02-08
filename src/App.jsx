@@ -21,6 +21,9 @@ const BlogList = lazy(() => import('./pages/BlogList'))
 const PeriodIntro = lazy(() => import('./pages/habit/PeriodIntro'))
 const PeriodManagement = lazy(() => import('./pages/habit/PeriodManagement'))
 const PeriodOnboarding = lazy(() => import('./pages/habit/PeriodOnboarding'))
+const QuitIntro = lazy(() => import('./pages/habit/QuitIntro'))
+const QuitManagement = lazy(() => import('./pages/habit/QuitManagement'))
+const QuitOnboarding = lazy(() => import('./pages/habit/QuitOnboarding'))
 
 // 加载中的占位组件
 const LoadingPlaceholder = ({ height = '200px' }) => (
@@ -190,6 +193,30 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <PeriodOnboarding />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/quit/intro" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <QuitIntro />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/quit" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <QuitManagement />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/quit/onboarding" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <QuitOnboarding />
             </Suspense>
           } 
         />
