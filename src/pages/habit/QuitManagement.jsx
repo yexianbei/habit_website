@@ -54,6 +54,7 @@ export default function QuitManagement() {
   const [quitTime, setQuitTime] = useState(null) // 实时更新的坚持时间
   const [currentMotivation, setCurrentMotivation] = useState('') // 当前显示的激励语
   const [motivationKey, setMotivationKey] = useState(0) // 用于触发动画的key
+  const [isMotivationVisible, setIsMotivationVisible] = useState(true) // 控制文本显示/隐藏，用于淡出淡入效果
 
   const pageTitle = '戒烟管理'
   
@@ -98,6 +99,7 @@ export default function QuitManagement() {
     if (!quitDate || !quitTime) {
       setCurrentMotivation('')
       setMotivationKey(0)
+      setIsMotivationVisible(true)
       return
     }
 
@@ -105,12 +107,19 @@ export default function QuitManagement() {
     const firstMotivation = getRandomMotivation()
     setCurrentMotivation(firstMotivation)
     setMotivationKey(0)
+    setIsMotivationVisible(true)
 
     // 每5秒切换一次
     const interval = setInterval(() => {
-      // 同时更新key和文本，key变化会触发重新渲染和淡入动画
-      setMotivationKey(prev => prev + 1)
-      setCurrentMotivation(getRandomMotivation())
+      // 先淡出旧文本
+      setIsMotivationVisible(false)
+      
+      // 300ms后切换文本并淡入新文本
+      setTimeout(() => {
+        setMotivationKey(prev => prev + 1)
+        setCurrentMotivation(getRandomMotivation())
+        setIsMotivationVisible(true)
+      }, 300)
     }, 5000)
 
     return () => clearInterval(interval)
@@ -335,7 +344,7 @@ export default function QuitManagement() {
               
               <p 
                 key={motivationKey}
-                className="text-white text-xs font-medium drop-shadow-md motivation-text"
+                className={`text-white text-xs font-medium drop-shadow-md motivation-text ${isMotivationVisible ? 'motivation-visible' : 'motivation-hidden'}`}
               >
                 {currentMotivation || '每一秒都是向健康迈进的步伐 💪'}
               </p>
@@ -575,10 +584,29 @@ export default function QuitManagement() {
             filter: blur(0);
           }
         }
+        @keyframes motivationFadeOut {
+          from { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+            filter: blur(0);
+          }
+          to { 
+            opacity: 0; 
+            transform: translateY(-10px) scale(0.96); 
+            filter: blur(2px);
+          }
+        }
         .motivation-text {
-          animation: motivationFadeIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
           will-change: opacity, transform, filter;
-          transition: opacity 0.3s ease-out;
+          transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                      filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .motivation-visible {
+          animation: motivationFadeIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .motivation-hidden {
+          animation: motivationFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
       `}</style>
     </div>
