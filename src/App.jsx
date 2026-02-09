@@ -30,6 +30,8 @@ const SleepIntro = lazy(() => import('./pages/habit/SleepIntro'))
 const SleepManagement = lazy(() => import('./pages/habit/SleepManagement'))
 const BodyIntro = lazy(() => import('./pages/habit/BodyIntro'))
 const BodyManagement = lazy(() => import('./pages/habit/BodyManagement'))
+const LedgerIntro = lazy(() => import('./pages/habit/LedgerIntro'))
+const LedgerManagement = lazy(() => import('./pages/habit/LedgerManagement'))
 const FlashcardHome = lazy(() => import('./pages/habit/flashcard/FlashcardHome'))
 const FlashcardStudy = lazy(() => import('./pages/habit/flashcard/FlashcardStudy'))
 const FlashcardImport = lazy(() => import('./pages/habit/flashcard/FlashcardImport'))
@@ -203,32 +205,32 @@ function App() {
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <PeriodOnboarding />
             </Suspense>
-          } 
+          }
         />
         {/* 闪卡功能页面 */}
-        <Route 
-          path="/habit/flashcard" 
+        <Route
+          path="/habit/flashcard"
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <FlashcardHome />
             </Suspense>
-          } 
+          }
         />
-        <Route 
-          path="/habit/flashcard/import" 
+        <Route
+          path="/habit/flashcard/import"
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <FlashcardImport />
             </Suspense>
-          } 
+          }
         />
-        <Route 
-          path="/habit/flashcard/study/:deckId" 
+        <Route
+          path="/habit/flashcard/study/:deckId"
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <FlashcardStudy />
             </Suspense>
-          } 
+          }
         />
         <Route 
           path="/habit/quit/intro" 
@@ -300,7 +302,23 @@ function App() {
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <BodyManagement />
             </Suspense>
-          } 
+          }
+        />
+        <Route
+          path="/habit/ledger/intro"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <LedgerIntro />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/ledger"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <LedgerManagement />
+            </Suspense>
+          }
         />
       </Routes>
     </div>
