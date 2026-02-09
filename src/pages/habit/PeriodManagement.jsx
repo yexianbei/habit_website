@@ -522,11 +522,16 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
   const [loveMeasure, setLoveMeasure] = useState(null)
   const [loveTime, setLoveTime] = useState('')
   const [mood, setMood] = useState(null)
+  const [loveDate, setLoveDate] = useState(new Date())
 
   useEffect(() => {
     if (!isOpen) return
     const now = new Date()
     const nowTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    
+    // 设置默认日期为今天
+    setLoveDate(new Date())
+    
     if (existingLog?.signUpId) {
       try {
         const d = JSON.parse(existingLog.signUpId)
@@ -534,15 +539,21 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
         setLoveMeasure(d.loveMeasure ?? null)
         setLoveTime(d.loveTime || nowTime)
         setMood(d.mood || null)
+        // 如果有现有记录，使用记录的日期
+        if (existingLog.createTime) {
+          setLoveDate(new Date(existingLog.createTime))
+        }
       } catch (e) {
         setLoveMeasure(null)
         setLoveTime(nowTime)
         setMood(null)
+        setLoveDate(new Date())
       }
     } else {
       setLoveMeasure(null)
       setLoveTime(nowTime)
       setMood(null)
+      setLoveDate(new Date())
     }
   }, [isOpen, existingLog])
 
@@ -553,7 +564,9 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
       else onClose()
       return
     }
+    // 使用选中的日期保存
     onSave({
+      date: formatDate(loveDate),
       isPeriod: false,
       periodStartTime: null,
       periodEnded: false,
@@ -574,7 +587,7 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
       <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <button onClick={onClose} className="text-gray-400 text-sm">取消</button>
-          <span className="font-bold text-gray-800">{formatDate(selectedDate)}</span>
+          <span className="font-bold text-gray-800">{formatDate(loveDate)}</span>
           <button onClick={handleSave} className="text-purple-600 font-medium text-sm">保存</button>
         </div>
 
@@ -588,6 +601,19 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
             </div>
 
             <div className="space-y-3 mt-4">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500 w-16">日期</span>
+                <input
+                  type="date"
+                  value={formatDate(loveDate)}
+                  onChange={e => {
+                    const selected = e.target.value ? new Date(e.target.value + 'T12:00:00') : new Date()
+                    setLoveDate(selected)
+                  }}
+                  className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm"
+                  max={formatDate(new Date())}
+                />
+              </div>
               <div>
                 <label className="block text-sm text-gray-500 mb-2">避孕措施</label>
                 <SelectorChip options={CONTRACEPTION_OPTIONS} value={loveMeasure} onChange={setLoveMeasure} />
@@ -1152,7 +1178,11 @@ export default function PeriodManagement() {
   const handleSaveDetails = async (data) => {
     try {
       await showLoading('保存中...')
-      await callNative('period.save', { date: formatDate(selectedDate), details: JSON.stringify(data) })
+      // 如果 data 中包含 date 字段（从爱爱弹窗传递），使用该日期；否则使用 selectedDate
+      const saveDate = data.date ? data.date : formatDate(selectedDate)
+      // 从 data 中移除 date 字段，避免保存到 details 中
+      const { date, ...detailsData } = data
+      await callNative('period.save', { date: saveDate, details: JSON.stringify(detailsData) })
       await hideLoading()
       await showToast('保存成功')
       setShowPeriodModal(false)
