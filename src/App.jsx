@@ -35,6 +35,7 @@ const LedgerManagement = lazy(() => import('./pages/habit/LedgerManagement'))
 const FlashcardHome = lazy(() => import('./pages/habit/flashcard/FlashcardHome'))
 const FlashcardStudy = lazy(() => import('./pages/habit/flashcard/FlashcardStudy'))
 const FlashcardImport = lazy(() => import('./pages/habit/flashcard/FlashcardImport'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 // 加载中的占位组件
 const LoadingPlaceholder = ({ height = '200px' }) => (
@@ -317,6 +318,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <LedgerManagement />
+            </Suspense>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <NotFound />
             </Suspense>
           }
         />
