@@ -74,7 +74,7 @@ const diffDays = (date1, date2) => {
 
 // ============ 日历组件 ============
 
-const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, periodLogs, predictions }) => {
+const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, periodLogs, predictions, config = { periodLen: 5 } }) => {
   const [touchStart, setTouchStart] = useState(null)
   const [touchEnd, setTouchEnd] = useState(null)
   const [slideDirection, setSlideDirection] = useState(null) // 'left' | 'right' | null
@@ -134,19 +134,51 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
     return info
   }, [periodLogs, predictions])
   
-  // 预计算所有经期日期，用于判断经期第一天
-  const periodDatesSet = useMemo(() => {
+  // 预计算所有经期周期的第一天
+  const periodStartDatesSet = useMemo(() => {
     const set = new Set()
-    periodLogs.forEach(log => {
-      try {
-        const details = JSON.parse(log.signUpId || '{}')
-        if (details.isPeriod === true) {
-          set.add(formatDate(new Date(log.createTime)))
-        }
-      } catch (e) {}
-    })
+    
+    // 1. 获取所有经期记录并按日期排序
+    const sortedRecords = periodLogs
+      .filter(log => {
+        try {
+          const details = JSON.parse(log.signUpId || '{}')
+          return details.isPeriod === true
+        } catch (e) { return false }
+      })
+      .map(log => ({
+        date: new Date(log.createTime),
+        dateStr: formatDate(new Date(log.createTime))
+      }))
+      .sort((a, b) => a.date - b.date)
+
+    if (sortedRecords.length === 0) return set
+
+    // 2. 遍历记录，识别每个周期的第一天
+    // 第一个记录肯定是第一天
+    set.add(sortedRecords[0].dateStr)
+    
+    let lastRecord = sortedRecords[0]
+    
+    for (let i = 1; i < sortedRecords.length; i++) {
+      const currentRecord = sortedRecords[i]
+      const daysDiff = diffDays(currentRecord.date, lastRecord.date)
+      
+      // 如果间隔超过阈值（经期长度 + 2天缓冲），认为是新的周期
+      // 这里的逻辑与 findContinuousPeriodGroup 保持一致
+      if (daysDiff > (config.periodLen || 5) + 2) {
+        set.add(currentRecord.dateStr)
+      }
+      
+      // 更新 lastRecord 为当前记录，用于下一次比较
+      // 注意：这里我们比较的是相邻的两个记录。
+      // 如果是 3号(start), 7号。 7-3=4 <= 7。7号不是start。lastRecord更新为7号。
+      // 如果后面还有 15号。 15-7=8 > 7。15号是start。
+      lastRecord = currentRecord
+    }
+    
     return set
-  }, [periodLogs])
+  }, [periodLogs, config.periodLen])
   
   // 触摸事件处理
   const onTouchStart = (e) => {
@@ -263,11 +295,7 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
             const isToday = dateStr === todayStr
             
             // 判断是否为经期第一天
-            const isPeriodStart = info.status === PERIOD_STATUS.PERIOD && (() => {
-              const prevDate = new Date(date)
-              prevDate.setDate(prevDate.getDate() - 1)
-              return !periodDatesSet.has(formatDate(prevDate))
-            })()
+            const isPeriodStart = info.status === PERIOD_STATUS.PERIOD && periodStartDatesSet.has(dateStr)
             
             const statusStyles = {
               [PERIOD_STATUS.PERIOD]: 'bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200',
@@ -1372,6 +1400,7 @@ export default function PeriodManagement() {
           onDateSelect={(date) => { setSelectedDate(date); setShowPeriodModal(true) }}
           periodLogs={periodLogs}
           predictions={predictions}
+          config={config}
         />
       </div>
       
