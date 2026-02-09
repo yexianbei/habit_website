@@ -602,30 +602,29 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
 
             <div className="space-y-3 mt-4">
               <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-500 w-16">日期</span>
-                <input
-                  type="date"
-                  value={formatDate(loveDate)}
-                  onChange={e => {
-                    const selected = e.target.value ? new Date(e.target.value + 'T12:00:00') : new Date()
-                    setLoveDate(selected)
-                  }}
-                  className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm"
-                  max={formatDate(new Date())}
-                />
+                <span className="text-sm text-gray-500 w-16">时间</span>
+                <div className="flex-1 flex gap-2">
+                  <input
+                    type="date"
+                    value={formatDate(loveDate)}
+                    onChange={e => {
+                      const selected = e.target.value ? new Date(e.target.value + 'T12:00:00') : new Date()
+                      setLoveDate(selected)
+                    }}
+                    className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm min-w-0"
+                    max={formatDate(new Date())}
+                  />
+                  <input
+                    type="time"
+                    value={loveTime}
+                    onChange={e => setLoveTime(e.target.value)}
+                    className="w-28 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm text-gray-500 mb-2">避孕措施</label>
                 <SelectorChip options={CONTRACEPTION_OPTIONS} value={loveMeasure} onChange={setLoveMeasure} />
-              </div>
-              <div className="flex items-center gap-3 pt-2">
-                <span className="text-sm text-gray-500 w-16">时间</span>
-                <input
-                  type="time"
-                  value={loveTime}
-                  onChange={e => setLoveTime(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm"
-                />
               </div>
             </div>
           </div>
