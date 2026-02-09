@@ -835,12 +835,84 @@ export default function PeriodManagement() {
     } catch (e) { console.error('加载数据失败:', e) }
   }
   
+  // 智能计算真正的经期开始日期
+  const calculateActualPeriodStart = () => {
+    if (!lastPeriodStart || periodLogs.length === 0) return lastPeriodStart
+    
+    // 获取所有经期记录，按日期排序
+    const periodRecords = periodLogs
+      .filter(log => {
+        if (!log.signUpId) return false
+        try {
+          const details = JSON.parse(log.signUpId)
+          return details.isPeriod !== false && (details.flow || details.pain || details.color || !details.isLove)
+        } catch (e) {
+          return true // 解析失败的旧数据默认认为是经期记录
+        }
+      })
+      .map(log => ({
+        date: new Date(log.createTime),
+        details: (() => {
+          try { return JSON.parse(log.signUpId) } catch (e) { return {} }
+        })()
+      }))
+      .sort((a, b) => a.date - b.date) // 按日期正序排列，方便查找连续记录
+    
+    if (periodRecords.length === 0) return lastPeriodStart
+    
+    const today = new Date()
+    
+    // 找到当前经期周期内的所有记录
+    // 策略：从今天开始向前查找，找到最近的连续经期记录组
+    let currentPeriodRecords = []
+    
+    // 先找到距离今天最近的经期记录
+    let latestRecordIndex = -1
+    for (let i = periodRecords.length - 1; i >= 0; i--) {
+      const daysSinceRecord = diffDays(today, periodRecords[i].date)
+      if (daysSinceRecord <= config.periodLen + 2) { // 在合理的经期范围内
+        latestRecordIndex = i
+        break
+      }
+    }
+    
+    // 如果没有找到最近的经期记录，使用后端返回的lastPeriodStart
+    if (latestRecordIndex === -1) {
+      return lastPeriodStart
+    }
+    
+    // 从最近的记录开始，向前查找连续的经期记录
+    currentPeriodRecords.push(periodRecords[latestRecordIndex])
+    
+    // 向前查找连续记录
+    for (let i = latestRecordIndex - 1; i >= 0; i--) {
+      const currentRecord = periodRecords[i]
+      const lastFoundRecord = currentPeriodRecords[currentPeriodRecords.length - 1]
+      const daysBetween = diffDays(lastFoundRecord.date, currentRecord.date)
+      
+      // 如果间隔超过经期长度+1天，说明不是同一个经期周期，停止查找
+      // 这样可以处理用户没有每天都记录的情况
+      if (daysBetween > config.periodLen + 1) {
+        break
+      }
+      
+      // 如果在合理范围内，添加到当前经期记录组
+      currentPeriodRecords.push(currentRecord)
+    }
+    
+    // 返回最早的连续经期记录日期
+    const actualStartDate = currentPeriodRecords[currentPeriodRecords.length - 1].date
+    return actualStartDate
+  }
+
   const getStatusText = () => {
     if (!lastPeriodStart) return { main: '未记录', sub: '点击日历开始记录', emoji: '🌸' }
     
     const today = new Date()
-    const daysSinceStart = diffDays(today, lastPeriodStart) + 1
+    const actualPeriodStart = calculateActualPeriodStart()
+    const daysSinceStart = diffDays(today, actualPeriodStart) + 1
     
+    // 检查是否有明确的经期结束标记
     let hasEnded = false, endedDayIndex = 0
     periodLogs.forEach(log => {
       if (log.signUpId) {
@@ -848,17 +920,70 @@ export default function PeriodManagement() {
           const d = JSON.parse(log.signUpId)
           if (d.periodEnded) {
             hasEnded = true
-            const dayIndex = diffDays(new Date(log.createTime), lastPeriodStart) + 1
+            const dayIndex = diffDays(new Date(log.createTime), actualPeriodStart) + 1
             endedDayIndex = Math.max(endedDayIndex, dayIndex)
           }
         } catch (e) {}
       }
     })
     
-    let inPeriod = daysSinceStart <= config.periodLen
-    if (hasEnded && daysSinceStart >= endedDayIndex) inPeriod = false
+    // 计算当次经期的实际长度
+    const getCurrentPeriodActualLength = () => {
+      // 获取从经期开始日期到今天的所有经期记录
+      const currentPeriodRecords = periodLogs
+        .filter(log => {
+          if (!log.signUpId) return false
+          const logDate = new Date(log.createTime)
+          const daysSinceStart = diffDays(logDate, actualPeriodStart)
+          
+          // 只考虑从经期开始日期之后的记录
+          if (daysSinceStart < 0) return false
+          
+          try {
+            const details = JSON.parse(log.signUpId)
+            return details.isPeriod !== false && (details.flow || details.pain || details.color || !details.isLove)
+          } catch (e) {
+            return true // 解析失败的旧数据默认认为是经期记录
+          }
+        })
+        .map(log => ({
+          date: new Date(log.createTime),
+          dayIndex: diffDays(new Date(log.createTime), actualPeriodStart) + 1
+        }))
+        .sort((a, b) => b.dayIndex - a.dayIndex) // 按天数倒序排列
+      
+      // 如果没有任何经期记录，使用默认长度
+      if (currentPeriodRecords.length === 0) {
+        return config.periodLen
+      }
+      
+      // 找到最后一天有记录的经期天数
+      const lastRecordedDay = currentPeriodRecords[0].dayIndex
+      
+      // 实际经期长度 = max(默认长度, 最后记录的天数)
+      return Math.max(config.periodLen, lastRecordedDay)
+    }
     
-    if (inPeriod) return { main: `第 ${daysSinceStart} 天`, sub: '经期中，注意休息', emoji: '🩸' }
+    const actualPeriodLength = getCurrentPeriodActualLength()
+    
+    // 判断是否还在经期中
+    let inPeriod = daysSinceStart <= actualPeriodLength
+    
+    // 如果有明确的结束标记，以结束标记为准
+    if (hasEnded && daysSinceStart >= endedDayIndex) {
+      inPeriod = false
+    }
+    
+    if (inPeriod) {
+      return { 
+        main: `第 ${daysSinceStart} 天`, 
+        sub: actualPeriodLength > config.periodLen 
+          ? `经期延长至${actualPeriodLength}天，注意休息` 
+          : '经期中，注意休息', 
+        emoji: '🩸' 
+      }
+    }
+    
     if (daysSinceStart <= config.cycleLen) {
       const daysLeft = config.cycleLen - daysSinceStart
       return { main: `${daysLeft} 天`, sub: '距离下次经期', emoji: '📅' }
