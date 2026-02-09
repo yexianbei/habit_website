@@ -30,6 +30,9 @@ const SleepIntro = lazy(() => import('./pages/habit/SleepIntro'))
 const SleepManagement = lazy(() => import('./pages/habit/SleepManagement'))
 const BodyIntro = lazy(() => import('./pages/habit/BodyIntro'))
 const BodyManagement = lazy(() => import('./pages/habit/BodyManagement'))
+const FlashcardHome = lazy(() => import('./pages/habit/flashcard/FlashcardHome'))
+const FlashcardStudy = lazy(() => import('./pages/habit/flashcard/FlashcardStudy'))
+const FlashcardImport = lazy(() => import('./pages/habit/flashcard/FlashcardImport'))
 
 // 加载中的占位组件
 const LoadingPlaceholder = ({ height = '200px' }) => (
@@ -199,6 +202,31 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <PeriodOnboarding />
+            </Suspense>
+          } 
+        />
+        {/* 闪卡功能页面 */}
+        <Route 
+          path="/habit/flashcard" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <FlashcardHome />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/flashcard/import" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <FlashcardImport />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/flashcard/study/:deckId" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <FlashcardStudy />
             </Suspense>
           } 
         />
