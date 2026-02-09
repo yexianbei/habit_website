@@ -1067,7 +1067,11 @@ export default function PeriodManagement() {
     
     const today = new Date()
     const actualPeriodStart = findActualPeriodStart()
-    const daysSinceStart = diffDays(today, actualPeriodStart) + 1
+    
+    // 使用与原生端一致的计算方式：计算从开始日期到今天的日期差
+    const startDay = new Date(actualPeriodStart.getFullYear(), actualPeriodStart.getMonth(), actualPeriodStart.getDate())
+    const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const daysSinceStart = diffDays(todayDay, startDay) + 1 // 第几天
     
     // 检查是否有明确的经期结束标记
     let hasEnded = false, endedDayIndex = 0
@@ -1077,7 +1081,9 @@ export default function PeriodManagement() {
           const d = JSON.parse(log.signUpId)
           if (d.periodEnded) {
             hasEnded = true
-            const dayIndex = diffDays(new Date(log.createTime), actualPeriodStart) + 1
+            const logDate = new Date(log.createTime)
+            const logDay = new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate())
+            const dayIndex = diffDays(logDay, startDay) + 1
             endedDayIndex = Math.max(endedDayIndex, dayIndex)
           }
         } catch (e) {}
@@ -1096,12 +1102,16 @@ export default function PeriodManagement() {
             return false
           }
         })
-        .map(log => diffDays(new Date(log.createTime), actualPeriodStart) + 1)
+        .map(log => {
+          const logDate = new Date(log.createTime)
+          const logDay = new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate())
+          return diffDays(logDay, startDay) + 1
+        })
         .filter(dayIndex => dayIndex > 0)
         .reduce((max, dayIndex) => Math.max(max, dayIndex), config.periodLen)
     )
     
-    let inPeriod = daysSinceStart <= actualPeriodLength
+    let inPeriod = daysSinceStart > 0 && daysSinceStart <= actualPeriodLength
     if (hasEnded && daysSinceStart >= endedDayIndex) inPeriod = false
     
     if (inPeriod) {
@@ -1114,11 +1124,29 @@ export default function PeriodManagement() {
       }
     }
     
-    if (daysSinceStart <= config.cycleLen) {
-      const daysLeft = config.cycleLen - daysSinceStart
-      return { main: `${daysLeft} 天`, sub: '距离下次经期', emoji: '📅' }
+    // 计算下一次经期开始日（与原生端逻辑一致）
+    const nextStartDate = new Date(startDay)
+    nextStartDate.setDate(nextStartDate.getDate() + config.cycleLen)
+    const nextStartDay = new Date(nextStartDate.getFullYear(), nextStartDate.getMonth(), nextStartDate.getDate())
+    let daysUntilNext = diffDays(nextStartDay, todayDay)
+    
+    // 如果已经过了预计日期，简单向后平移一个或多个周期（与原生端逻辑一致）
+    if (daysUntilNext < 0) {
+      const passedCycles = Math.floor((-daysUntilNext / config.cycleLen)) + 1
+      const adjustedNextStartDate = new Date(startDay)
+      adjustedNextStartDate.setDate(adjustedNextStartDate.getDate() + (config.cycleLen * passedCycles))
+      const adjustedNextStartDay = new Date(adjustedNextStartDate.getFullYear(), adjustedNextStartDate.getMonth(), adjustedNextStartDate.getDate())
+      daysUntilNext = diffDays(adjustedNextStartDay, todayDay)
     }
-    return { main: `延后 ${daysSinceStart - config.cycleLen} 天`, sub: '建议关注身体状况', emoji: '⚠️' }
+    
+    // 未到下次经期：还有多少天
+    if (daysUntilNext > 0) {
+      return { main: `${daysUntilNext} 天`, sub: '距离下次经期', emoji: '📅' }
+    }
+    
+    // 已经过预计日：延后
+    const delayDays = -daysUntilNext
+    return { main: `延后 ${delayDays} 天`, sub: '建议关注身体状况', emoji: '⚠️' }
   }
   
   const handleSaveDetails = async (data) => {
