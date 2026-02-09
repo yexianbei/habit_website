@@ -33,7 +33,8 @@ export default function LedgerIntro() {
   const checkIfAdded = async () => {
     if (!isInApp) return
     try {
-      const result = await callNative('habit.getList', { type: 20 })
+      // 22 = HabitTypeAccounting
+      const result = await callNative('habit.getList', { type: 22 })
       if (result && result.habits && Array.isArray(result.habits) && result.habits.length > 0) {
         setHasAdded(true)
       } else {
@@ -50,14 +51,15 @@ export default function LedgerIntro() {
       return
     }
     if (hasAdded) {
-      await navigateTo('https://tinyhabits.top/habit/ledger')
+      await navigateTo('https://tinyhabits.top/habit/accounting')
       return
     }
     setIsAdding(true)
     try {
       await showLoading('添加中...')
       const result = await callNative('habit.create', {
-        type: 20,
+        // 对齐 iOS 端 HabitTypeAccounting = 22
+        type: 22,
         name: '记账',
         icon: 'ic_habit_lib_1',
         bgColor: '#34D399',
@@ -123,9 +125,9 @@ export default function LedgerIntro() {
             <button
               onClick={async () => {
                 if (isInApp) {
-                  await navigateTo('https://tinyhabits.top/habit/ledger')
+                  await navigateTo('https://tinyhabits.top/habit/accounting')
                 } else {
-                  window.location.href = '/habit/ledger'
+                  window.location.href = '/habit/accounting'
                 }
               }}
               className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-400 to-sky-400 text-white font-medium active:scale-95 transition-transform"

@@ -15,10 +15,34 @@
     <script>
       (function(){
         var p = window.location.pathname;
-        if (p.indexOf('/habit/period/intro') !== -1) document.title = '经期管理介绍';
-        else if (p.indexOf('/habit/period/onboarding') !== -1) document.title = '经期管理';
-        else if (p.indexOf('/habit/period') !== -1) document.title = '经期管理';
-        else document.title = 'Tiny Habits - Habit Tracker & Time Management App | Build Better Habits';
+        if (p.indexOf('/habit/period/intro') !== -1) {
+          document.title = '经期管理介绍';
+        } else if (p.indexOf('/habit/period/onboarding') !== -1 || p.indexOf('/habit/period') !== -1) {
+          document.title = '经期管理';
+        } else if (p.indexOf('/habit/quit/intro') !== -1) {
+          document.title = '戒烟管理介绍';
+        } else if (p.indexOf('/habit/quit') !== -1) {
+          document.title = '戒烟管理';
+        } else if (p.indexOf('/habit/body/intro') !== -1) {
+          exhort = '身体数据介绍';
+          document.title = exhort;
+        } else if (p.indexOf('/habit/body') !== -1) {
+          document.title = '身体数据';
+        } else if (p.indexOf('/habit/sleep/intro') !== -1) {
+          document.title = '睡眠管理介绍';
+        } else if (p.indexOf('/habit/sleep') !== -1) {
+          document.title = '睡眠管理';
+        } else if (p.indexOf('/habit/flashcard/intro') !== -1) {
+          document.title = '闪卡记忆介绍';
+        } else if (p.indexOf('/habit/flashcard') !== -1) {
+          document.title = '闪卡记忆';
+        } else if (p.indexOf('/habit/accounting/intro') !== -1) {
+          document.title = '记账介绍';
+        } else if (p.indexOf('/habit/accounting') !== -1 || p.indexOf('/habit/ledger') !== -1) {
+          document.title = '记账';
+        } else {
+          document.title = 'Tiny Habits - Habit Tracker & Time Management App | Build Better Habits';
+        }
       })();
     </script>
     <meta name="title" content="Tiny Habits - Habit Tracker & Time Management App | Build Better Habits" />

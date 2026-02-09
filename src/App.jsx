@@ -314,6 +314,23 @@ function App() {
             </Suspense>
           }
         />
+        {/* 记账（保留 /ledger 兼容，/accounting 为最终路径） */}
+        <Route
+          path="/habit/accounting/intro"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <LedgerIntro />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/accounting"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <LedgerManagement />
+            </Suspense>
+          }
+        />
         <Route
           path="/habit/ledger/intro"
           element={
