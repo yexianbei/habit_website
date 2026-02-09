@@ -33,6 +33,11 @@ const BodyManagement = lazy(() => import('./pages/habit/BodyManagement'))
 const LedgerIntro = lazy(() => import('./pages/habit/LedgerIntro'))
 const LedgerManagement = lazy(() => import('./pages/habit/LedgerManagement'))
 const OfficialLibrary = lazy(() => import('./pages/habit/OfficialLibrary'))
+const BabyIntro = lazy(() => import('./pages/habit/BabyIntro'))
+const BabyManagement = lazy(() => import('./pages/habit/BabyManagement'))
+const BabyOnboarding = lazy(() => import('./pages/habit/BabyOnboarding'))
+const BloodSugarIntro = lazy(() => import('./pages/habit/BloodSugarIntro'))
+const BloodSugarManagement = lazy(() => import('./pages/habit/BloodSugarManagement'))
 const FlashcardHome = lazy(() => import('./pages/habit/flashcard/FlashcardHome'))
 const FlashcardStudy = lazy(() => import('./pages/habit/flashcard/FlashcardStudy'))
 const FlashcardImport = lazy(() => import('./pages/habit/flashcard/FlashcardImport'))
@@ -216,6 +221,48 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <OfficialLibrary />
+            </Suspense>
+          }
+        />
+        {/* 血糖记录 */}
+        <Route
+          path="/habit/glucose/intro"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <BloodSugarIntro />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/glucose"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <BloodSugarManagement />
+            </Suspense>
+          }
+        />
+        {/* 宝宝成长 */}
+        <Route
+          path="/habit/baby/intro"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <BabyIntro />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/baby"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <BabyManagement />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/baby/onboarding"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <BabyOnboarding />
             </Suspense>
           }
         />

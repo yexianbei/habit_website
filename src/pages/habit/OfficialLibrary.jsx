@@ -74,6 +74,28 @@ const OFFICIAL_HABITS = [
     usePath: '/habit/accounting',
     tag: '理财与账本',
   },
+  {
+    id: 'baby_growth',
+    type: 23,
+    name: '宝宝成长',
+    desc: '记录喂奶、睡眠、体温、疫苗、身高与体重等成长数据',
+    icon: '👶',
+    bg: 'from-orange-400 to-pink-500',
+    introPath: '/habit/baby/intro',
+    usePath: '/habit/baby',
+    tag: '家庭与亲子',
+  },
+  {
+    id: 'blood_sugar',
+    type: 24,
+    name: '血糖记录',
+    desc: '记录血糖值，追踪血糖变化趋势，管理健康',
+    icon: '🩸',
+    bg: 'from-red-500 to-pink-500',
+    introPath: '/habit/glucose/intro',
+    usePath: '/habit/glucose',
+    tag: '健康管理',
+  },
 ]
 
 export default function OfficialLibrary() {
