@@ -4,6 +4,9 @@
 
 import { formatDate } from './quitUtils'
 
+// 重新导出 formatDate 供其他模块使用
+export { formatDate }
+
 /**
  * 计算渐进式戒烟计划
  * @param {number} initialCount - 初始每日根数
