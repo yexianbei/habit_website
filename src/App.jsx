@@ -32,6 +32,7 @@ const BodyIntro = lazy(() => import('./pages/habit/BodyIntro'))
 const BodyManagement = lazy(() => import('./pages/habit/BodyManagement'))
 const LedgerIntro = lazy(() => import('./pages/habit/LedgerIntro'))
 const LedgerManagement = lazy(() => import('./pages/habit/LedgerManagement'))
+const OfficialLibrary = lazy(() => import('./pages/habit/OfficialLibrary'))
 const FlashcardHome = lazy(() => import('./pages/habit/flashcard/FlashcardHome'))
 const FlashcardStudy = lazy(() => import('./pages/habit/flashcard/FlashcardStudy'))
 const FlashcardImport = lazy(() => import('./pages/habit/flashcard/FlashcardImport'))
@@ -206,6 +207,15 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <PeriodOnboarding />
+            </Suspense>
+          }
+        />
+        {/* 官方习惯库（App 内 WebView 使用） */}
+        <Route
+          path="/habit/library/official"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <OfficialLibrary />
             </Suspense>
           }
         />
