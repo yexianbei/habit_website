@@ -459,7 +459,12 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <button onClick={onClose} className="text-gray-400 text-sm">取消</button>
           <span className="font-bold text-gray-800">{formatDate(selectedDate)}</span>
-          <button onClick={handleSave} className="text-pink-500 font-medium text-sm">保存</button>
+          <div className="flex gap-3">
+            {existingLog && (
+              <button onClick={onDelete} className="text-red-500 font-medium text-sm">删除</button>
+            )}
+            <button onClick={handleSave} className="text-pink-500 font-medium text-sm">保存</button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -588,7 +593,12 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <button onClick={onClose} className="text-gray-400 text-sm">取消</button>
           <span className="font-bold text-gray-800">{formatDate(loveDate)}</span>
-          <button onClick={handleSave} className="text-purple-600 font-medium text-sm">保存</button>
+          <div className="flex gap-3">
+            {existingLog && (
+              <button onClick={onDelete} className="text-red-500 font-medium text-sm">删除</button>
+            )}
+            <button onClick={handleSave} className="text-purple-600 font-medium text-sm">保存</button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -705,7 +715,7 @@ const SettingsModal = ({ isOpen, onClose, config, onSave }) => {
 
 // ============ 最近记录组件 ============
 
-const RecentRecords = ({ logs }) => {
+const RecentRecords = ({ logs, onRecordClick }) => {
   const MAP_FLOW = { 1: '💧少', 2: '💧中', 3: '💧多' }
   const MAP_PAIN = { 0: '😊无痛', 1: '😐轻度', 2: '😣重度' }
   const MAP_MOOD = { 1: '😊开心', 2: '😐平淡', 3: '😢难过', 4: '😰焦虑', 5: '😠生气' }
@@ -763,7 +773,8 @@ const RecentRecords = ({ logs }) => {
           return (
             <div 
               key={idx} 
-              className="flex items-center gap-4 p-3 rounded-2xl bg-gradient-to-r from-gray-50 to-pink-50/30 border border-gray-100 hover:border-pink-200 hover:shadow-sm transition-all"
+              onClick={() => onRecordClick && onRecordClick(log)}
+              className="flex items-center gap-4 p-3 rounded-2xl bg-gradient-to-r from-gray-50 to-pink-50/30 border border-gray-100 hover:border-pink-200 hover:shadow-sm transition-all cursor-pointer active:scale-98"
             >
               {/* 日期卡片 - 更大更明显 */}
               <div className="w-16 text-center bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl py-2.5 flex-shrink-0 shadow-sm">
@@ -1340,7 +1351,23 @@ export default function PeriodManagement() {
       
       {/* 最近记录 */}
       <div className="px-4 mt-4 pb-8">
-        <RecentRecords logs={periodLogs} />
+        <RecentRecords 
+          logs={periodLogs} 
+          onRecordClick={(log) => {
+            const date = new Date(log.createTime)
+            setSelectedDate(date)
+            
+            let details = {}
+            try { details = JSON.parse(log.signUpId) } catch (e) {}
+            
+            // 如果是爱爱记录，打开爱爱弹窗；否则打开经期弹窗
+            if (details.isLove || details.loveMeasure !== undefined) {
+              setShowLoveModal(true)
+            } else {
+              setShowPeriodModal(true)
+            }
+          }}
+        />
       </div>
       
       {/* 弹窗 */}
