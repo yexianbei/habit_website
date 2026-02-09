@@ -96,7 +96,7 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
     return days
   }
   
-  const getDateInfo = (date) => {
+  const getDateInfo = useCallback((date) => {
     if (!date) return { status: PERIOD_STATUS.NONE }
     const dateStr = formatDate(date)
     const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === dateStr)
@@ -113,29 +113,17 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
           info.status = PERIOD_STATUS.PERIOD
         } else if (details.isLove) {
           info.status = PERIOD_STATUS.LOVE
-        } else if (!hasExplicitNonPeriod) {
-          // 如果没有明确标记，使用智能分析判断
-          const inPeriod = isDateInPeriod(date)
-          if (inPeriod) {
-            info.status = PERIOD_STATUS.PERIOD
-          }
         }
         
         if (details.mood) info.mood = details.mood
         if (details.isLove || details.loveMeasure !== undefined) info.hasLove = true
       } catch (e) {
-        // 解析失败时，尝试智能分析
-        const inPeriod = isDateInPeriod(date)
-        if (inPeriod) {
-          info.status = PERIOD_STATUS.PERIOD
-        }
+        // 解析失败时，不显示任何状态
+        info.status = PERIOD_STATUS.NONE
       }
     } else {
-      // 没有记录时，使用智能分析和预测
-      const inPeriod = isDateInPeriod(date)
-      if (inPeriod) {
-        info.status = PERIOD_STATUS.PERIOD
-      } else if (predictions && predictions.hasData === true) {
+      // 没有记录时，只显示预测信息
+      if (predictions && predictions.hasData === true) {
         // 只有在有有效预测数据时才显示预测信息
         if (predictions.predictedDates?.includes(dateStr)) info.status = PERIOD_STATUS.PREDICTED
         else if (predictions.ovulationDate === dateStr) info.status = PERIOD_STATUS.OVULATION
@@ -144,7 +132,7 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
     }
     
     return info
-  }
+  }, [periodLogs, predictions])
   
   // 触摸事件处理
   const onTouchStart = (e) => {
@@ -979,78 +967,56 @@ export default function PeriodManagement() {
   }, [analyzePeriodCycle])
 
   const getStatusText = () => {
-    if (!lastPeriodStart && periodLogs.length === 0) {
-      return { main: '未记录', sub: '点击日历开始记录', emoji: '🌸' }
-    }
-    
-    // 使用智能分析获取当前状态
-    const status = getCurrentPeriodStatus()
-    
-    if (!status.cycle) {
-      // 没有找到经期周期，可能是初次使用或数据不足
-      return { main: '分析中', sub: '请记录几天数据以便分析', emoji: '🔍' }
-    }
+    if (!lastPeriodStart) return { main: '未记录', sub: '点击日历开始记录', emoji: '🌸' }
     
     const today = new Date()
+    const daysSinceStart = diffDays(today, lastPeriodStart) + 1
     
     // 检查是否有明确的经期结束标记
-    let hasExplicitEnd = false
+    let hasEnded = false, endedDayIndex = 0
     periodLogs.forEach(log => {
       if (log.signUpId) {
         try {
           const d = JSON.parse(log.signUpId)
           if (d.periodEnded) {
-            const logDate = new Date(log.createTime)
-            const endDayIndex = diffDays(logDate, status.cycle.startDate) + 1
-            if (endDayIndex <= status.dayIndex) {
-              hasExplicitEnd = true
-            }
+            hasEnded = true
+            const dayIndex = diffDays(new Date(log.createTime), lastPeriodStart) + 1
+            endedDayIndex = Math.max(endedDayIndex, dayIndex)
           }
         } catch (e) {}
       }
     })
     
-    // 如果有明确的结束标记，则认为经期已结束
-    if (hasExplicitEnd) {
-      const daysSinceStart = diffDays(today, status.cycle.startDate) + 1
-      if (daysSinceStart <= config.cycleLen) {
-        const daysLeft = config.cycleLen - daysSinceStart
-        return { main: `${daysLeft} 天`, sub: '距离下次经期', emoji: '📅' }
-      }
-      return { main: `延后 ${daysSinceStart - config.cycleLen} 天`, sub: '建议关注身体状况', emoji: '⚠️' }
-    }
+    // 计算实际经期长度（基于记录）
+    const actualPeriodLength = Math.max(config.periodLen, 
+      periodLogs
+        .filter(log => {
+          if (!log.signUpId) return false
+          try {
+            const details = JSON.parse(log.signUpId)
+            return details.isPeriod === true
+          } catch (e) {
+            return false
+          }
+        })
+        .map(log => diffDays(new Date(log.createTime), lastPeriodStart) + 1)
+        .filter(dayIndex => dayIndex > 0)
+        .reduce((max, dayIndex) => Math.max(max, dayIndex), config.periodLen)
+    )
     
-    if (status.inPeriod) {
-      // 检查是否有实际记录延长了经期
-      const hasRecordBeyondDefault = periodLogs.some(log => {
-        if (!log.signUpId) return false
-        try {
-          const details = JSON.parse(log.signUpId)
-          if (details.isPeriod !== true) return false
-          
-          const logDate = new Date(log.createTime)
-          const dayIndex = diffDays(logDate, status.cycle.startDate) + 1
-          return dayIndex > config.periodLen
-        } catch (e) {
-          return false
-        }
-      })
-      
-      const actualLength = hasRecordBeyondDefault 
-        ? Math.max(config.periodLen, status.dayIndex)
-        : config.periodLen
-      
+    let inPeriod = daysSinceStart <= actualPeriodLength
+    if (hasEnded && daysSinceStart >= endedDayIndex) inPeriod = false
+    
+    if (inPeriod) {
       return { 
-        main: `第 ${status.dayIndex} 天`, 
-        sub: actualLength > config.periodLen 
-          ? `经期延长至${actualLength}天，注意休息` 
+        main: `第 ${daysSinceStart} 天`, 
+        sub: actualPeriodLength > config.periodLen 
+          ? `经期延长至${actualPeriodLength}天，注意休息` 
           : '经期中，注意休息', 
         emoji: '🩸' 
       }
     }
     
-    // 经期已结束，计算距离下次经期的天数
-    const daysSinceStart = diffDays(today, status.cycle.startDate) + 1
     if (daysSinceStart <= config.cycleLen) {
       const daysLeft = config.cycleLen - daysSinceStart
       return { main: `${daysLeft} 天`, sub: '距离下次经期', emoji: '📅' }
