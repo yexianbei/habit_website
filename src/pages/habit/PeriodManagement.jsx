@@ -3,7 +3,7 @@
  * 完整功能版 - 现代 UI 风格
  */
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNativeBridge, useNativeEvent } from '../../utils/useNativeBridge'
 
@@ -134,6 +134,20 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
     return info
   }, [periodLogs, predictions])
   
+  // 预计算所有经期日期，用于判断经期第一天
+  const periodDatesSet = useMemo(() => {
+    const set = new Set()
+    periodLogs.forEach(log => {
+      try {
+        const details = JSON.parse(log.signUpId || '{}')
+        if (details.isPeriod === true) {
+          set.add(formatDate(new Date(log.createTime)))
+        }
+      } catch (e) {}
+    })
+    return set
+  }, [periodLogs])
+  
   // 触摸事件处理
   const onTouchStart = (e) => {
     setTouchEnd(null)
@@ -248,6 +262,13 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
             const isSelected = selectedDate && dateStr === formatDate(selectedDate)
             const isToday = dateStr === todayStr
             
+            // 判断是否为经期第一天
+            const isPeriodStart = info.status === PERIOD_STATUS.PERIOD && (() => {
+              const prevDate = new Date(date)
+              prevDate.setDate(prevDate.getDate() - 1)
+              return !periodDatesSet.has(formatDate(prevDate))
+            })()
+            
             const statusStyles = {
               [PERIOD_STATUS.PERIOD]: 'bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200',
               [PERIOD_STATUS.PREDICTED]: 'bg-pink-100 text-pink-600 border-2 border-dashed border-pink-300',
@@ -272,6 +293,11 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
                 `}
               >
                 <span className="font-medium">{date.getDate()}</span>
+                {isPeriodStart && (
+                  <span className="absolute bottom-0.5 text-[8px] leading-none opacity-90 scale-90 font-medium">
+                    第一天
+                  </span>
+                )}
                 {hasMood && (
                   <span className="absolute -top-1 -left-1 text-[10px] drop-shadow-sm">
                     {MOOD_ICONS[info.mood]}
