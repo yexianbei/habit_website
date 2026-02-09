@@ -106,7 +106,8 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
     if (log) {
       try {
         const details = JSON.parse(log.signUpId || '{}')
-        const isPeriod = details.isPeriod !== false && (details.flow || details.pain || details.color || !details.isLove)
+        // 修复：只有明确标记为经期的记录才算经期，不能根据其他字段推测
+        const isPeriod = details.isPeriod === true
         
         if (isPeriod) info.status = PERIOD_STATUS.PERIOD
         else if (details.isLove) info.status = PERIOD_STATUS.LOVE
@@ -114,7 +115,8 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
         if (details.mood) info.mood = details.mood
         if (details.isLove || details.loveMeasure !== undefined) info.hasLove = true
       } catch (e) {
-        info.status = PERIOD_STATUS.PERIOD
+        // 解析失败时不应该默认为经期
+        info.status = PERIOD_STATUS.NONE
       }
     } else if (predictions && predictions.hasData === true) {
       // 只有在有有效预测数据时才显示预测信息
@@ -392,7 +394,8 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
     if (existingLog?.signUpId) {
       try {
         const d = JSON.parse(existingLog.signUpId)
-        setIsPeriod(d.isPeriod !== false) // 兼容旧数据
+        // 修复：只有明确标记为true的才是经期，不能用兼容逻辑推测
+        setIsPeriod(d.isPeriod === true)
         setPeriodEnded(d.periodEnded || false)
         setPeriodStartTime(d.periodStartTime || nowTime)
         setPeriodEndTime(d.periodEndTime || nowTime)
@@ -845,9 +848,10 @@ export default function PeriodManagement() {
         if (!log.signUpId) return false
         try {
           const details = JSON.parse(log.signUpId)
-          return details.isPeriod !== false && (details.flow || details.pain || details.color || !details.isLove)
+          // 修复：只有明确标记为经期的记录才算经期
+          return details.isPeriod === true
         } catch (e) {
-          return true // 解析失败的旧数据默认认为是经期记录
+          return false // 解析失败时不认为是经期记录
         }
       })
       .map(log => ({
@@ -941,9 +945,10 @@ export default function PeriodManagement() {
           
           try {
             const details = JSON.parse(log.signUpId)
-            return details.isPeriod !== false && (details.flow || details.pain || details.color || !details.isLove)
+            // 修复：只有明确标记为经期的记录才算经期
+            return details.isPeriod === true
           } catch (e) {
-            return true // 解析失败的旧数据默认认为是经期记录
+            return false // 解析失败时不认为是经期记录
           }
         })
         .map(log => ({
