@@ -106,23 +106,41 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
     if (log) {
       try {
         const details = JSON.parse(log.signUpId || '{}')
-        // 修复：只有明确标记为经期的记录才算经期，不能根据其他字段推测
-        const isPeriod = details.isPeriod === true
+        const hasExplicitPeriod = details.isPeriod === true
+        const hasExplicitNonPeriod = details.isPeriod === false
         
-        if (isPeriod) info.status = PERIOD_STATUS.PERIOD
-        else if (details.isLove) info.status = PERIOD_STATUS.LOVE
+        if (hasExplicitPeriod) {
+          info.status = PERIOD_STATUS.PERIOD
+        } else if (details.isLove) {
+          info.status = PERIOD_STATUS.LOVE
+        } else if (!hasExplicitNonPeriod) {
+          // 如果没有明确标记，使用智能分析判断
+          const inPeriod = isDateInPeriod(date)
+          if (inPeriod) {
+            info.status = PERIOD_STATUS.PERIOD
+          }
+        }
         
         if (details.mood) info.mood = details.mood
         if (details.isLove || details.loveMeasure !== undefined) info.hasLove = true
       } catch (e) {
-        // 解析失败时不应该默认为经期
-        info.status = PERIOD_STATUS.NONE
+        // 解析失败时，尝试智能分析
+        const inPeriod = isDateInPeriod(date)
+        if (inPeriod) {
+          info.status = PERIOD_STATUS.PERIOD
+        }
       }
-    } else if (predictions && predictions.hasData === true) {
-      // 只有在有有效预测数据时才显示预测信息
-      if (predictions.predictedDates?.includes(dateStr)) info.status = PERIOD_STATUS.PREDICTED
-      else if (predictions.ovulationDate === dateStr) info.status = PERIOD_STATUS.OVULATION
-      else if (predictions.fertileDates?.includes(dateStr)) info.status = PERIOD_STATUS.FERTILE
+    } else {
+      // 没有记录时，使用智能分析和预测
+      const inPeriod = isDateInPeriod(date)
+      if (inPeriod) {
+        info.status = PERIOD_STATUS.PERIOD
+      } else if (predictions && predictions.hasData === true) {
+        // 只有在有有效预测数据时才显示预测信息
+        if (predictions.predictedDates?.includes(dateStr)) info.status = PERIOD_STATUS.PREDICTED
+        else if (predictions.ovulationDate === dateStr) info.status = PERIOD_STATUS.OVULATION
+        else if (predictions.fertileDates?.includes(dateStr)) info.status = PERIOD_STATUS.FERTILE
+      }
     }
     
     return info
@@ -838,157 +856,200 @@ export default function PeriodManagement() {
     } catch (e) { console.error('加载数据失败:', e) }
   }
   
-  // 智能计算真正的经期开始日期
-  const calculateActualPeriodStart = () => {
-    if (!lastPeriodStart || periodLogs.length === 0) return lastPeriodStart
+  // 智能分析经期周期 - 核心算法
+  const analyzePeriodCycle = (targetDate = new Date()) => {
+    if (periodLogs.length === 0) return null
     
-    // 获取所有经期记录，按日期排序
+    // 获取所有明确的经期记录
     const periodRecords = periodLogs
       .filter(log => {
         if (!log.signUpId) return false
         try {
           const details = JSON.parse(log.signUpId)
-          // 修复：只有明确标记为经期的记录才算经期
           return details.isPeriod === true
         } catch (e) {
-          return false // 解析失败时不认为是经期记录
+          return false
         }
       })
       .map(log => ({
         date: new Date(log.createTime),
-        details: (() => {
-          try { return JSON.parse(log.signUpId) } catch (e) { return {} }
-        })()
+        dateStr: formatDate(new Date(log.createTime))
       }))
-      .sort((a, b) => a.date - b.date) // 按日期正序排列，方便查找连续记录
+      .sort((a, b) => a.date - b.date)
     
-    if (periodRecords.length === 0) return lastPeriodStart
+    if (periodRecords.length === 0) return null
     
+    // 找到目标日期前后7天范围内的经期记录
+    const targetDateObj = new Date(targetDate)
+    const searchRange = 7
+    
+    const nearbyRecords = periodRecords.filter(record => {
+      const daysDiff = Math.abs(diffDays(targetDateObj, record.date))
+      return daysDiff <= searchRange
+    })
+    
+    if (nearbyRecords.length === 0) {
+      // 如果附近没有记录，查找最近的经期记录作为参考
+      const recentRecords = periodRecords.filter(record => {
+        const daysSince = diffDays(targetDateObj, record.date)
+        return daysSince >= 0 && daysSince <= config.cycleLen // 在一个周期内
+      })
+      
+      if (recentRecords.length === 0) return null
+      
+      // 找到这些记录中的连续经期组
+      return findContinuousPeriodGroup(recentRecords)
+    }
+    
+    // 分析附近记录，找到连续的经期组
+    return findContinuousPeriodGroup(nearbyRecords)
+  }
+  
+  // 找到连续的经期记录组
+  const findContinuousPeriodGroup = (records) => {
+    if (records.length === 0) return null
+    
+    // 按日期排序
+    const sortedRecords = [...records].sort((a, b) => a.date - b.date)
+    
+    // 找到最大的连续组
+    let bestGroup = []
+    let currentGroup = [sortedRecords[0]]
+    
+    for (let i = 1; i < sortedRecords.length; i++) {
+      const prevRecord = currentGroup[currentGroup.length - 1]
+      const currentRecord = sortedRecords[i]
+      const daysBetween = diffDays(currentRecord.date, prevRecord.date)
+      
+      // 如果间隔在合理范围内（考虑用户可能不是每天都记录）
+      if (daysBetween <= config.periodLen + 2) {
+        currentGroup.push(currentRecord)
+      } else {
+        // 间隔太大，开始新的组
+        if (currentGroup.length > bestGroup.length) {
+          bestGroup = [...currentGroup]
+        }
+        currentGroup = [currentRecord]
+      }
+    }
+    
+    // 检查最后一组
+    if (currentGroup.length > bestGroup.length) {
+      bestGroup = [...currentGroup]
+    }
+    
+    if (bestGroup.length === 0) return null
+    
+    // 返回经期周期信息
+    const startDate = bestGroup[0].date
+    const endDate = new Date(startDate)
+    endDate.setDate(startDate.getDate() + config.periodLen - 1)
+    
+    return {
+      startDate,
+      endDate,
+      actualRecords: bestGroup,
+      duration: config.periodLen
+    }
+  }
+  
+  // 判断某个日期是否在经期内（智能推算）
+  const isDateInPeriod = (date) => {
+    const cycle = analyzePeriodCycle(date)
+    if (!cycle) return false
+    
+    const targetDate = new Date(date)
+    return targetDate >= cycle.startDate && targetDate <= cycle.endDate
+  }
+  
+  // 获取当前经期状态（基于智能分析）
+  const getCurrentPeriodStatus = () => {
     const today = new Date()
+    const cycle = analyzePeriodCycle(today)
     
-    // 找到当前经期周期内的所有记录
-    // 策略：从今天开始向前查找，找到最近的连续经期记录组
-    let currentPeriodRecords = []
-    
-    // 先找到距离今天最近的经期记录
-    let latestRecordIndex = -1
-    for (let i = periodRecords.length - 1; i >= 0; i--) {
-      const daysSinceRecord = diffDays(today, periodRecords[i].date)
-      if (daysSinceRecord <= config.periodLen + 2) { // 在合理的经期范围内
-        latestRecordIndex = i
-        break
-      }
+    if (!cycle) {
+      return { inPeriod: false, dayIndex: 0, cycle: null }
     }
     
-    // 如果没有找到最近的经期记录，使用后端返回的lastPeriodStart
-    if (latestRecordIndex === -1) {
-      return lastPeriodStart
-    }
+    const dayIndex = diffDays(today, cycle.startDate) + 1
+    const inPeriod = dayIndex >= 1 && dayIndex <= cycle.duration
     
-    // 从最近的记录开始，向前查找连续的经期记录
-    currentPeriodRecords.push(periodRecords[latestRecordIndex])
-    
-    // 向前查找连续记录
-    for (let i = latestRecordIndex - 1; i >= 0; i--) {
-      const currentRecord = periodRecords[i]
-      const lastFoundRecord = currentPeriodRecords[currentPeriodRecords.length - 1]
-      const daysBetween = diffDays(lastFoundRecord.date, currentRecord.date)
-      
-      // 如果间隔超过经期长度+1天，说明不是同一个经期周期，停止查找
-      // 这样可以处理用户没有每天都记录的情况
-      if (daysBetween > config.periodLen + 1) {
-        break
-      }
-      
-      // 如果在合理范围内，添加到当前经期记录组
-      currentPeriodRecords.push(currentRecord)
-    }
-    
-    // 返回最早的连续经期记录日期
-    const actualStartDate = currentPeriodRecords[currentPeriodRecords.length - 1].date
-    return actualStartDate
+    return { inPeriod, dayIndex, cycle }
   }
 
   const getStatusText = () => {
-    if (!lastPeriodStart) return { main: '未记录', sub: '点击日历开始记录', emoji: '🌸' }
+    if (!lastPeriodStart && periodLogs.length === 0) {
+      return { main: '未记录', sub: '点击日历开始记录', emoji: '🌸' }
+    }
+    
+    // 使用智能分析获取当前状态
+    const status = getCurrentPeriodStatus()
+    
+    if (!status.cycle) {
+      // 没有找到经期周期，可能是初次使用或数据不足
+      return { main: '分析中', sub: '请记录几天数据以便分析', emoji: '🔍' }
+    }
     
     const today = new Date()
-    const actualPeriodStart = calculateActualPeriodStart()
-    const daysSinceStart = diffDays(today, actualPeriodStart) + 1
     
     // 检查是否有明确的经期结束标记
-    let hasEnded = false, endedDayIndex = 0
+    let hasExplicitEnd = false
     periodLogs.forEach(log => {
       if (log.signUpId) {
         try {
           const d = JSON.parse(log.signUpId)
           if (d.periodEnded) {
-            hasEnded = true
-            const dayIndex = diffDays(new Date(log.createTime), actualPeriodStart) + 1
-            endedDayIndex = Math.max(endedDayIndex, dayIndex)
+            const logDate = new Date(log.createTime)
+            const endDayIndex = diffDays(logDate, status.cycle.startDate) + 1
+            if (endDayIndex <= status.dayIndex) {
+              hasExplicitEnd = true
+            }
           }
         } catch (e) {}
       }
     })
     
-    // 计算当次经期的实际长度
-    const getCurrentPeriodActualLength = () => {
-      // 获取从经期开始日期到今天的所有经期记录
-      const currentPeriodRecords = periodLogs
-        .filter(log => {
-          if (!log.signUpId) return false
-          const logDate = new Date(log.createTime)
-          const daysSinceStart = diffDays(logDate, actualPeriodStart)
-          
-          // 只考虑从经期开始日期之后的记录
-          if (daysSinceStart < 0) return false
-          
-          try {
-            const details = JSON.parse(log.signUpId)
-            // 修复：只有明确标记为经期的记录才算经期
-            return details.isPeriod === true
-          } catch (e) {
-            return false // 解析失败时不认为是经期记录
-          }
-        })
-        .map(log => ({
-          date: new Date(log.createTime),
-          dayIndex: diffDays(new Date(log.createTime), actualPeriodStart) + 1
-        }))
-        .sort((a, b) => b.dayIndex - a.dayIndex) // 按天数倒序排列
-      
-      // 如果没有任何经期记录，使用默认长度
-      if (currentPeriodRecords.length === 0) {
-        return config.periodLen
+    // 如果有明确的结束标记，则认为经期已结束
+    if (hasExplicitEnd) {
+      const daysSinceStart = diffDays(today, status.cycle.startDate) + 1
+      if (daysSinceStart <= config.cycleLen) {
+        const daysLeft = config.cycleLen - daysSinceStart
+        return { main: `${daysLeft} 天`, sub: '距离下次经期', emoji: '📅' }
       }
-      
-      // 找到最后一天有记录的经期天数
-      const lastRecordedDay = currentPeriodRecords[0].dayIndex
-      
-      // 实际经期长度 = max(默认长度, 最后记录的天数)
-      return Math.max(config.periodLen, lastRecordedDay)
+      return { main: `延后 ${daysSinceStart - config.cycleLen} 天`, sub: '建议关注身体状况', emoji: '⚠️' }
     }
     
-    const actualPeriodLength = getCurrentPeriodActualLength()
-    
-    // 判断是否还在经期中
-    let inPeriod = daysSinceStart <= actualPeriodLength
-    
-    // 如果有明确的结束标记，以结束标记为准
-    if (hasEnded && daysSinceStart >= endedDayIndex) {
-      inPeriod = false
-    }
-    
-    if (inPeriod) {
+    if (status.inPeriod) {
+      // 检查是否有实际记录延长了经期
+      const hasRecordBeyondDefault = periodLogs.some(log => {
+        if (!log.signUpId) return false
+        try {
+          const details = JSON.parse(log.signUpId)
+          if (details.isPeriod !== true) return false
+          
+          const logDate = new Date(log.createTime)
+          const dayIndex = diffDays(logDate, status.cycle.startDate) + 1
+          return dayIndex > config.periodLen
+        } catch (e) {
+          return false
+        }
+      })
+      
+      const actualLength = hasRecordBeyondDefault 
+        ? Math.max(config.periodLen, status.dayIndex)
+        : config.periodLen
+      
       return { 
-        main: `第 ${daysSinceStart} 天`, 
-        sub: actualPeriodLength > config.periodLen 
-          ? `经期延长至${actualPeriodLength}天，注意休息` 
+        main: `第 ${status.dayIndex} 天`, 
+        sub: actualLength > config.periodLen 
+          ? `经期延长至${actualLength}天，注意休息` 
           : '经期中，注意休息', 
         emoji: '🩸' 
       }
     }
     
+    // 经期已结束，计算距离下次经期的天数
+    const daysSinceStart = diffDays(today, status.cycle.startDate) + 1
     if (daysSinceStart <= config.cycleLen) {
       const daysLeft = config.cycleLen - daysSinceStart
       return { main: `${daysLeft} 天`, sub: '距离下次经期', emoji: '📅' }
