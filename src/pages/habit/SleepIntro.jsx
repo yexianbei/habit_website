@@ -33,7 +33,8 @@ export default function SleepIntro() {
   const checkIfAdded = async () => {
     if (!isInApp) return
     try {
-      const result = await callNative('habit.getList', { type: 18 })
+      // type 20 = HabitTypeSleep
+      const result = await callNative('habit.getList', { type: 20 })
       if (result && result.habits && Array.isArray(result.habits) && result.habits.length > 0) {
         setHasAdded(true)
       } else {
@@ -58,7 +59,8 @@ export default function SleepIntro() {
     try {
       await showLoading('添加中...')
       const result = await callNative('habit.create', {
-        type: 18,
+        // 对齐 iOS 端 HabitTypeSleep = 20
+        type: 20,
         name: '睡眠管理',
         icon: 'ic_habit_lib_1',
         bgColor: '#4F46E5',
