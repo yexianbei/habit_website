@@ -966,11 +966,67 @@ export default function PeriodManagement() {
     return { inPeriod, dayIndex, cycle }
   }, [analyzePeriodCycle])
 
+  // 找到真正的经期开始日期
+  const findActualPeriodStart = useCallback(() => {
+    if (!lastPeriodStart || periodLogs.length === 0) return lastPeriodStart
+    
+    // 获取所有经期记录，按日期排序
+    const periodRecords = periodLogs
+      .filter(log => {
+        if (!log.signUpId) return false
+        try {
+          const details = JSON.parse(log.signUpId)
+          return details.isPeriod === true
+        } catch (e) {
+          return false
+        }
+      })
+      .map(log => new Date(log.createTime))
+      .sort((a, b) => a - b)
+    
+    if (periodRecords.length === 0) return lastPeriodStart
+    
+    const today = new Date()
+    
+    // 找到最近的经期记录组（在合理的时间范围内）
+    let currentPeriodStart = null
+    
+    // 从最新的记录开始，向前查找连续的经期记录
+    for (let i = periodRecords.length - 1; i >= 0; i--) {
+      const recordDate = periodRecords[i]
+      const daysSinceRecord = diffDays(today, recordDate)
+      
+      // 如果记录距离今天超过一个周期，跳过
+      if (daysSinceRecord > config.cycleLen) continue
+      
+      // 找到这个记录所属的连续经期组的开始日期
+      let groupStart = recordDate
+      
+      // 向前查找连续的记录
+      for (let j = i - 1; j >= 0; j--) {
+        const prevRecord = periodRecords[j]
+        const daysBetween = diffDays(recordDate, prevRecord)
+        
+        // 如果间隔超过经期长度+2天，说明不是同一个经期
+        if (daysBetween > config.periodLen + 2) break
+        
+        groupStart = prevRecord
+        i = j // 更新外层循环的索引
+      }
+      
+      currentPeriodStart = groupStart
+      break
+    }
+    
+    return currentPeriodStart || lastPeriodStart
+  }, [lastPeriodStart, periodLogs, config.periodLen, config.cycleLen])
+
   const getStatusText = () => {
     if (!lastPeriodStart) return { main: '未记录', sub: '点击日历开始记录', emoji: '🌸' }
     
     const today = new Date()
-    const daysSinceStart = diffDays(today, lastPeriodStart) + 1
+    const actualPeriodStart = findActualPeriodStart()
+    const daysSinceStart = diffDays(today, actualPeriodStart) + 1
     
     // 检查是否有明确的经期结束标记
     let hasEnded = false, endedDayIndex = 0
@@ -980,7 +1036,7 @@ export default function PeriodManagement() {
           const d = JSON.parse(log.signUpId)
           if (d.periodEnded) {
             hasEnded = true
-            const dayIndex = diffDays(new Date(log.createTime), lastPeriodStart) + 1
+            const dayIndex = diffDays(new Date(log.createTime), actualPeriodStart) + 1
             endedDayIndex = Math.max(endedDayIndex, dayIndex)
           }
         } catch (e) {}
@@ -999,7 +1055,7 @@ export default function PeriodManagement() {
             return false
           }
         })
-        .map(log => diffDays(new Date(log.createTime), lastPeriodStart) + 1)
+        .map(log => diffDays(new Date(log.createTime), actualPeriodStart) + 1)
         .filter(dayIndex => dayIndex > 0)
         .reduce((max, dayIndex) => Math.max(max, dayIndex), config.periodLen)
     )
