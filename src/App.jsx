@@ -35,6 +35,7 @@ const LedgerManagement = lazy(() => import('./pages/habit/LedgerManagement'))
 const FlashcardHome = lazy(() => import('./pages/habit/flashcard/FlashcardHome'))
 const FlashcardStudy = lazy(() => import('./pages/habit/flashcard/FlashcardStudy'))
 const FlashcardImport = lazy(() => import('./pages/habit/flashcard/FlashcardImport'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 const FlashcardIntro = lazy(() => import('./pages/habit/flashcard/FlashcardIntro'))
 
 // 加载中的占位组件
@@ -209,7 +210,7 @@ function App() {
           }
         />
         {/* 闪卡功能页面 */}
-        <Route 
+        <Route
           path="/habit/flashcard/intro"
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
@@ -326,6 +327,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <LedgerManagement />
+            </Suspense>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <NotFound />
             </Suspense>
           }
         />
