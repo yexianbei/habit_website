@@ -375,8 +375,8 @@ const MoodSection = ({ mood, setMood }) => (
 )
 
 const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelete, isInitialized }) => {
-  // 如果没有初始化，默认关闭经期开关；如果已初始化，默认开启
-  const [isPeriod, setIsPeriod] = useState(isInitialized !== false)
+  // 经期开关默认关闭，只有在有现有记录时才根据记录设置
+  const [isPeriod, setIsPeriod] = useState(false)
   const [periodEnded, setPeriodEnded] = useState(false)
   const [periodStartTime, setPeriodStartTime] = useState('')
   const [periodEndTime, setPeriodEndTime] = useState('')
@@ -401,16 +401,16 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
         setColor(d.color || null)
         setMood(d.mood || null)
       } catch (e) {
-        // 解析失败时，根据是否初始化决定默认值
-        setIsPeriod(isInitialized !== false)
+        // 解析失败时，默认关闭经期开关
+        setIsPeriod(false)
         setPeriodEnded(false)
         setPeriodStartTime(nowTime)
         setPeriodEndTime(nowTime)
         setFlow(null); setPain(null); setColor(null); setMood(null)
       }
     } else {
-      // 没有现有记录时，根据是否初始化决定默认值
-      setIsPeriod(isInitialized !== false)
+      // 没有现有记录时，默认关闭经期开关
+      setIsPeriod(false)
       setPeriodEnded(false)
       setPeriodStartTime(nowTime)
       setPeriodEndTime(nowTime)
