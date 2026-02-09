@@ -26,6 +26,10 @@ const QuitManagement = lazy(() => import('./pages/habit/QuitManagement'))
 const QuitOnboarding = lazy(() => import('./pages/habit/QuitOnboarding'))
 const GradualQuitConfig = lazy(() => import('./pages/habit/GradualQuitConfig'))
 const GradualQuitStats = lazy(() => import('./pages/habit/GradualQuitStats'))
+const SleepIntro = lazy(() => import('./pages/habit/SleepIntro'))
+const SleepManagement = lazy(() => import('./pages/habit/SleepManagement'))
+const BodyIntro = lazy(() => import('./pages/habit/BodyIntro'))
+const BodyManagement = lazy(() => import('./pages/habit/BodyManagement'))
 
 // 加载中的占位组件
 const LoadingPlaceholder = ({ height = '200px' }) => (
@@ -235,6 +239,38 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <GradualQuitStats />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/sleep/intro" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <SleepIntro />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/sleep" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <SleepManagement />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/body/intro" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <BodyIntro />
+            </Suspense>
+          } 
+        />
+        <Route 
+          path="/habit/body" 
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <BodyManagement />
             </Suspense>
           } 
         />
