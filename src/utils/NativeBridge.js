@@ -156,7 +156,15 @@ class NativeBridge {
       try {
         if (this._isIOS()) {
           // iOS: WKWebView
-          window.webkit.messageHandlers.HabitBridge.postMessage(message)
+          if (window.webkit?.messageHandlers?.HabitBridge?.postMessage) {
+            window.webkit.messageHandlers.HabitBridge.postMessage(message)
+          } else {
+            // 检测到 iOS 环境但桥接未注入，降级处理
+            clearTimeout(timeoutId)
+            delete this.callbacks[callbackId]
+            this._handleBrowserFallback(method, params, resolve, reject)
+            return
+          }
         } else if (this._isAndroid()) {
           // Android: 优先使用 JSBridge.invoke（同步返回 JSON 字符串，与 HabitWebViewActivity 一致）
           if (this._isAndroidJSBridgeSync()) {
@@ -242,6 +250,21 @@ class NativeBridge {
           window.close()
         }
         resolve(true)
+        break
+      
+      case 'period.getSettings':
+        // 经期设置降级：返回默认值
+        resolve({ cycleLength: 28, periodLength: 5 })
+        break
+      
+      case 'period.getRecords':
+        // 经期记录降级：返回空记录
+        resolve({ records: [], lastPeriodStart: null })
+        break
+      
+      case 'period.predict':
+        // 经期预测降级：返回无数据
+        resolve({ hasData: false })
         break
       
       default:

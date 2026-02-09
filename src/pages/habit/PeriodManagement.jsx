@@ -784,6 +784,8 @@ export default function PeriodManagement() {
   const [showPeriodModal, setShowPeriodModal] = useState(false)
   const [showLoveModal, setShowLoveModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   
   // 设置页面标题（document.title 让 WebView/浏览器标题栏立即显示正确文案；App 内再同步到原生标题栏）
   const pageTitle = '经期管理'
@@ -795,14 +797,38 @@ export default function PeriodManagement() {
   }, [isInApp, setTitle])
   
   useEffect(() => {
-    if (isInApp) { loadConfig(); loadData() }
+    if (isInApp) { 
+      setIsLoading(true)
+      setLoadError(null)
+      loadConfig().catch(e => {
+        console.error('加载配置失败:', e)
+        setLoadError('加载配置失败')
+      })
+      loadData().catch(e => {
+        console.error('加载数据失败:', e)
+        setLoadError('加载数据失败')
+      }).finally(() => {
+        setIsLoading(false)
+      })
+    } else {
+      setIsLoading(false)
+    }
   }, [isInApp, currentMonth])
   
   const loadConfig = async () => {
     try {
       const result = await callNative('period.getSettings')
-      if (result) setConfig({ cycleLen: result.cycleLength || 28, periodLen: result.periodLength || 5 })
-    } catch (e) { console.error('加载配置失败:', e) }
+      if (result) {
+        setConfig({ cycleLen: result.cycleLength || 28, periodLen: result.periodLength || 5 })
+      } else {
+        // 如果没有返回结果，使用默认值
+        setConfig({ cycleLen: 28, periodLen: 5 })
+      }
+    } catch (e) { 
+      console.error('加载配置失败:', e)
+      // 配置加载失败时使用默认值，不阻塞页面显示
+      setConfig({ cycleLen: 28, periodLen: 5 })
+    }
   }
   
   const loadData = async () => {
@@ -819,29 +845,44 @@ export default function PeriodManagement() {
       if (result?.records) {
         setPeriodLogs(result.records)
         if (result.lastPeriodStart) setLastPeriodStart(parseDate(result.lastPeriodStart))
-        // 如果没有任何“经期开始”数据，引导用户先做初始化（不强制结束时间）
-        // 但如果带了 skipOnboarding=1，则尊重用户“稍后再填”的选择，不再强制跳转
+        // 如果没有任何"经期开始"数据，引导用户先做初始化（不强制结束时间）
+        // 但如果带了 skipOnboarding=1，则尊重用户"稍后再填"的选择，不再强制跳转
         if (!result.lastPeriodStart && !skipOnboarding) {
           navigate('/habit/period/onboarding', { replace: true })
           return
         }
+      } else {
+        // 如果没有返回记录，初始化为空数组
+        setPeriodLogs([])
       }
       
       // 只有在已初始化（有 lastPeriodStart）时才获取预测
       const hasInitialized = !!(result?.lastPeriodStart || lastPeriodStart)
       if (hasInitialized) {
-        const pred = await callNative('period.predict')
-        // 只有当 hasData 为 true 时才设置预测数据
-        if (pred?.hasData === true) {
-          setPredictions(pred)
-        } else {
+        try {
+          const pred = await callNative('period.predict')
+          // 只有当 hasData 为 true 时才设置预测数据
+          if (pred?.hasData === true) {
+            setPredictions(pred)
+          } else {
+            setPredictions(null)
+          }
+        } catch (e) {
+          // 预测失败不影响主页面显示
+          console.error('获取预测失败:', e)
           setPredictions(null)
         }
       } else {
         // 没有初始化时，清空预测数据，不显示任何预测信息
         setPredictions(null)
       }
-    } catch (e) { console.error('加载数据失败:', e) }
+    } catch (e) { 
+      console.error('加载数据失败:', e)
+      // 数据加载失败时，至少显示空状态，不阻塞页面
+      setPeriodLogs([])
+      setPredictions(null)
+      throw e // 重新抛出错误，让调用方知道加载失败
+    }
   }
   
   // 智能分析经期周期 - 核心算法
@@ -1140,8 +1181,43 @@ export default function PeriodManagement() {
     )
   }
   
+  // 加载中状态
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500 text-sm">加载中...</p>
+        </div>
+      </div>
+    )
+  }
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-pink-50">
+      {/* 错误提示 */}
+      {loadError && (
+        <div className="px-4 pt-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-center gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div className="flex-1">
+              <p className="text-sm text-yellow-800 font-medium">{loadError}</p>
+              <p className="text-xs text-yellow-600 mt-1">页面将显示基本功能，部分数据可能无法加载</p>
+            </div>
+            <button 
+              onClick={() => {
+                setLoadError(null)
+                setIsLoading(true)
+                loadConfig().catch(e => console.error('加载配置失败:', e))
+                loadData().catch(e => console.error('加载数据失败:', e)).finally(() => setIsLoading(false))
+              }}
+              className="text-xs text-yellow-700 underline"
+            >
+              重试
+            </button>
+          </div>
+        </div>
+      )}
       {/* 头部状态 */}
       <div className="relative overflow-hidden">
         <div 
