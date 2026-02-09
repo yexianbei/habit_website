@@ -3,7 +3,7 @@
  * 完整功能版 - 现代 UI 风格
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNativeBridge, useNativeEvent } from '../../utils/useNativeBridge'
 
@@ -857,7 +857,8 @@ export default function PeriodManagement() {
   }
   
   // 智能分析经期周期 - 核心算法
-  const analyzePeriodCycle = (targetDate = new Date()) => {
+  const analyzePeriodCycle = useCallback((targetDate) => {
+    if (!targetDate) targetDate = new Date()
     if (periodLogs.length === 0) return null
     
     // 获取所有明确的经期记录
@@ -903,10 +904,10 @@ export default function PeriodManagement() {
     
     // 分析附近记录，找到连续的经期组
     return findContinuousPeriodGroup(nearbyRecords)
-  }
+  }, [periodLogs, config.cycleLen, config.periodLen])
   
   // 找到连续的经期记录组
-  const findContinuousPeriodGroup = (records) => {
+  const findContinuousPeriodGroup = useCallback((records) => {
     if (records.length === 0) return null
     
     // 按日期排序
@@ -951,19 +952,19 @@ export default function PeriodManagement() {
       actualRecords: bestGroup,
       duration: config.periodLen
     }
-  }
+  }, [config.periodLen])
   
   // 判断某个日期是否在经期内（智能推算）
-  const isDateInPeriod = (date) => {
+  const isDateInPeriod = useCallback((date) => {
     const cycle = analyzePeriodCycle(date)
     if (!cycle) return false
     
     const targetDate = new Date(date)
     return targetDate >= cycle.startDate && targetDate <= cycle.endDate
-  }
+  }, [analyzePeriodCycle])
   
   // 获取当前经期状态（基于智能分析）
-  const getCurrentPeriodStatus = () => {
+  const getCurrentPeriodStatus = useCallback(() => {
     const today = new Date()
     const cycle = analyzePeriodCycle(today)
     
@@ -975,7 +976,7 @@ export default function PeriodManagement() {
     const inPeriod = dayIndex >= 1 && dayIndex <= cycle.duration
     
     return { inPeriod, dayIndex, cycle }
-  }
+  }, [analyzePeriodCycle])
 
   const getStatusText = () => {
     if (!lastPeriodStart && periodLogs.length === 0) {
