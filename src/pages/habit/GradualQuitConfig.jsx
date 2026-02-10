@@ -6,8 +6,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuitBridge } from '../../utils/bridge'
-import { calculateGradualPlan } from '../../utils/gradualQuitUtils'
-import { formatDate } from '../../utils/quitUtils'
+import { formatDate, calculateGradualPlan } from '../../utils/gradualQuitUtils'
 
 export default function GradualQuitConfig() {
   const navigate = useNavigate()

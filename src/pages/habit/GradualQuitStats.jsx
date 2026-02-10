@@ -6,8 +6,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuitBridge } from '../../utils/bridge'
-import { formatDate } from '../../utils/quitUtils'
 import {
+  formatDate,
   calculateTimeSinceLastSmoke,
   formatTimeSince,
   calculateTarAmount,
