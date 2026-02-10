@@ -157,16 +157,6 @@ export default function OfficialLibrary() {
         </div>
       </div>
 
-      {/* 提示 */}
-      <div className="px-6 pb-2">
-        <div className="bg-white rounded-2xl px-4 py-3 flex items-center gap-2 shadow-sm border border-slate-100">
-          <span className="text-base">💡</span>
-          <div className="text-xs text-gray-600 leading-relaxed">
-            在 App 内，如果已添加对应习惯，会直接显示「去使用」，避免重复添加。
-          </div>
-        </div>
-      </div>
-
       {/* 官方习惯列表 */}
       <div className="px-4 pb-6 grid grid-cols-2 gap-3">
         {OFFICIAL_HABITS.map((item) => {
