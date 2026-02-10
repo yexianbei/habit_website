@@ -547,7 +547,7 @@ export default function BabyManagement() {
               <button
                 key={item.type}
                 onClick={() => handleQuickRecord(item.type)}
-                className="py-3 rounded-2xl bg-white/15 text-white text-xs font-medium flex flex-col items-center justify-center active:scale-95 transition-transform backdrop-blur-sm"
+                className="py-3 rounded-2xl bg-gradient-to-br from-white/30 to-white/20 text-white text-xs font-medium flex flex-col items-center justify-center active:scale-95 transition-transform backdrop-blur-sm shadow-sm border border-white/10"
               >
                 <span className="text-lg mb-1">{item.icon}</span>
                 <span>{item.label}</span>
@@ -608,19 +608,19 @@ export default function BabyManagement() {
                 return (
                   <div
                     key={idx}
-                    className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-gray-50 to-orange-50/40 border border-gray-100"
+                    className="flex items-center gap-4 p-3 rounded-2xl bg-gradient-to-r from-gray-50 to-orange-50/30 border border-gray-100 hover:border-orange-200 hover:shadow-sm transition-all cursor-pointer active:scale-98"
                     onClick={() => {
                       setActiveType(r.type)
                       setEditingIndex(idx)
                       setIsModalOpen(true)
                     }}
                   >
-                    <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center text-xl shadow-sm">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-2xl shadow-sm text-white flex-shrink-0">
                       {info.icon}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 py-1">
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-medium text-gray-800 truncate">
+                        <p className="text-sm font-bold text-gray-800 truncate">
                           {info.title}
                         </p>
                         <span
