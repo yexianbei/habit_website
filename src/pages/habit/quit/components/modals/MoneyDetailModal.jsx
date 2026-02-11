@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { formatNumber } from '../../../../../utils/quitUtils'
-import { useQuitBridge } from '../../../../../utils/bridge'
+import useNativeBridge from '../../../../../utils/useNativeBridge'
 
 export const MoneyDetailModal = ({ 
   isOpen, 
@@ -17,7 +17,7 @@ export const MoneyDetailModal = ({
   showLoading,
   hideLoading,
 }) => {
-  const { getSettings, updateSettings } = useQuitBridge()
+  const { callNative } = useNativeBridge()
   
   // 如果没有传递这些方法，使用默认实现
   const safeShowToast = showToast || ((msg) => console.log('[Toast]', msg))
@@ -45,7 +45,7 @@ export const MoneyDetailModal = ({
 
   const loadSettings = async () => {
     try {
-      const settings = await getSettings()
+      const settings = await callNative('quit.getSettings').catch(() => null)
       if (settings) {
         setCigarettesPerDay(settings.cigarettesPerDay?.toString() || '')
         setPricePerCigarette(settings.pricePerCigarette?.toString() || '')
@@ -80,7 +80,7 @@ export const MoneyDetailModal = ({
       const newDailyCost = cigarettes * price
       
       // 保存设置
-      await updateSettings({
+      await callNative('quit.updateSettings', {
         cigarettesPerDay: cigarettes,
         pricePerCigarette: price,
         dailyCost: newDailyCost,

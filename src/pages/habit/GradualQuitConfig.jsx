@@ -5,20 +5,19 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuitBridge } from '../../utils/bridge'
+import useNativeBridge from '../../utils/useNativeBridge'
 import { formatDate, calculateGradualPlan } from '../../utils/gradualQuitUtils'
 
 export default function GradualQuitConfig() {
   const navigate = useNavigate()
   const {
     isInApp,
-    getGradualPlan,
-    setGradualPlan,
+    callNative,
     setTitle,
     showToast,
     showLoading,
     hideLoading,
-  } = useQuitBridge()
+  } = useNativeBridge()
 
   const [initialCount, setInitialCount] = useState('20')
   const [targetCount, setTargetCount] = useState('0')
@@ -54,7 +53,7 @@ export default function GradualQuitConfig() {
         return
       }
 
-      const plan = await getGradualPlan()
+      const plan = await callNative('quit.getGradualPlan').catch(() => null)
       if (plan) {
         setInitialCount(String(plan.initialCount || 20))
         setTargetCount(String(plan.targetCount || 0))
@@ -111,7 +110,7 @@ export default function GradualQuitConfig() {
     try {
       await showLoading('保存中...')
 
-      await setGradualPlan({
+      await callNative('quit.setGradualPlan', {
         initialCount: initial,
         targetCount: target,
         weeks: weekCount,

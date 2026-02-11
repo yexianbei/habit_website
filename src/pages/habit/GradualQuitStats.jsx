@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuitBridge } from '../../utils/bridge'
+import useNativeBridge from '../../utils/useNativeBridge'
 import {
   formatDate,
   calculateTimeSinceLastSmoke,
@@ -22,17 +22,12 @@ export default function GradualQuitStats() {
   const navigate = useNavigate()
   const {
     isInApp,
-    getGradualPlan,
-    getDailyCount,
-    getCountRecords,
-    getLastSmokeTime,
-    getSettings,
-    saveDailyCount,
+    callNative,
     setTitle,
     showToast,
     showLoading,
     hideLoading,
-  } = useQuitBridge()
+  } = useNativeBridge()
 
   const [plan, setPlan] = useState(null)
   const [todayCount, setTodayCount] = useState(0)
@@ -88,10 +83,10 @@ export default function GradualQuitStats() {
 
       // 并行加载数据
       const [planData, todayCountData, lastSmokeData, settingsData] = await Promise.all([
-        getGradualPlan().catch(() => null),
-        getDailyCount(today).catch(() => 0),
-        getLastSmokeTime().catch(() => null),
-        getSettings().catch(() => null),
+        callNative('quit.getGradualPlan').catch(() => null),
+        callNative('quit.getDailyCount', { date: today }).catch(() => 0),
+        callNative('quit.getLastSmokeTime').catch(() => null),
+        callNative('quit.getSettings').catch(() => null),
       ])
 
       setPlan(planData)
@@ -108,10 +103,11 @@ export default function GradualQuitStats() {
       const startDate = new Date(monthRange.start)
       startDate.setMonth(startDate.getMonth() - 1) // 加载近2个月的数据
 
-      const recordsData = await getCountRecords(
-        formatDate(startDate),
-        formatDate(new Date())
-      ).catch(() => [])
+      const recordsResult = await callNative('quit.getCountRecords', {
+        startDate: formatDate(startDate),
+        endDate: formatDate(new Date()),
+      }).catch(() => [])
+      const recordsData = Array.isArray(recordsResult) ? recordsResult : (recordsResult || [])
 
       setRecords(Array.isArray(recordsData) ? recordsData : [])
 

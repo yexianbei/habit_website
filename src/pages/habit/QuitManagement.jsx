@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useQuitBridge } from '../../utils/bridge'
+import useNativeBridge from '../../utils/useNativeBridge'
 import { formatDate, diffDays, calculateQuitTime, formatNumber } from '../../utils/quitUtils'
 import { getRandomMotivation } from './quit/constants'
 import { CompactStatsCard } from './quit/components/StatsCard'
@@ -25,20 +25,12 @@ export default function QuitManagement() {
   const location = useLocation()
   const {
     isInApp,
-    getQuitDate,
-    getStats,
-    getDailyCost,
-    getMotivation,
-    getMilestones,
-    setQuitDate: setQuitDateBridge,
-    saveRecord,
-    getRecords,
-    getSettings,
+    callNative,
     setTitle,
     showToast,
     showLoading,
     hideLoading,
-  } = useQuitBridge()
+  } = useNativeBridge()
 
   const [quitDate, setQuitDate] = useState(null)
   const [lastRelapseDate, setLastRelapseDate] = useState(null) // 最后一次破戒时间
@@ -167,17 +159,23 @@ export default function QuitManagement() {
 
       // 并行加载所有数据（浏览器环境会返回 mock 数据）
       const [quitDateResult, statsResult, costResult, motivationResult, milestonesResult, settingsResult] = await Promise.all([
-        getQuitDate().catch(() => null),
-        getStats().catch(() => null),
-        getDailyCost().catch(() => 0),
-        getMotivation().catch(() => null),
-        getMilestones().catch(() => []),
-        getSettings().catch(() => null),
+        callNative('quit.getQuitDate').catch(() => null),
+        callNative('quit.getStats').catch(() => null),
+        callNative('quit.getDailyCost').catch(() => 0),
+        callNative('quit.getMotivation').catch(() => null),
+        callNative('quit.getMilestones').catch(() => []),
+        callNative('quit.getSettings').catch(() => null),
       ])
 
       // 加载破戒记录，找到最后一次破戒时间
       try {
-        const records = await getRecords('2000-01-01', formatDate(new Date()))
+        const recordsResult = await callNative('quit.getRecords', {
+          startDate: '2000-01-01',
+          endDate: formatDate(new Date()),
+        }).catch(() => null)
+        const records = Array.isArray(recordsResult?.records)
+          ? recordsResult.records
+          : (Array.isArray(recordsResult) ? recordsResult : [])
         if (records && Array.isArray(records)) {
           // 过滤出破戒记录（type为relapse的记录）
           const relapseRecords = records.filter(r => r.type === 'relapse' || r.details?.type === 'relapse')
@@ -597,18 +595,18 @@ export default function QuitManagement() {
             const datetime = relapseData.datetime || now.toISOString()
             
             // 保存破戒记录
-            await saveRecord({
+            await callNative('quit.saveRecord', {
               date: formatDate(new Date(datetime)),
               type: 'relapse',
               details: {
                 datetime,
                 cigaretteType: relapseData.cigaretteType || '',
                 note: relapseData.note || '',
-              }
+              },
             })
             
             // 更新戒烟日期为破戒时间
-            await setQuitDateBridge(datetime)
+            await callNative('quit.setQuitDate', { date: datetime })
             
             // 更新本地状态
             setLastRelapseDate(datetime)

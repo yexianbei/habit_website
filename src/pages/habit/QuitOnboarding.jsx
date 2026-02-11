@@ -5,7 +5,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuitBridge } from '../../utils/bridge'
+import useNativeBridge from '../../utils/useNativeBridge'
 
 const formatDate = (date) => {
   if (!date) return ''
@@ -15,7 +15,14 @@ const formatDate = (date) => {
 
 export default function QuitOnboarding() {
   const navigate = useNavigate()
-  const { isInApp, setQuitDate, setDailyCost, getQuitDate, getDailyCost, setTitle, showToast, showLoading, hideLoading } = useQuitBridge()
+  const {
+    isInApp,
+    callNative,
+    setTitle,
+    showToast,
+    showLoading,
+    hideLoading,
+  } = useNativeBridge()
 
   const [quitDate, setQuitDateLocal] = useState(formatDate(new Date()))
   const [quitTime, setQuitTime] = useState('08:00')
@@ -45,8 +52,8 @@ export default function QuitOnboarding() {
     const load = async () => {
       if (!isInApp) return
       try {
-        const date = await getQuitDate()
-        const cost = await getDailyCost()
+        const date = await callNative('quit.getQuitDate').catch(() => null)
+        const cost = await callNative('quit.getDailyCost').catch(() => 0)
         if (date) {
           const d = new Date(date)
           setQuitDateLocal(formatDate(d))
@@ -67,10 +74,10 @@ export default function QuitOnboarding() {
 
       // 1) 设置戒烟日期（包含时间）
       const dateTime = `${quitDate}T${quitTime}:00`
-      await setQuitDate(dateTime)
+      await callNative('quit.setQuitDate', { date: dateTime })
 
       // 2) 设置每日花费
-      await setDailyCost(Number(dailyCost))
+      await callNative('quit.setDailyCost', { cost: Number(dailyCost) })
 
       await hideLoading()
       await showToast('初始化完成')
