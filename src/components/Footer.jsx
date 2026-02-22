@@ -1,9 +1,11 @@
 import React from 'react'
-import { Mail, Shield, FileText } from 'lucide-react'
+import { Mail, Shield, FileText, Share2 } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
+import { useShare } from '../hooks/useShare'
 
 const Footer = () => {
   const { t } = useLanguage()
+  const { triggerShare } = useShare()
   const currentYear = new Date().getFullYear()
 
   return (
@@ -53,6 +55,16 @@ const Footer = () => {
                 <a href="#blog" className="text-gray-400 hover:text-primary transition-colors duration-300">
                   {t('footer.links.blog')}
                 </a>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => triggerShare()}
+                  className="text-gray-400 hover:text-primary transition-colors duration-300 flex items-center gap-2"
+                >
+                  <Share2 size={16} />
+                  {t('footer.links.share')}
+                </button>
               </li>
             </ul>
           </div>

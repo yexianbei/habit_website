@@ -56,7 +56,7 @@ const SEO = ({
       setMetaTag('keywords', keywords)
     }
     
-    // Open Graph标签
+    // Open Graph 标签（微信/微博等抓取分享卡片用；图片建议 300×300 或 1.91:1，HTTPS）
     setMetaTag('og:url', currentUrl, true)
     setMetaTag('og:type', type, true)
     if (image) {

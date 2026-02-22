@@ -209,6 +209,7 @@ export const translations = {
         charts: '数据统计',
         download: '立即下载',
         blog: '博客文章',
+        share: '分享',
         privacy: '隐私政策',
         terms: '用户协议',
         contact: '联系我们'
@@ -452,6 +453,7 @@ export const translations = {
         charts: 'Data',
         download: 'Download',
         blog: 'Blog',
+        share: 'Share',
         privacy: 'Privacy Policy',
         terms: 'Terms of Service',
         contact: 'Contact Us'

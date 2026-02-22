@@ -7,6 +7,7 @@ import LanguageSwitcher from './components/LanguageSwitcher'
 import SEO from './components/SEO'
 import LazySection from './components/LazySection'
 import { useLanguage } from './i18n/LanguageContext'
+import { useWechatShare } from './hooks/useShare'
 
 // 懒加载非关键组件 - 代码分割
 const UserStories = lazy(() => import('./components/UserStories'))
@@ -86,7 +87,9 @@ const ScrollToTop = () => {
 // 主页组件
 const Home = () => {
   const { language } = useLanguage()
-  
+  // 微信内打开时设置分享卡片（使用当前页 og，若配置了 VITE_WECHAT_JS_SDK_API 则用 JSSDK 自定义）
+  useWechatShare()
+
   const seoConfig = language === 'zh' ? {
     title: 'Tiny Habits - 小习惯 | 微习惯养成工具，AI教练助力习惯养成',
     description: '基于微习惯方法和AI教练的极简习惯养成工具。每天1分钟也能坚持，让改变从微小开始。支持习惯追踪、番茄钟、数据统计等功能。',
