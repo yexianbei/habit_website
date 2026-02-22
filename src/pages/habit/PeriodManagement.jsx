@@ -885,25 +885,37 @@ export default function PeriodManagement() {
   useEffect(() => {
     if (isInApp) setTitle(pageTitle)
   }, [isInApp, setTitle])
-  
+
+  // 标记是否已完成首次加载，用于区分「首次进入」与「仅切换月份」
+  const initialLoadDoneRef = React.useRef(false)
+
+  // 仅首次进入或重新进入 App 时：全屏 loading + 拉取配置与数据
   useEffect(() => {
-    if (isInApp) { 
-      setIsLoading(true)
-      setLoadError(null)
-      loadConfig().catch(e => {
-        console.error('加载配置失败:', e)
-        setLoadError('加载配置失败')
-      })
-      loadData().catch(e => {
-        console.error('加载数据失败:', e)
-        setLoadError('加载数据失败')
-      }).finally(() => {
-        setIsLoading(false)
-      })
-    } else {
+    if (!isInApp) {
       setIsLoading(false)
+      return
     }
-  }, [isInApp, currentMonth])
+    setIsLoading(true)
+    setLoadError(null)
+    initialLoadDoneRef.current = false
+    loadConfig().catch(e => {
+      console.error('加载配置失败:', e)
+      setLoadError('加载配置失败')
+    })
+    loadData().catch(e => {
+      console.error('加载数据失败:', e)
+      setLoadError('加载数据失败')
+    }).finally(() => {
+      setIsLoading(false)
+      initialLoadDoneRef.current = true
+    })
+  }, [isInApp])
+
+  // 左右切换月份时：只静默拉取该月数据，不触发全屏 loading，避免整页刷新
+  useEffect(() => {
+    if (!isInApp || !initialLoadDoneRef.current) return
+    loadData().catch(e => console.error('加载数据失败:', e))
+  }, [currentMonth])
   
   const loadConfig = async () => {
     try {
