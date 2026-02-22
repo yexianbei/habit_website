@@ -700,6 +700,100 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
   )
 }
 
+// ============ 心情独立弹窗（独立一条记录，可选日期）============
+
+const MoodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelete }) => {
+  const [moodDate, setMoodDate] = useState(new Date())
+  const [mood, setMood] = useState(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+    if (existingLog?.signUpId) {
+      try {
+        const d = JSON.parse(existingLog.signUpId)
+        setMood(d.mood ?? null)
+        if (existingLog.createTime) {
+          setMoodDate(new Date(existingLog.createTime))
+        } else {
+          setMoodDate(selectedDate ? new Date(selectedDate) : new Date())
+        }
+      } catch (e) {
+        setMood(null)
+        setMoodDate(selectedDate ? new Date(selectedDate) : new Date())
+      }
+    } else {
+      setMood(null)
+      setMoodDate(selectedDate ? new Date(selectedDate) : new Date())
+    }
+  }, [isOpen, existingLog, selectedDate])
+
+  const handleSave = () => {
+    if (mood == null) {
+      if (existingLog) onDelete()
+      else onClose()
+      return
+    }
+    onSave({
+      date: formatDate(moodDate),
+      isPeriod: false,
+      periodStartTime: null,
+      periodEnded: false,
+      periodEndTime: null,
+      flow: null,
+      pain: null,
+      color: null,
+      mood,
+      isLove: false,
+    })
+  }
+
+  if (!isOpen) return null
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <button onClick={onClose} className="text-gray-400 text-sm">取消</button>
+          <span className="font-bold text-gray-800">{formatDate(moodDate)}</span>
+          <div className="flex gap-3">
+            {existingLog && (
+              <button 
+                onClick={() => onDelete(formatDate(new Date(existingLog.createTime)))} 
+                className="text-red-500 font-medium text-sm"
+              >
+                删除
+              </button>
+            )}
+            <button onClick={handleSave} className="text-amber-500 font-medium text-sm">保存</button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">😊</span>
+              <span className="font-bold text-gray-800">记心情</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500 w-16">日期</span>
+              <input
+                type="date"
+                value={formatDate(moodDate)}
+                onChange={e => {
+                  const selected = e.target.value ? new Date(e.target.value + 'T12:00:00') : new Date()
+                  setMoodDate(selected)
+                }}
+                className="flex-1 px-3 py-2 bg-white rounded-xl border-0 shadow-sm text-sm min-w-0"
+                max={formatDate(new Date())}
+              />
+            </div>
+          </div>
+          <MoodSection mood={mood} setMood={setMood} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ============ 设置弹窗组件 ============
 
 const SettingsModal = ({ isOpen, onClose, config, onSave }) => {
@@ -873,6 +967,7 @@ export default function PeriodManagement() {
   const [lastPeriodStart, setLastPeriodStart] = useState(null)
   const [showPeriodModal, setShowPeriodModal] = useState(false)
   const [showLoveModal, setShowLoveModal] = useState(false)
+  const [showMoodModal, setShowMoodModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
@@ -1263,6 +1358,7 @@ export default function PeriodManagement() {
       await showToast('保存成功')
       setShowPeriodModal(false)
       setShowLoveModal(false)
+      setShowMoodModal(false)
       loadData()
     } catch (e) {
       await hideLoading()
@@ -1270,9 +1366,10 @@ export default function PeriodManagement() {
     }
   }
   
-  const handleDeleteRecord = async () => {
+  const handleDeleteRecord = async (dateStr) => {
     try {
-      await callNative('period.delete', { date: formatDate(selectedDate) })
+      const toDelete = dateStr != null ? dateStr : formatDate(selectedDate)
+      await callNative('period.delete', { date: toDelete })
       await showToast('已删除')
       setShowPeriodModal(false)
       setShowLoveModal(false)
@@ -1378,7 +1475,7 @@ export default function PeriodManagement() {
           <div className="flex gap-3 mt-6">
             {[
               { icon: '🌸', label: '记经期', color: 'from-white/30 to-white/20', action: 'period' },
-              { icon: '😊', label: '记心情', color: 'from-white/30 to-white/20', action: 'period' },
+              { icon: '😊', label: '记心情', color: 'from-white/30 to-white/20', action: 'mood' },
               { icon: '❤️', label: '记爱爱', color: 'from-white/30 to-white/20', action: 'love' },
             ].map((item, i) => (
               <button 
@@ -1386,6 +1483,7 @@ export default function PeriodManagement() {
                 onClick={() => {
                   setSelectedDate(new Date())
                   if (item.action === 'love') setShowLoveModal(true)
+                  else if (item.action === 'mood') setShowMoodModal(true)
                   else setShowPeriodModal(true)
                 }}
                 className={`flex-1 py-3 rounded-2xl bg-gradient-to-br ${item.color} backdrop-blur-sm text-white font-medium active:scale-95 transition-transform`}
@@ -1427,9 +1525,11 @@ export default function PeriodManagement() {
             let details = {}
             try { details = JSON.parse(log.signUpId) } catch (e) {}
             
-            // 如果是爱爱记录，打开爱爱弹窗；否则打开经期弹窗
             if (details.isLove || details.loveMeasure !== undefined) {
               setShowLoveModal(true)
+            } else if (details.isPeriod !== true && details.mood != null) {
+              // 纯心情记录：独立弹窗
+              setShowMoodModal(true)
             } else {
               setShowPeriodModal(true)
             }
@@ -1448,6 +1548,11 @@ export default function PeriodManagement() {
         isOpen={showLoveModal} onClose={() => setShowLoveModal(false)}
         selectedDate={selectedDate} existingLog={getSelectedDateLog()}
         onSave={handleSaveDetails} onDelete={handleDeleteRecord}
+      />
+      <MoodModal 
+        isOpen={showMoodModal} onClose={() => setShowMoodModal(false)}
+        selectedDate={selectedDate} existingLog={getSelectedDateLog()}
+        onSave={handleSaveDetails} onDelete={(dateStr) => handleDeleteRecord(dateStr)}
       />
       <SettingsModal 
         isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)}
