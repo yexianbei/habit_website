@@ -73,6 +73,16 @@ const diffDays = (date1, date2) => {
   return Math.floor((d1 - d2) / (1000 * 60 * 60 * 24))
 }
 
+/** 未选时间时：当天用当前时间，否则用当天 12:00（避免时区歧义） */
+const getCreateTimeForDate = (dateStr) => {
+  const d = new Date(dateStr + 'T12:00:00')
+  const today = new Date()
+  if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate()) {
+    return Date.now()
+  }
+  return d.getTime()
+}
+
 // ============ 日历组件 ============
 
 const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, periodLogs, predictions, config = { periodLen: 5 } }) => {
@@ -491,7 +501,9 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
     }
     
     // 构建保存数据，明确不包含爱爱相关字段（因为这是经期记录弹窗，不是爱爱弹窗）
+    const saveDateStr = formatDate(selectedDate)
     const saveData = {
+      date: saveDateStr,
       isPeriod,
       periodStartTime: isPeriod ? periodStartTime : null,
       periodEnded: isPeriod ? periodEnded : false,
@@ -502,8 +514,8 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
       mood,
       isLove: false, // 明确标记不是爱爱记录
       // 不传递 loveMeasure 和 loveTime，避免 iOS 端误判
+      createTime: getCreateTimeForDate(saveDateStr),
     }
-    
     onSave(saveData)
   }
 
@@ -624,9 +636,11 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
       else onClose()
       return
     }
-    // 使用选中的日期保存
+    const dateStr = formatDate(loveDate)
+    const recordTime = new Date(dateStr + 'T' + (loveTime || '12:00') + ':00').getTime()
     onSave({
-      date: formatDate(loveDate),
+      date: dateStr,
+      createTime: recordTime,
       isPeriod: false,
       periodStartTime: null,
       periodEnded: false,
@@ -734,8 +748,10 @@ const MoodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
       else onClose()
       return
     }
+    const dateStr = formatDate(moodDate)
     onSave({
-      date: formatDate(moodDate),
+      date: dateStr,
+      createTime: getCreateTimeForDate(dateStr),
       isPeriod: false,
       periodStartTime: null,
       periodEnded: false,
@@ -1357,9 +1373,11 @@ export default function PeriodManagement() {
       await showLoading('保存中...')
       // 如果 data 中包含 date 字段（从爱爱弹窗传递），使用该日期；否则使用 selectedDate
       const saveDate = data.date ? data.date : formatDate(selectedDate)
-      // 从 data 中移除 date 字段，避免保存到 details 中
-      const { date, ...detailsData } = data
-      await callNative('period.save', { date: saveDate, details: JSON.stringify(detailsData) })
+      // 从 data 中移除 date、createTime，避免保存到 details 中
+      const { date, createTime, ...detailsData } = data
+      const payload = { date: saveDate, details: JSON.stringify(detailsData) }
+      if (createTime != null) payload.createTime = createTime
+      await callNative('period.save', payload)
       await hideLoading()
       await showToast('保存成功')
       setShowPeriodModal(false)
