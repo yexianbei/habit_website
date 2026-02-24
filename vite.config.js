@@ -1,9 +1,39 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from '@vite-pwa/plugin'
 import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['app_icon.png', 'favicon.ico'],
+      manifest: {
+        name: 'Tiny Habits - 小习惯',
+        short_name: '小习惯',
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#ffffff',
+        theme_color: '#FF6B8A',
+        icons: [
+          {
+            src: '/app_icon.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: '/app_icon.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+      },
+    }),
+  ],
   base: '/',
   build: {
     rollupOptions: {
