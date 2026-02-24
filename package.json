@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/gen-version.js && vite build && node scripts/inject-version-html.js",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -10,3 +10,17 @@
 [build.environment]
   NODE_VERSION = "18"
 
+# 版本与缓存：供客户端 WebView 做版本校验与离线缓存
+[[headers]]
+  for = "/version.json"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+
+# 页面允许缓存；客户端通过 URL ?v=版本号 区分版本，同版本可走本地缓存、断网可用
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Vary = "Accept-Encoding"
+
