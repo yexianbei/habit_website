@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNativeBridge, useNativeEvent } from '../../utils/useNativeBridge'
-import { useShare, useWechatShare } from '../../hooks/useShare'
+import { useWechatShare } from '../../hooks/useShare'
 
 // ============ 常量定义 ============
 
@@ -975,10 +975,6 @@ export default function PeriodManagement() {
   const navigate = useNavigate()
   const location = useLocation()
   const { isInApp, setTitle, showToast, showLoading, hideLoading, callNative } = useNativeBridge()
-  const { triggerShare } = useShare({
-    title: '经期管理 - 小习惯',
-    description: '记录经期，了解自己的身体，关爱自己的健康。',
-  })
   useWechatShare({ title: '经期管理 - 小习惯', description: '记录经期，了解自己的身体，关爱自己的健康。' })
   
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -1488,13 +1484,6 @@ export default function PeriodManagement() {
               <p className="text-white/80 text-sm">{status.sub}</p>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => triggerShare()}
-                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm"
-                title="分享"
-              >
-                📤
-              </button>
               <button 
                 onClick={() => setShowSettingsModal(true)}
                 className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm"
