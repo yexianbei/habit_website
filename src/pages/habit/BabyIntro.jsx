@@ -84,8 +84,7 @@ export default function BabyIntro() {
     }
 
     if (hasAdded) {
-      // 已添加，直接进入管理页面（走原生导航，保持与其它习惯一致）
-      await navigateTo('https://tinyhabits.top/habit/baby')
+      await showToast('已经添加了该习惯，不可重复添加')
       return
     }
 
@@ -237,24 +236,14 @@ export default function BabyIntro() {
       {/* 底部按钮 */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <div className="max-w-md mx-auto">
-          {hasAdded ? (
-            <button
-              onClick={handleEnter}
-              className="w-full py-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform"
-              style={{ boxShadow: '0 4px 20px rgba(251, 113, 133, 0.45)' }}
-            >
-              进入宝宝成长
-            </button>
-          ) : (
-            <button
-              onClick={handleAddHabit}
-              disabled={isAdding}
-              className="w-full py-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform disabled:opacity-70"
-              style={{ boxShadow: '0 4px 20px rgba(251, 113, 133, 0.45)' }}
-            >
-              {isAdding ? '添加中...' : '添加到首页'}
-            </button>
-          )}
+          <button
+            onClick={hasAdded ? async () => { await showToast('已经添加了该习惯，不可重复添加') } : handleAddHabit}
+            disabled={isAdding}
+            className="w-full py-4 bg-gradient-to-r from-orange-400 to-pink-500 text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform disabled:opacity-70"
+            style={{ boxShadow: '0 4px 20px rgba(251, 113, 133, 0.45)' }}
+          >
+            {hasAdded ? '已添加' : (isAdding ? '添加中...' : '添加到首页')}
+          </button>
 
           <p className="text-center text-xs text-gray-400 mt-3">添加后可在首页快速进入</p>
         </div>

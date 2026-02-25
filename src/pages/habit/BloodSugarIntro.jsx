@@ -78,7 +78,7 @@ export default function BloodSugarIntro() {
       return
     }
     if (hasAdded) {
-      await navigateTo('https://tinyhabits.top/habit/glucose')
+      await showToast('已经添加了该习惯，不可重复添加')
       return
     }
     setIsAdding(true)
@@ -205,24 +205,14 @@ export default function BloodSugarIntro() {
 
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <div className="max-w-md mx-auto">
-          {hasAdded ? (
-            <button
-              onClick={handleEnter}
-              className="w-full py-4 bg-gradient-to-r from-rose-500 to-orange-400 text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform"
-              style={{ boxShadow: '0 4px 20px rgba(248, 113, 113, 0.45)' }}
-            >
-              进入血糖记录
-            </button>
-          ) : (
-            <button
-              onClick={handleAddHabit}
-              disabled={isAdding}
-              className="w-full py-4 bg-gradient-to-r from-rose-500 to-orange-400 text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform disabled:opacity-70"
-              style={{ boxShadow: '0 4px 20px rgba(248, 113, 113, 0.45)' }}
-            >
-              {isAdding ? '添加中...' : '添加到首页'}
-            </button>
-          )}
+          <button
+            onClick={hasAdded ? async () => { await showToast('已经添加了该习惯，不可重复添加') } : handleAddHabit}
+            disabled={isAdding}
+            className="w-full py-4 bg-gradient-to-r from-rose-500 to-orange-400 text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform disabled:opacity-70"
+            style={{ boxShadow: '0 4px 20px rgba(248, 113, 113, 0.45)' }}
+          >
+            {hasAdded ? '已添加' : (isAdding ? '添加中...' : '添加到首页')}
+          </button>
           <p className="text-center text-xs text-gray-400 mt-3">
             建议配合医生指导，一起使用
           </p>

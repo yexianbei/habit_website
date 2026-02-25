@@ -87,10 +87,8 @@ export default function QuitIntro() {
       return
     }
     
-    // 如果已添加，不应该执行这个函数，应该显示"进入戒烟管理"按钮
-    // 但为了安全，还是检查一下
     if (hasAdded) {
-      console.log('[QuitIntro] 习惯已添加，应该显示"进入戒烟管理"按钮')
+      await showToast('已经添加了该习惯，不可重复添加')
       return
     }
     
@@ -251,27 +249,17 @@ export default function QuitIntro() {
       {/* 底部按钮 */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <div className="max-w-md mx-auto">
-          {hasAdded ? (
-            <button
-              onClick={handleEnter}
-              className="w-full py-4 bg-gradient-to-r from-quit-green to-quit-green-dark text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform"
-              style={{ boxShadow: '0 4px 20px rgba(0, 227, 0, 0.4)' }}
-            >
-              进入戒烟管理
-            </button>
-          ) : (
-            <button
-              onClick={handleAddHabit}
-              disabled={isAdding}
-              className="w-full py-4 bg-gradient-to-r from-quit-green to-quit-green-dark text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform disabled:opacity-70"
-              style={{ boxShadow: '0 4px 20px rgba(0, 227, 0, 0.4)' }}
-            >
-              {isAdding ? '添加中...' : '添加到首页'}
-            </button>
-          )}
+          <button
+            onClick={hasAdded ? async () => { await showToast('已经添加了该习惯，不可重复添加') } : handleAddHabit}
+            disabled={isAdding}
+            className="w-full py-4 bg-gradient-to-r from-quit-green to-quit-green-dark text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform disabled:opacity-70"
+            style={{ boxShadow: '0 4px 20px rgba(0, 227, 0, 0.4)' }}
+          >
+            {hasAdded ? '已添加' : (isAdding ? '添加中...' : '添加到首页')}
+          </button>
           
           <p className="text-center text-xs text-gray-400 mt-3">
-            {hasAdded ? '可在首页快速进入' : '添加后可在首页快速进入'}
+            添加后可在首页快速进入
           </p>
         </div>
       </div>

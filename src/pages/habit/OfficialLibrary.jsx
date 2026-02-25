@@ -161,20 +161,11 @@ export default function OfficialLibrary() {
       <div className="px-4 pb-6 grid grid-cols-2 gap-3">
         {OFFICIAL_HABITS.map((item) => {
           const hasAdded = !!existMap[item.type]
-          const ctaText = hasAdded ? '去使用' : '查看介绍 →'
+          const ctaText = hasAdded ? '已添加，查看介绍 →' : '查看介绍 →'
 
           const handleClick = () => {
-            // 浏览器环境：统一走介绍页
-            if (!isInApp) {
-              navigate(item.introPath)
-              return
-            }
-            // App 内：已添加则直接进入使用页，否则进入介绍页
-            if (hasAdded && item.usePath) {
-              navigate(item.usePath)
-            } else {
-              navigate(item.introPath)
-            }
+            // 无论是否已添加，统一进入介绍页，由介绍页自行处理“已添加”态
+            navigate(item.introPath)
           }
 
           return (

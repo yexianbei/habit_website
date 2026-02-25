@@ -52,7 +52,10 @@ export default function FlashcardIntro() {
       alert('请在 App 内使用此功能')
       return
     }
-    if (hasAdded) return
+    if (hasAdded) {
+      await showToast('已经添加了该习惯，不可重复添加')
+      return
+    }
 
     setIsAdding(true)
     try {
@@ -132,22 +135,13 @@ export default function FlashcardIntro() {
             </div>
 
             <div className="mt-6">
-              {hasAdded ? (
-                <button
-                  onClick={handleEnter}
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-medium shadow-lg shadow-indigo-200"
-                >
-                  进入记忆闪卡
-                </button>
-              ) : (
-                <button
-                  onClick={handleAddHabit}
-                  disabled={isAdding}
-                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-medium shadow-lg shadow-indigo-200 disabled:opacity-60"
-                >
-                  {isAdding ? '添加中...' : '添加到首页'}
-                </button>
-              )}
+              <button
+                onClick={hasAdded ? async () => { await showToast('已经添加了该习惯，不可重复添加') } : handleAddHabit}
+                disabled={isAdding}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-medium shadow-lg shadow-indigo-200 disabled:opacity-60"
+              >
+                {hasAdded ? '已添加' : (isAdding ? '添加中...' : '添加到首页')}
+              </button>
             </div>
 
             <p className="text-xs text-gray-400 mt-4 text-center">

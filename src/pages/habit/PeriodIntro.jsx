@@ -82,8 +82,7 @@ export default function PeriodIntro() {
     }
     
     if (hasAdded) {
-      // 已添加，直接进入管理页面
-      await navigateTo('https://tinyhabits.top/habit/period')
+      await showToast('已经添加了该习惯，不可重复添加')
       return
     }
     
@@ -236,24 +235,14 @@ export default function PeriodIntro() {
       {/* 底部按钮 */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <div className="max-w-md mx-auto">
-          {hasAdded ? (
-            <button
-              onClick={handleEnter}
-              className="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-400 text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform"
-              style={{ boxShadow: '0 4px 20px rgba(255, 107, 138, 0.4)' }}
-            >
-              进入经期管理
-            </button>
-          ) : (
-            <button
-              onClick={handleAddHabit}
-              disabled={isAdding}
-              className="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-400 text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform disabled:opacity-70"
-              style={{ boxShadow: '0 4px 20px rgba(255, 107, 138, 0.4)' }}
-            >
-              {isAdding ? '添加中...' : '添加到首页'}
-            </button>
-          )}
+          <button
+            onClick={hasAdded ? async () => { await showToast('已经添加了该习惯，不可重复添加') } : handleAddHabit}
+            disabled={isAdding}
+            className="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-400 text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform disabled:opacity-70"
+            style={{ boxShadow: '0 4px 20px rgba(255, 107, 138, 0.4)' }}
+          >
+            {hasAdded ? '已添加' : (isAdding ? '添加中...' : '添加到首页')}
+          </button>
           
           <p className="text-center text-xs text-gray-400 mt-3">
             添加后可在首页快速进入
