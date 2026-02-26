@@ -181,17 +181,17 @@ export default function OfficialLibrary() {
                 {item.icon}
               </div>
               <div className="flex items-center justify-between gap-1 mb-1 min-w-0">
-                <h3 className={`flex-1 min-w-0 truncate font-semibold text-gray-900 ${isAndroid ? 'text-xs' : 'text-sm'}`}>
+                <h3 className={`flex-1 min-w-0 truncate font-semibold text-gray-900 ${isAndroid ? 'text-[11px]' : 'text-sm'}`}>
                   {item.name}
                 </h3>
-                <span className={`flex-shrink-0 whitespace-nowrap px-2 py-[2px] rounded-full bg-slate-100 text-slate-500 ${isAndroid ? 'text-[9px]' : 'text-[10px]'}`}>
+                <span className={`flex-shrink-0 whitespace-nowrap px-2 py-[2px] rounded-full bg-slate-100 text-slate-500 ${isAndroid ? 'text-[8px]' : 'text-[10px]'}`}>
                   {item.tag}
                 </span>
               </div>
-              <p className={`text-gray-500 leading-relaxed line-clamp-2 ${isAndroid ? 'text-[11px]' : 'text-xs'}`}>
+              <p className={`text-gray-500 leading-relaxed line-clamp-2 ${isAndroid ? 'text-[10px]' : 'text-xs'}`}>
                 {item.desc}
               </p>
-              <div className={`mt-3 text-indigo-500 font-medium group-active:opacity-70 ${isAndroid ? 'text-[9px]' : 'text-[10px]'}`}>
+              <div className={`mt-3 text-indigo-500 font-medium group-active:opacity-70 ${isAndroid ? 'text-[8px]' : 'text-[10px]'}`}>
                 {ctaText}
               </div>
             </button>
