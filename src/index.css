@@ -6,6 +6,11 @@
   body {
     @apply bg-white text-gray-900;
   }
+
+  /* 安卓 WebView 下整体缩小文案，iOS 与浏览器不变 */
+  html[data-platform="android"] {
+    font-size: 87.5%;
+  }
 }
 
 @layer components {

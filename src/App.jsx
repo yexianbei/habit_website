@@ -1,5 +1,6 @@
 import React, { useEffect, Suspense, lazy } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
+import bridge from './utils/NativeBridge'
 import Hero from './components/Hero'
 import Features from './components/Features'
 import Footer from './components/Footer'
@@ -171,6 +172,20 @@ const ConditionalLanguageSwitcher = () => {
 }
 
 function App() {
+  // 安卓 WebView 下缩小整站字号，仅影响 Android
+  useEffect(() => {
+    let cancelled = false
+    bridge.ready().then(() => {
+      if (cancelled) return
+      const platform = bridge.getPlatform()
+      document.documentElement.setAttribute('data-platform', platform)
+    })
+    return () => {
+      cancelled = true
+      document.documentElement.removeAttribute('data-platform')
+    }
+  }, [])
+
   return (
     <div className="min-h-screen">
       <ConditionalLanguageSwitcher />
