@@ -100,8 +100,9 @@ const OFFICIAL_HABITS = [
 
 export default function OfficialLibrary() {
   const navigate = useNavigate()
-  const { isInApp, callNative } = useNativeBridge()
+  const { isInApp, callNative, platform } = useNativeBridge()
   const [existMap, setExistMap] = useState({})
+  const isAndroid = platform === 'android'
 
   // 在 App 内，根据类型检查是否已添加对应习惯
   useEffect(() => {
@@ -179,14 +180,18 @@ export default function OfficialLibrary() {
               >
                 {item.icon}
               </div>
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-semibold text-gray-900 truncate">{item.name}</h3>
-                <span className="ml-2 px-2 py-[2px] rounded-full bg-slate-100 text-[10px] text-slate-500">
+              <div className="flex items-center justify-between gap-1 mb-1 min-w-0">
+                <h3 className={`flex-1 min-w-0 truncate font-semibold text-gray-900 ${isAndroid ? 'text-xs' : 'text-sm'}`}>
+                  {item.name}
+                </h3>
+                <span className={`flex-shrink-0 whitespace-nowrap px-2 py-[2px] rounded-full bg-slate-100 text-slate-500 ${isAndroid ? 'text-[9px]' : 'text-[10px]'}`}>
                   {item.tag}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{item.desc}</p>
-              <div className="mt-3 text-[10px] text-indigo-500 font-medium group-active:opacity-70">
+              <p className={`text-gray-500 leading-relaxed line-clamp-2 ${isAndroid ? 'text-[11px]' : 'text-xs'}`}>
+                {item.desc}
+              </p>
+              <div className={`mt-3 text-indigo-500 font-medium group-active:opacity-70 ${isAndroid ? 'text-[9px]' : 'text-[10px]'}`}>
                 {ctaText}
               </div>
             </button>
