@@ -1,6 +1,5 @@
 import React, { useEffect, Suspense, lazy } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
-import bridge from './utils/NativeBridge'
 import Hero from './components/Hero'
 import Features from './components/Features'
 import Footer from './components/Footer'
@@ -8,7 +7,6 @@ import LanguageSwitcher from './components/LanguageSwitcher'
 import SEO from './components/SEO'
 import LazySection from './components/LazySection'
 import { useLanguage } from './i18n/LanguageContext'
-import { useWechatShare } from './hooks/useShare'
 
 // 懒加载非关键组件 - 代码分割
 const UserStories = lazy(() => import('./components/UserStories'))
@@ -35,6 +33,10 @@ const BodyManagement = lazy(() => import('./pages/habit/BodyManagement'))
 const LedgerIntro = lazy(() => import('./pages/habit/LedgerIntro'))
 const LedgerManagement = lazy(() => import('./pages/habit/LedgerManagement'))
 const OfficialLibrary = lazy(() => import('./pages/habit/OfficialLibrary'))
+const TrainingIntro = lazy(() => import('./pages/habit/TrainingIntro'))
+const TrainingManagement = lazy(() => import('./pages/habit/TrainingManagement'))
+const TrainingLibrary = lazy(() => import('./pages/habit/training/TrainingLibrary'))
+const TrainingExercise = lazy(() => import('./pages/habit/training/TrainingExercise'))
 const BabyIntro = lazy(() => import('./pages/habit/BabyIntro'))
 const BabyManagement = lazy(() => import('./pages/habit/BabyManagement'))
 const BabyOnboarding = lazy(() => import('./pages/habit/BabyOnboarding'))
@@ -88,9 +90,7 @@ const ScrollToTop = () => {
 // 主页组件
 const Home = () => {
   const { language } = useLanguage()
-  // 微信内打开时设置分享卡片（使用当前页 og，若配置了 VITE_WECHAT_JS_SDK_API 则用 JSSDK 自定义）
-  useWechatShare()
-
+  
   const seoConfig = language === 'zh' ? {
     title: 'Tiny Habits - 小习惯 | 微习惯养成工具，AI教练助力习惯养成',
     description: '基于微习惯方法和AI教练的极简习惯养成工具。每天1分钟也能坚持，让改变从微小开始。支持习惯追踪、番茄钟、数据统计等功能。',
@@ -172,20 +172,6 @@ const ConditionalLanguageSwitcher = () => {
 }
 
 function App() {
-  // 安卓 WebView 下缩小整站字号，仅影响 Android
-  useEffect(() => {
-    let cancelled = false
-    bridge.ready().then(() => {
-      if (cancelled) return
-      const platform = bridge.getPlatform()
-      document.documentElement.setAttribute('data-platform', platform)
-    })
-    return () => {
-      cancelled = true
-      document.documentElement.removeAttribute('data-platform')
-    }
-  }, [])
-
   return (
     <div className="min-h-screen">
       <ConditionalLanguageSwitcher />
@@ -386,6 +372,39 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <BodyManagement />
+            </Suspense>
+          }
+        />
+        {/* 力量训练（训记风格） */}
+        <Route
+          path="/habit/training/intro"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <TrainingIntro />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/training"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <TrainingManagement />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/training/library"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <TrainingLibrary />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/training/exercise/:id"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <TrainingExercise />
             </Suspense>
           }
         />

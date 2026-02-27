@@ -42,6 +42,17 @@ const OFFICIAL_HABITS = [
     tag: '身体与健康',
   },
   {
+    id: 'strength_training',
+    type: 25,
+    name: '力量训练',
+    desc: '像训记一样记录每一次力量训练、计划与训练量统计',
+    icon: '🏋️',
+    bg: 'from-violet-500 to-fuchsia-500',
+    introPath: '/habit/training/intro',
+    usePath: '/habit/training',
+    tag: '运动与健康',
+  },
+  {
     id: 'sleep_management',
     type: 20,
     name: '睡眠管理',
@@ -100,9 +111,8 @@ const OFFICIAL_HABITS = [
 
 export default function OfficialLibrary() {
   const navigate = useNavigate()
-  const { isInApp, callNative, platform } = useNativeBridge()
+  const { isInApp, callNative } = useNativeBridge()
   const [existMap, setExistMap] = useState({})
-  const isAndroid = platform === 'android'
 
   // 在 App 内，根据类型检查是否已添加对应习惯
   useEffect(() => {
@@ -158,15 +168,34 @@ export default function OfficialLibrary() {
         </div>
       </div>
 
+      {/* 提示 */}
+      <div className="px-6 pb-2">
+        <div className="bg-white rounded-2xl px-4 py-3 flex items-center gap-2 shadow-sm border border-slate-100">
+          <span className="text-base">💡</span>
+          <div className="text-xs text-gray-600 leading-relaxed">
+            在 App 内，如果已添加对应习惯，会直接显示「去使用」，避免重复添加。
+          </div>
+        </div>
+      </div>
+
       {/* 官方习惯列表 */}
       <div className="px-4 pb-6 grid grid-cols-2 gap-3">
         {OFFICIAL_HABITS.map((item) => {
           const hasAdded = !!existMap[item.type]
-          const ctaText = hasAdded ? '已添加，查看介绍 →' : '查看介绍 →'
+          const ctaText = hasAdded ? '去使用' : '查看介绍 →'
 
           const handleClick = () => {
-            // 无论是否已添加，统一进入介绍页，由介绍页自行处理“已添加”态
-            navigate(item.introPath)
+            // 浏览器环境：统一走介绍页
+            if (!isInApp) {
+              navigate(item.introPath)
+              return
+            }
+            // App 内：已添加则直接进入使用页，否则进入介绍页
+            if (hasAdded && item.usePath) {
+              navigate(item.usePath)
+            } else {
+              navigate(item.introPath)
+            }
           }
 
           return (
@@ -180,18 +209,14 @@ export default function OfficialLibrary() {
               >
                 {item.icon}
               </div>
-              <div className="flex items-center justify-between gap-1 mb-1 min-w-0">
-                <h3 className={`flex-1 min-w-0 truncate font-semibold text-gray-900 ${isAndroid ? 'text-[11px]' : 'text-sm'}`}>
-                  {item.name}
-                </h3>
-                <span className={`flex-shrink-0 whitespace-nowrap px-2 py-[2px] rounded-full bg-slate-100 text-slate-500 ${isAndroid ? 'text-[8px]' : 'text-[10px]'}`}>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-sm font-semibold text-gray-900 truncate">{item.name}</h3>
+                <span className="ml-2 px-2 py-[2px] rounded-full bg-slate-100 text-[10px] text-slate-500">
                   {item.tag}
                 </span>
               </div>
-              <p className={`text-gray-500 leading-relaxed line-clamp-2 ${isAndroid ? 'text-[10px]' : 'text-xs'}`}>
-                {item.desc}
-              </p>
-              <div className={`mt-3 text-indigo-500 font-medium group-active:opacity-70 ${isAndroid ? 'text-[8px]' : 'text-[10px]'}`}>
+              <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{item.desc}</p>
+              <div className="mt-3 text-[10px] text-indigo-500 font-medium group-active:opacity-70">
                 {ctaText}
               </div>
             </button>
