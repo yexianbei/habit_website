@@ -112,41 +112,39 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
   }
   
   const getDateInfo = useCallback((date) => {
-    if (!date) return { status: PERIOD_STATUS.NONE }
+    if (!date) return { status: PERIOD_STATUS.NONE, mood: null, hasLove: false }
     const dateStr = formatDate(date)
     const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === dateStr)
     
-    let info = { status: PERIOD_STATUS.NONE, mood: null, hasLove: false }
+    let status = PERIOD_STATUS.NONE
+    let mood = null
+    let hasLove = false
     
+    // 1) 背景状态：经期仅由「经期记录」决定；排卵/预测由 predictions 决定，不因当日有心情/爱爱记录而丢失
+    const hasExplicitPeriod = log && (() => {
+      try {
+        const d = JSON.parse(log.signUpId || '{}')
+        return d.isPeriod === true
+      } catch (e) { return false }
+    })()
+    if (hasExplicitPeriod) {
+      status = PERIOD_STATUS.PERIOD
+    } else if (predictions && predictions.hasData === true) {
+      if (predictions.predictedDates?.includes(dateStr)) status = PERIOD_STATUS.PREDICTED
+      else if (predictions.ovulationDate === dateStr) status = PERIOD_STATUS.OVULATION
+      else if (predictions.fertileDates?.includes(dateStr)) status = PERIOD_STATUS.FERTILE
+    }
+    
+    // 2) 心情、爱爱仅作为角标，从当日记录读取，不覆盖背景状态
     if (log) {
       try {
         const details = JSON.parse(log.signUpId || '{}')
-        const hasExplicitPeriod = details.isPeriod === true
-        const hasExplicitNonPeriod = details.isPeriod === false
-        
-        if (hasExplicitPeriod) {
-          info.status = PERIOD_STATUS.PERIOD
-        } else if (details.isLove) {
-          info.status = PERIOD_STATUS.LOVE
-        }
-        
-        if (details.mood) info.mood = details.mood
-        if (details.isLove || details.loveMeasure !== undefined) info.hasLove = true
-      } catch (e) {
-        // 解析失败时，不显示任何状态
-        info.status = PERIOD_STATUS.NONE
-      }
-    } else {
-      // 没有记录时，只显示预测信息
-      if (predictions && predictions.hasData === true) {
-        // 只有在有有效预测数据时才显示预测信息
-        if (predictions.predictedDates?.includes(dateStr)) info.status = PERIOD_STATUS.PREDICTED
-        else if (predictions.ovulationDate === dateStr) info.status = PERIOD_STATUS.OVULATION
-        else if (predictions.fertileDates?.includes(dateStr)) info.status = PERIOD_STATUS.FERTILE
-      }
+        if (details.mood) mood = details.mood
+        if (details.isLove || details.loveMeasure !== undefined) hasLove = true
+      } catch (e) {}
     }
     
-    return info
+    return { status, mood, hasLove }
   }, [periodLogs, predictions])
   
   // 预计算所有经期周期的第一天
