@@ -3,7 +3,7 @@
  * 完整功能版 - 现代 UI 风格
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNativeBridge, useNativeEvent } from '../../utils/useNativeBridge'
 import { useWechatShare } from '../../hooks/useShare'
@@ -90,9 +90,13 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
   const [touchEnd, setTouchEnd] = useState(null)
   const [slideDirection, setSlideDirection] = useState(null) // 'left' | 'right' | null
   const [isAnimating, setIsAnimating] = useState(false)
-  
+  const calendarSwipeRef = useRef(null)
+  const touchStartPosRef = useRef({ x: null, y: null })
+
   // 最小滑动距离
   const minSwipeDistance = 50
+  // 水平滑动判定阈值（超过此值且横向大于纵向时 preventDefault，避免触发 iOS 右滑返回）
+  const horizontalClaimThreshold = 12
   
   const getDaysInMonth = (date) => {
     const year = date.getFullYear()
@@ -194,28 +198,46 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
   // 触摸事件处理
   const onTouchStart = (e) => {
     setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
+    const t = e.targetTouches[0]
+    setTouchStart(t.clientX)
+    touchStartPosRef.current = { x: t.clientX, y: t.clientY }
   }
-  
+
   const onTouchMove = (e) => {
     setTouchEnd(e.targetTouches[0].clientX)
   }
-  
+
   const onTouchEnd = () => {
+    touchStartPosRef.current = { x: null, y: null }
     if (!touchStart || !touchEnd) return
-    
+
     const distance = touchStart - touchEnd
     const isLeftSwipe = distance > minSwipeDistance
     const isRightSwipe = distance < -minSwipeDistance
-    
+
     if (isLeftSwipe) {
-      // 向左滑动 -> 下个月
       goToNextMonth()
     } else if (isRightSwipe) {
-      // 向右滑动 -> 上个月
       goToPrevMonth()
     }
   }
+
+  // 在日历区域水平滑动时 preventDefault，避免与 iOS 右滑返回冲突（需 passive: false）
+  useEffect(() => {
+    const el = calendarSwipeRef.current
+    if (!el) return
+    const onMove = (e) => {
+      const start = touchStartPosRef.current
+      if (start.x == null || start.y == null || !e.targetTouches[0]) return
+      const dx = e.targetTouches[0].clientX - start.x
+      const dy = e.targetTouches[0].clientY - start.y
+      if (Math.abs(dx) > horizontalClaimThreshold && Math.abs(dx) > Math.abs(dy)) {
+        e.preventDefault()
+      }
+    }
+    el.addEventListener('touchmove', onMove, { passive: false })
+    return () => el.removeEventListener('touchmove', onMove)
+  }, [])
   
   const goToPrevMonth = () => {
     if (isAnimating) return
@@ -289,8 +311,9 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
         ))}
       </div>
       
-      {/* 可滑动的日期网格 */}
-      <div 
+      {/* 可滑动的日期网格：水平滑动时 preventDefault 避免与 iOS 右滑返回冲突 */}
+      <div
+        ref={calendarSwipeRef}
         className="touch-pan-y"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -528,7 +551,7 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
           <span className="font-bold text-gray-800">{formatDate(selectedDate)}</span>
           <div className="flex gap-3">
             {existingLog && (
-              <button onClick={onDelete} className="text-red-500 font-medium text-sm">删除</button>
+              <button onClick={() => onDelete()} className="text-red-500 font-medium text-sm">删除</button>
             )}
             <button onClick={handleSave} className="text-pink-500 font-medium text-sm">保存</button>
           </div>
@@ -664,7 +687,7 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
           <span className="font-bold text-gray-800">{formatDate(loveDate)}</span>
           <div className="flex gap-3">
             {existingLog && (
-              <button onClick={onDelete} className="text-red-500 font-medium text-sm">删除</button>
+              <button onClick={() => onDelete()} className="text-red-500 font-medium text-sm">删除</button>
             )}
             <button onClick={handleSave} className="text-purple-600 font-medium text-sm">保存</button>
           </div>
