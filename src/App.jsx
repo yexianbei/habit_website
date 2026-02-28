@@ -47,6 +47,7 @@ const FlashcardStudy = lazy(() => import('./pages/habit/flashcard/FlashcardStudy
 const FlashcardImport = lazy(() => import('./pages/habit/flashcard/FlashcardImport'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const FlashcardIntro = lazy(() => import('./pages/habit/flashcard/FlashcardIntro'))
+const ScreenGuider = lazy(() => import('./pages/ScreenGuider'))
 
 // 加载中的占位组件
 const LoadingPlaceholder = ({ height = '200px' }) => (
@@ -422,6 +423,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <LedgerManagement />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/screen-guider"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <ScreenGuider />
             </Suspense>
           }
         />
