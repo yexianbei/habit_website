@@ -109,9 +109,12 @@ const OFFICIAL_HABITS = [
   },
 ]
 
+/** 当前开放添加的习惯 id，其余点击后提示「会尽快开放～请稍等」 */
+const ENABLED_HABIT_ID = 'period_management'
+
 export default function OfficialLibrary() {
   const navigate = useNavigate()
-  const { isInApp, callNative } = useNativeBridge()
+  const { isInApp, callNative, showToast } = useNativeBridge()
   const [existMap, setExistMap] = useState({})
 
   // 在 App 内，根据类型检查是否已添加对应习惯
@@ -184,13 +187,19 @@ export default function OfficialLibrary() {
           const hasAdded = !!existMap[item.type]
           const ctaText = hasAdded ? '去使用' : '查看介绍 →'
 
-          const handleClick = () => {
-            // 浏览器环境：统一走介绍页
+          const handleClick = async () => {
+            if (item.id !== ENABLED_HABIT_ID) {
+              if (isInApp) {
+                await showToast('会尽快开放～请稍等')
+              } else {
+                alert('会尽快开放～请稍等')
+              }
+              return
+            }
             if (!isInApp) {
               navigate(item.introPath)
               return
             }
-            // App 内：已添加则直接进入使用页，否则进入介绍页
             if (hasAdded && item.usePath) {
               navigate(item.usePath)
             } else {
