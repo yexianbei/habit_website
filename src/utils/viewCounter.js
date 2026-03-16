@@ -1,6 +1,6 @@
 // 阅读统计工具函数
 
-const API_ENDPOINT = '/.netlify/functions/view-count'
+const API_ENDPOINT = '/api/view-count'
 
 /**
  * 增加文章的阅读次数

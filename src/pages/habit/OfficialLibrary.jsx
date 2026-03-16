@@ -173,7 +173,7 @@ export default function OfficialLibrary() {
 
       {/* 官方习惯列表 */}
       <div className="px-4 pb-6 grid grid-cols-2 gap-3">
-        {OFFICIAL_HABITS.map((item) => {
+        {OFFICIAL_HABITS.filter(item => item.id === 'period_management').map((item) => {
           const hasAdded = !!existMap[item.type]
           const ctaText = hasAdded ? '去使用' : '查看介绍 →'
 
