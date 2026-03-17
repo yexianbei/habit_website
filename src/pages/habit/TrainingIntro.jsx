@@ -1,3 +1,4 @@
+import { BASE_URL } from '../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 
@@ -78,7 +79,7 @@ export default function TrainingIntro() {
     }
 
     if (hasAdded) {
-      await navigateTo('https://tinyhabits.top/habit/training')
+      await navigateTo(`${BASE_URL}/habit/training`)
       return
     }
 
@@ -125,7 +126,7 @@ export default function TrainingIntro() {
       alert('请在 App 内使用此功能')
       return
     }
-    await navigateTo('https://tinyhabits.top/habit/training')
+    await navigateTo(`${BASE_URL}/habit/training`)
   }
 
   if (!isInApp) {

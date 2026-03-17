@@ -39,7 +39,6 @@ export default function PeriodIntro() {
     showLoading, 
     hideLoading,
     closePage,
-    navigateTo,
   } = useNativeBridge()
   
   const [isAdding, setIsAdding] = useState(false)
@@ -134,13 +133,9 @@ export default function PeriodIntro() {
     }
   }
   
-  // 进入经期管理页面
-  const handleEnter = async () => {
-    if (!isInApp) {
-      alert('请在 App 内使用此功能')
-      return
-    }
-    await navigateTo('https://tinyhabits.top/habit/period')
+  // 已添加：关闭习惯库，回到首页
+  const handleGoHome = () => {
+    callNative('ui.goToHome', {})
   }
   
   // 非 App 环境的提示
@@ -236,12 +231,12 @@ export default function PeriodIntro() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white to-transparent">
         <div className="max-w-md mx-auto">
           <button
-            onClick={hasAdded ? async () => { await showToast('已经添加了该习惯，不可重复添加') } : handleAddHabit}
+            onClick={hasAdded ? handleGoHome : handleAddHabit}
             disabled={isAdding}
             className="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-400 text-white rounded-xl font-medium shadow-lg active:scale-98 transition-transform disabled:opacity-70"
             style={{ boxShadow: '0 4px 20px rgba(255, 107, 138, 0.4)' }}
           >
-            {hasAdded ? '已添加' : (isAdding ? '添加中...' : '添加到首页')}
+            {hasAdded ? '去首页使用 →' : (isAdding ? '添加中...' : '添加到首页')}
           </button>
           
           <p className="text-center text-xs text-gray-400 mt-3">

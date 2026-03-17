@@ -54,6 +54,7 @@ export const UI = {
   SHARE: 'ui.share',                // 分享
   OPEN_URL: 'ui.openUrl',           // 打开链接（外部浏览器）
   NAVIGATE_TO: 'ui.navigateTo',     // 页面跳转（App 内 WebView）
+  GO_TO_HOME: 'ui.goToHome',        // 关闭习惯库，回到首页
   SHOW_ACTION_SHEET: 'ui.showActionSheet', // 显示操作菜单
   SHOW_DATE_PICKER: 'ui.showDatePicker', // 显示日期选择器
   SHOW_TIME_PICKER: 'ui.showTimePicker', // 显示时间选择器

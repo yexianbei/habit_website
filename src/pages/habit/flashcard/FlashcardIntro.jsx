@@ -1,3 +1,4 @@
+import { BASE_URL } from '../../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../../utils/useNativeBridge'
 
@@ -98,7 +99,7 @@ export default function FlashcardIntro() {
       alert('请在 App 内使用此功能')
       return
     }
-    await navigateTo('https://tinyhabits.top/habit/flashcard')
+    await navigateTo(`${BASE_URL}/habit/flashcard`)
   }
 
   if (!isInApp) {

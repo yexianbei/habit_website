@@ -1,3 +1,4 @@
+import { BASE_URL } from '../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 
@@ -51,7 +52,7 @@ export default function LedgerIntro() {
       return
     }
     if (hasAdded) {
-      await navigateTo('https://tinyhabits.top/habit/accounting')
+      await navigateTo(`${BASE_URL}/habit/accounting`)
       return
     }
     setIsAdding(true)
@@ -125,7 +126,7 @@ export default function LedgerIntro() {
             <button
               onClick={async () => {
                 if (isInApp) {
-                  await navigateTo('https://tinyhabits.top/habit/accounting')
+                  await navigateTo(`${BASE_URL}/habit/accounting`)
                 } else {
                   window.location.href = '/habit/accounting'
                 }

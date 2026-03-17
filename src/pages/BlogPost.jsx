@@ -1,3 +1,4 @@
+import { BASE_URL } from '../config'
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
 import { Calendar, Clock, ArrowLeft, Share2, Twitter, Facebook, BookOpen, ChevronRight, Home, Eye } from 'lucide-react'
@@ -166,7 +167,7 @@ const BlogPost = () => {
     keywords: language === 'zh' 
       ? '习惯养成,微习惯,时间管理,效率提升,自律,习惯追踪'
       : 'habit building, micro habits, time management, productivity, self-discipline',
-    image: post.image.startsWith('http') ? post.image : `https://tinyhabits.top${post.image}`,
+    image: post.image.startsWith('http') ? post.image : `${BASE_URL}${post.image}`,
     type: 'article'
   }
 
@@ -386,7 +387,7 @@ const BlogPost = () => {
               author: {
                 '@type': 'Person',
                 name: language === 'zh' ? '小习惯团队' : 'Tiny Habits Team',
-                url: 'https://tinyhabits.top'
+                url: '${BASE_URL}'
               },
               publisher: {
                 '@type': 'Organization',
@@ -422,13 +423,13 @@ const BlogPost = () => {
                     '@type': 'ListItem',
                     position: 1,
                     name: language === 'zh' ? '首页' : 'Home',
-                    item: 'https://tinyhabits.top'
+                    item: BASE_URL
                   },
                   {
                     '@type': 'ListItem',
                     position: 2,
                     name: language === 'zh' ? '博客' : 'Blog',
-                    item: 'https://tinyhabits.top/blog'
+                    item: `${BASE_URL}/blog`
                   },
                   {
                     '@type': 'ListItem',

@@ -3,6 +3,7 @@
  * 用户从习惯库点击后先看到此页面，点击添加到首页后创建戒烟习惯
  */
 
+import { BASE_URL } from '../../config'
 import React, { useState, useEffect } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 
@@ -152,7 +153,7 @@ export default function QuitIntro() {
       alert('请在 App 内使用此功能')
       return
     }
-    await navigateTo('https://tinyhabits.top/habit/quit')
+    await navigateTo(`${BASE_URL}/habit/quit`)
   }
   
   // 非 App 环境的提示

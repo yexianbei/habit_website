@@ -2,6 +2,7 @@
  * 血糖记录介绍页面
  * 用户从官方习惯库点击后先看到此页面，点击添加后创建习惯
  */
+import { BASE_URL } from '../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 
@@ -120,7 +121,7 @@ export default function BloodSugarIntro() {
       alert('请在 App 内使用此功能')
       return
     }
-    await navigateTo('https://tinyhabits.top/habit/glucose')
+    await navigateTo(`${BASE_URL}/habit/glucose`)
   }
 
   if (!isInApp) {

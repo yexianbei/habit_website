@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLanguage } from '../i18n/LanguageContext'
+import { BASE_URL } from '../config'
 
 const SEO = ({ 
   title, 
@@ -13,7 +14,7 @@ const SEO = ({
   const { language } = useLanguage()
   const location = useLocation()
   
-  const baseUrl = 'https://tinyhabits.top'
+  const baseUrl = BASE_URL
   const currentUrl = baseUrl + location.pathname
   
   useEffect(() => {

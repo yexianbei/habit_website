@@ -1,3 +1,4 @@
+import { BASE_URL } from '../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 
@@ -51,7 +52,7 @@ export default function BodyIntro() {
       return
     }
     if (hasAdded) {
-      await navigateTo('https://tinyhabits.top/habit/body')
+      await navigateTo(`${BASE_URL}/habit/body`)
       return
     }
     setIsAdding(true)
@@ -151,7 +152,7 @@ export default function BodyIntro() {
             <button
               onClick={async () => {
                 if (isInApp) {
-                  await navigateTo('https://tinyhabits.top/habit/body')
+                  await navigateTo(`${BASE_URL}/habit/body`)
                 } else {
                   window.location.href = '/habit/body'
                 }

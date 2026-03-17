@@ -1,3 +1,4 @@
+import { BASE_URL } from '../config'
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useNavigationType } from 'react-router-dom'
 import { Calendar, Clock, BookOpen, ArrowLeft } from 'lucide-react'
@@ -93,13 +94,13 @@ const BlogList = () => {
     title: '博客文章 | 习惯养成、时间管理、效率提升 - Tiny Habits',
     description: '探索微习惯、时间管理、效率提升等主题的深度文章。学习如何通过科学的方法养成好习惯，提升生活和工作效率。',
     keywords: '习惯养成,时间管理,效率提升,微习惯,自律,番茄工作法,习惯追踪',
-    image: 'https://tinyhabits.top/app_icon.png',
+    image: `${BASE_URL}/app_icon.png`,
     type: 'website'
   } : {
     title: 'Blog Articles | Habit Building, Time Management, Productivity - Tiny Habits',
     description: 'Explore in-depth articles on micro habits, time management, and productivity. Learn how to build good habits and improve your life with science-based methods.',
     keywords: 'habit building, time management, productivity, micro habits, self-discipline, pomodoro technique',
-    image: 'https://tinyhabits.top/app_icon.png',
+    image: '${BASE_URL}/app_icon.png',
     type: 'website'
   }
 

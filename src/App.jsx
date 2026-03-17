@@ -1,3 +1,4 @@
+import { BASE_URL } from './config'
 import React, { useEffect, Suspense, lazy } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Hero from './components/Hero'
@@ -96,12 +97,12 @@ const Home = () => {
     title: 'Tiny Habits - 小习惯 | 微习惯养成工具，AI教练助力习惯养成',
     description: '基于微习惯方法和AI教练的极简习惯养成工具。每天1分钟也能坚持，让改变从微小开始。支持习惯追踪、番茄钟、数据统计等功能。',
     keywords: '习惯养成,微习惯,习惯追踪,AI教练,番茄钟,时间管理,习惯打卡,自律工具,小习惯',
-    image: 'https://tinyhabits.top/app_icon.png'
+    image: `${BASE_URL}/app_icon.png`
   } : {
     title: 'Tiny Habits - Habit Tracker & Time Management App | Build Better Habits',
     description: 'Build lasting habits with Tiny Habits - A powerful habit tracker and time management app. Use micro-habits method, AI coach, and Pomodoro timer to achieve your goals. Start free today!',
     keywords: 'habit tracker, habit building, time management, productivity app, micro habits, tiny habits, pomodoro timer, goal tracking, daily habits',
-    image: 'https://tinyhabits.top/app_icon.png'
+    image: `${BASE_URL}/app_icon.png`
   }
   
   return (
@@ -116,8 +117,8 @@ const Home = () => {
             '@type': 'Organization',
             name: 'Tiny Habits',
             alternateName: '小习惯',
-            url: 'https://tinyhabits.top',
-            logo: 'https://tinyhabits.top/app_icon.png',
+            url: BASE_URL,
+            logo: `${BASE_URL}/app_icon.png`,
             description: language === 'zh' 
               ? '基于微习惯方法和AI教练的极简习惯养成工具'
               : 'A powerful habit tracker and time management app using micro-habits method and AI coach',

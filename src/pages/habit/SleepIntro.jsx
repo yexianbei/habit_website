@@ -1,3 +1,4 @@
+import { BASE_URL } from '../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 
@@ -52,7 +53,7 @@ export default function SleepIntro() {
       return
     }
     if (hasAdded) {
-      await navigateTo('https://tinyhabits.top/habit/sleep')
+      await navigateTo(`${BASE_URL}/habit/sleep`)
       return
     }
     setIsAdding(true)
@@ -153,7 +154,7 @@ export default function SleepIntro() {
             <button
               onClick={async () => {
                 if (isInApp) {
-                  await navigateTo('https://tinyhabits.top/habit/sleep')
+                  await navigateTo(`${BASE_URL}/habit/sleep`)
                 } else {
                   window.location.href = '/habit/sleep'
                 }
