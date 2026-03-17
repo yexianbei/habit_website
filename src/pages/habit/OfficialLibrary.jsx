@@ -162,11 +162,15 @@ export default function OfficialLibrary() {
       <div className="px-4 pb-6 grid grid-cols-2 gap-3">
         {OFFICIAL_HABITS.map((item) => {
           const hasAdded = !!existMap[item.type]
-          const ctaText = hasAdded ? '已添加，查看介绍 →' : '查看介绍 →'
+          const ctaText = hasAdded ? '已添加 ✓' : '查看介绍 →'
 
           const handleClick = () => {
-            // 无论是否已添加，统一进入介绍页，由介绍页自行处理“已添加”态
-            navigate(item.introPath)
+            if (hasAdded && isInApp) {
+              // 已添加：关闭习惯库，回到首页
+              callNative('ui.goToHome', {})
+            } else {
+              navigate(item.introPath)
+            }
           }
 
           return (
