@@ -3,7 +3,7 @@
  * 完整功能版 - 现代 UI 风格
  */
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNativeBridge, useNativeEvent } from '../../utils/useNativeBridge'
 import { useWechatShare } from '../../hooks/useShare'
@@ -90,9 +90,13 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
   const [touchEnd, setTouchEnd] = useState(null)
   const [slideDirection, setSlideDirection] = useState(null) // 'left' | 'right' | null
   const [isAnimating, setIsAnimating] = useState(false)
-  
+  const calendarSwipeRef = useRef(null)
+  const touchStartPosRef = useRef({ x: null, y: null })
+
   // 最小滑动距离
   const minSwipeDistance = 50
+  // 水平滑动判定阈值（超过此值且横向大于纵向时 preventDefault，避免触发 iOS 右滑返回）
+  const horizontalClaimThreshold = 12
   
   const getDaysInMonth = (date) => {
     const year = date.getFullYear()
@@ -108,41 +112,39 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
   }
   
   const getDateInfo = useCallback((date) => {
-    if (!date) return { status: PERIOD_STATUS.NONE }
+    if (!date) return { status: PERIOD_STATUS.NONE, mood: null, hasLove: false }
     const dateStr = formatDate(date)
     const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === dateStr)
     
-    let info = { status: PERIOD_STATUS.NONE, mood: null, hasLove: false }
+    let status = PERIOD_STATUS.NONE
+    let mood = null
+    let hasLove = false
     
+    // 1) 背景状态：经期仅由「经期记录」决定；排卵/预测由 predictions 决定，不因当日有心情/爱爱记录而丢失
+    const hasExplicitPeriod = log && (() => {
+      try {
+        const d = JSON.parse(log.signUpId || '{}')
+        return d.isPeriod === true
+      } catch (e) { return false }
+    })()
+    if (hasExplicitPeriod) {
+      status = PERIOD_STATUS.PERIOD
+    } else if (predictions && predictions.hasData === true) {
+      if (predictions.predictedDates?.includes(dateStr)) status = PERIOD_STATUS.PREDICTED
+      else if (predictions.ovulationDate === dateStr) status = PERIOD_STATUS.OVULATION
+      else if (predictions.fertileDates?.includes(dateStr)) status = PERIOD_STATUS.FERTILE
+    }
+    
+    // 2) 心情、爱爱仅作为角标，从当日记录读取，不覆盖背景状态
     if (log) {
       try {
         const details = JSON.parse(log.signUpId || '{}')
-        const hasExplicitPeriod = details.isPeriod === true
-        const hasExplicitNonPeriod = details.isPeriod === false
-        
-        if (hasExplicitPeriod) {
-          info.status = PERIOD_STATUS.PERIOD
-        } else if (details.isLove) {
-          info.status = PERIOD_STATUS.LOVE
-        }
-        
-        if (details.mood) info.mood = details.mood
-        if (details.isLove || details.loveMeasure !== undefined) info.hasLove = true
-      } catch (e) {
-        // 解析失败时，不显示任何状态
-        info.status = PERIOD_STATUS.NONE
-      }
-    } else {
-      // 没有记录时，只显示预测信息
-      if (predictions && predictions.hasData === true) {
-        // 只有在有有效预测数据时才显示预测信息
-        if (predictions.predictedDates?.includes(dateStr)) info.status = PERIOD_STATUS.PREDICTED
-        else if (predictions.ovulationDate === dateStr) info.status = PERIOD_STATUS.OVULATION
-        else if (predictions.fertileDates?.includes(dateStr)) info.status = PERIOD_STATUS.FERTILE
-      }
+        if (details.mood) mood = details.mood
+        if (details.isLove || details.loveMeasure !== undefined) hasLove = true
+      } catch (e) {}
     }
     
-    return info
+    return { status, mood, hasLove }
   }, [periodLogs, predictions])
   
   // 预计算所有经期周期的第一天
@@ -194,28 +196,46 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
   // 触摸事件处理
   const onTouchStart = (e) => {
     setTouchEnd(null)
-    setTouchStart(e.targetTouches[0].clientX)
+    const t = e.targetTouches[0]
+    setTouchStart(t.clientX)
+    touchStartPosRef.current = { x: t.clientX, y: t.clientY }
   }
-  
+
   const onTouchMove = (e) => {
     setTouchEnd(e.targetTouches[0].clientX)
   }
-  
+
   const onTouchEnd = () => {
+    touchStartPosRef.current = { x: null, y: null }
     if (!touchStart || !touchEnd) return
-    
+
     const distance = touchStart - touchEnd
     const isLeftSwipe = distance > minSwipeDistance
     const isRightSwipe = distance < -minSwipeDistance
-    
+
     if (isLeftSwipe) {
-      // 向左滑动 -> 下个月
       goToNextMonth()
     } else if (isRightSwipe) {
-      // 向右滑动 -> 上个月
       goToPrevMonth()
     }
   }
+
+  // 在日历区域水平滑动时 preventDefault，避免与 iOS 右滑返回冲突（需 passive: false）
+  useEffect(() => {
+    const el = calendarSwipeRef.current
+    if (!el) return
+    const onMove = (e) => {
+      const start = touchStartPosRef.current
+      if (start.x == null || start.y == null || !e.targetTouches[0]) return
+      const dx = e.targetTouches[0].clientX - start.x
+      const dy = e.targetTouches[0].clientY - start.y
+      if (Math.abs(dx) > horizontalClaimThreshold && Math.abs(dx) > Math.abs(dy)) {
+        e.preventDefault()
+      }
+    }
+    el.addEventListener('touchmove', onMove, { passive: false })
+    return () => el.removeEventListener('touchmove', onMove)
+  }, [])
   
   const goToPrevMonth = () => {
     if (isAnimating) return
@@ -289,8 +309,9 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
         ))}
       </div>
       
-      {/* 可滑动的日期网格 */}
-      <div 
+      {/* 可滑动的日期网格：水平滑动时 preventDefault 避免与 iOS 右滑返回冲突 */}
+      <div
+        ref={calendarSwipeRef}
         className="touch-pan-y"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
@@ -528,7 +549,7 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
           <span className="font-bold text-gray-800">{formatDate(selectedDate)}</span>
           <div className="flex gap-3">
             {existingLog && (
-              <button onClick={onDelete} className="text-red-500 font-medium text-sm">删除</button>
+              <button onClick={() => onDelete()} className="text-red-500 font-medium text-sm">删除</button>
             )}
             <button onClick={handleSave} className="text-pink-500 font-medium text-sm">保存</button>
           </div>
@@ -664,7 +685,7 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
           <span className="font-bold text-gray-800">{formatDate(loveDate)}</span>
           <div className="flex gap-3">
             {existingLog && (
-              <button onClick={onDelete} className="text-red-500 font-medium text-sm">删除</button>
+              <button onClick={() => onDelete()} className="text-red-500 font-medium text-sm">删除</button>
             )}
             <button onClick={handleSave} className="text-purple-600 font-medium text-sm">保存</button>
           </div>

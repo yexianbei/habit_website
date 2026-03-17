@@ -4,7 +4,16 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/app_icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+    <!-- 首屏前同步设置 data-platform，避免安卓小字号闪烁（若等 React bridge.ready 再设会先大后小） -->
+    <script>
+      (function(){
+        var ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+        var platform = 'browser';
+        if (/Android/i.test(ua)) platform = 'android';
+        else if (/iPhone|iPad|iPod/i.test(ua)) platform = 'ios';
+        document.documentElement.setAttribute('data-platform', platform);
+      })();
+    </script>
     <!-- Preload critical resources -->
     <link rel="preload" href="/app_icon.png" as="image" />
     <link rel="dns-prefetch" href="https://images.unsplash.com" />

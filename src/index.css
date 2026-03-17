@@ -7,9 +7,11 @@
     @apply bg-white text-gray-900;
   }
 
-  /* 安卓 WebView 下整体缩小文案，iOS 与浏览器不变 */
+  /* 安卓 WebView 下整体缩小文案，并禁止系统自动放大文字，避免不同厂商文字尺寸差异过大 */
   html[data-platform="android"] {
     font-size: 87.5%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 }
 

@@ -1,0 +1,9 @@
+name = "habit-website"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-01-01"
+
+[vars]
+# 在 Cloudflare Pages 控制台的「Settings → Environment variables」中配置以下变量：
+# AIRTABLE_API_KEY     = "your_airtable_personal_access_token"
+# AIRTABLE_BASE_ID     = "your_airtable_base_id"
+# AIRTABLE_TABLE_NAME  = "ViewCounts"
