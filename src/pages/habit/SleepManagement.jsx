@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import { useHabitDelete } from '../../hooks/useHabitDelete'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
@@ -231,14 +232,26 @@ export default function SleepManagement() {
             </div>
             <p className="text-white/80 text-sm">{todayStatus.sub}</p>
           </div>
-          {!habitId && (
-            <a 
-              href="/habit/sleep/intro"
-              className="px-3 py-2 rounded-xl bg-white/20 text-white text-sm backdrop-blur-sm"
-            >
-              添加习惯
-            </a>
-          )}
+          <div className="flex items-center gap-2">
+            {habitId && (
+              <button
+                onClick={deleteHabit}
+                disabled={isDeleting}
+                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm disabled:opacity-50"
+                title="删除习惯"
+              >
+                🗑️
+              </button>
+            )}
+            {!habitId && (
+              <a 
+                href="/habit/sleep/intro"
+                className="px-3 py-2 rounded-xl bg-white/20 text-white text-sm backdrop-blur-sm"
+              >
+                添加习惯
+              </a>
+            )}
+          </div>
         </div>
         <div className="flex gap-3 mt-6">
           {[

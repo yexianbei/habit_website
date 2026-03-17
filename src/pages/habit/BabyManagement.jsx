@@ -10,6 +10,7 @@
  */
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useHabitDelete } from '../../hooks/useHabitDelete'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 
 const formatDate = (date) => {
@@ -526,12 +527,22 @@ export default function BabyManagement() {
                 </div>
               </div>
             </div>
-            <button
-              onClick={openOnboarding}
-              className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm text-lg"
-            >
-              ⚙️
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={deleteHabit}
+                disabled={isDeleting}
+                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm disabled:opacity-50"
+                title="删除习惯"
+              >
+                🗑️
+              </button>
+              <button
+                onClick={openOnboarding}
+                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm text-lg"
+              >
+                ⚙️
+              </button>
+            </div>
           </div>
 
           {/* 快捷操作 */}

@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react'
+import { useHabitDelete } from '../../hooks/useHabitDelete'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import {
   ResponsiveContainer,
@@ -63,6 +64,7 @@ export default function TrainingManagement() {
     getStorage,
     setStorage,
   } = useNativeBridge()
+  const { deleteHabit, isDeleting } = useHabitDelete({ type: 25, name: '力量训练' })
 
   const [habitId, setHabitId] = useState(null)
   const [loadingHabit, setLoadingHabit] = useState(true)
@@ -580,14 +582,26 @@ export default function TrainingManagement() {
                 📚 查看动作库
               </button>
             </div>
-            {!habitId && (
-              <a
-                href="/habit/training/intro"
-                className="px-3 py-2 rounded-xl bg-white/20 text-white text-sm backdrop-blur-sm"
-              >
-                添加习惯
-              </a>
-            )}
+            <div className="flex items-center gap-2">
+              {habitId && (
+                <button
+                  onClick={deleteHabit}
+                  disabled={isDeleting}
+                  className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm disabled:opacity-50"
+                  title="删除习惯"
+                >
+                  🗑️
+                </button>
+              )}
+              {!habitId && (
+                <a
+                  href="/habit/training/intro"
+                  className="px-3 py-2 rounded-xl bg-white/20 text-white text-sm backdrop-blur-sm"
+                >
+                  添加习惯
+                </a>
+              )}
+            </div>
           </div>
 
           {/* 快捷操作 */}

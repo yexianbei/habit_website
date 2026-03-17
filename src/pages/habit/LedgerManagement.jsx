@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import { useHabitDelete } from '../../hooks/useHabitDelete'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
 
@@ -183,12 +184,22 @@ export default function LedgerManagement() {
             </div>
             <p className="text-white/80 text-sm">多账本与分类统计</p>
           </div>
-          <button 
-            onClick={() => setShowLedgerModal(true)}
-            className="px-3 py-2 rounded-xl bg-white/20 text-white text-sm backdrop-blur-sm"
-          >
-            新建账本
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={deleteHabit}
+              disabled={isDeleting}
+              className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm disabled:opacity-50"
+              title="删除习惯"
+            >
+              🗑️
+            </button>
+            <button 
+              onClick={() => setShowLedgerModal(true)}
+              className="px-3 py-2 rounded-xl bg-white/20 text-white text-sm backdrop-blur-sm"
+            >
+              新建账本
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-3 mt-4">
           {ledgers.map(l => (

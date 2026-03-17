@@ -133,9 +133,9 @@ export default function PeriodIntro() {
     }
   }
   
-  // 已添加：关闭习惯库，回到首页
+  // 已添加：toast 提示
   const handleGoHome = () => {
-    callNative('ui.goToHome', {})
+    callNative('ui.showToast', { message: '已经添加，可以直接到首页进行操作' })
   }
   
   // 非 App 环境的提示

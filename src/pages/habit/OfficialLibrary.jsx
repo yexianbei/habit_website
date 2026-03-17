@@ -179,8 +179,7 @@ export default function OfficialLibrary() {
 
           const handleClick = () => {
             if (hasAdded && isInApp) {
-              // 已添加：关闭习惯库，回到首页
-              callNative('ui.goToHome', {})
+              callNative('ui.showToast', { message: '已经添加，可以直接到首页进行操作' })
             } else {
               navigate(item.introPath)
             }

@@ -3,6 +3,7 @@
  * 风格对齐经期管理：顶部状态卡片 + 快捷记录按钮 + 当天记录列表 + 详情弹窗
  */
 import React, { useEffect, useMemo, useState } from 'react'
+import { useHabitDelete } from '../../hooks/useHabitDelete'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import {
   formatDate,
@@ -253,6 +254,14 @@ export default function BloodSugarManagement() {
               <p className="text-white/80 text-sm">{todaySummary.sub}</p>
             </div>
             <div className="flex flex-col items-end gap-2">
+              <button
+                onClick={deleteHabit}
+                disabled={isDeleting}
+                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm disabled:opacity-50"
+                title="删除习惯"
+              >
+                🗑️
+              </button>
               <span className="px-2 py-[2px] rounded-full bg-white/20 text-[10px]">
                 {formatDate(selectedDate)}
               </span>

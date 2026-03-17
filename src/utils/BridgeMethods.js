@@ -11,6 +11,7 @@ export const HABIT = {
   CREATE: 'habit.create',           // 创建习惯
   UPDATE: 'habit.update',           // 更新习惯
   DELETE: 'habit.delete',           // 删除习惯
+  DELETE_WITH_DATA: 'habit.deleteWithData', // 删除习惯及全部打卡数据
   GET_LIST: 'habit.getList',        // 获取习惯列表
   GET_DETAIL: 'habit.getDetail',    // 获取习惯详情
   CHECK_IN: 'habit.checkIn',        // 打卡

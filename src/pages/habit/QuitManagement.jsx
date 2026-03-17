@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useHabitDelete } from '../../hooks/useHabitDelete'
 import useNativeBridge from '../../utils/useNativeBridge'
 import { formatDate, diffDays, calculateQuitTime, formatNumber } from '../../utils/quitUtils'
 import { getRandomMotivation } from './quit/constants'
@@ -31,6 +32,7 @@ export default function QuitManagement() {
     showLoading,
     hideLoading,
   } = useNativeBridge()
+  const { deleteHabit, isDeleting } = useHabitDelete({ type: 17, name: '戒烟' })
 
   const [quitDate, setQuitDate] = useState(null)
   const [lastRelapseDate, setLastRelapseDate] = useState(null) // 最后一次破戒时间
@@ -414,15 +416,22 @@ export default function QuitManagement() {
                 </div>
                 <p className="text-white/80 text-sm">{status.sub}</p>
               </div>
-              <button
-                onClick={() => {
-                  // TODO: 打开设置戒烟日期弹窗
-                  showToast('请设置戒烟日期')
-                }}
-                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm"
-              >
-                ⚙️
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={deleteHabit}
+                  disabled={isDeleting}
+                  className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm disabled:opacity-50"
+                  title="删除习惯"
+                >
+                  🗑️
+                </button>
+                <button
+                  onClick={() => { showToast('请设置戒烟日期') }}
+                  className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm"
+                >
+                  ⚙️
+                </button>
+              </div>
             </div>
           </div>
           {/* 装饰圆形 */}

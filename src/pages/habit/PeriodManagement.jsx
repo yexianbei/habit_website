@@ -7,6 +7,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNativeBridge, useNativeEvent } from '../../utils/useNativeBridge'
 import { useWechatShare } from '../../hooks/useShare'
+import { useHabitDelete } from '../../hooks/useHabitDelete'
 
 // ============ 常量定义 ============
 
@@ -1010,6 +1011,7 @@ export default function PeriodManagement() {
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
+  const { deleteHabit, isDeleting } = useHabitDelete({ type: 16, name: '经期管理' })
   
   // 设置页面标题（document.title 让 WebView/浏览器标题栏立即显示正确文案；App 内再同步到原生标题栏）
   const pageTitle = '经期管理'
@@ -1505,6 +1507,14 @@ export default function PeriodManagement() {
               <p className="text-white/80 text-sm">{status.sub}</p>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={deleteHabit}
+                disabled={isDeleting}
+                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm disabled:opacity-50"
+                title="删除习惯"
+              >
+                🗑️
+              </button>
               <button 
                 onClick={() => setShowSettingsModal(true)}
                 className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm"
