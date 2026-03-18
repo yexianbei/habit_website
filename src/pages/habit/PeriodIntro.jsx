@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
+import FloatingBackButton from '../../components/FloatingBackButton'
 
 // 功能特点数据
 const features = [
@@ -159,6 +160,9 @@ export default function PeriodIntro() {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-pink-50">
+      {/* 悬浮返回按钮 */}
+      <FloatingBackButton />
+      
       {/* 头部装饰 */}
       <div className="relative pt-8 pb-12 px-6">
         <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-pink-100/50 to-transparent" />

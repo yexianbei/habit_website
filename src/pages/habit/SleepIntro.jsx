@@ -1,6 +1,7 @@
 import { BASE_URL } from '../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
+import FloatingBackButton from '../../components/FloatingBackButton'
 
 export default function SleepIntro() {
   const { 
@@ -94,6 +95,9 @@ export default function SleepIntro() {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-indigo-50">
+      {/* 悬浮返回按钮 */}
+      <FloatingBackButton />
+      
       <div className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-2xl text-white shadow-sm">🛌</div>

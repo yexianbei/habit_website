@@ -1,6 +1,7 @@
 import { BASE_URL } from '../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
+import FloatingBackButton from '../../components/FloatingBackButton'
 
 export default function LedgerIntro() {
   const { 
@@ -93,6 +94,9 @@ export default function LedgerIntro() {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-emerald-50">
+      {/* 悬浮返回按钮 */}
+      <FloatingBackButton />
+      
       <div className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-sky-400 flex items-center justify-center text-2xl text-white shadow-sm">📒</div>

@@ -1,6 +1,7 @@
 import { BASE_URL } from '../../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../../utils/useNativeBridge'
+import FloatingBackButton from '../../../components/FloatingBackButton'
 
 export default function FlashcardIntro() {
   const { 
@@ -116,6 +117,9 @@ export default function FlashcardIntro() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-white to-indigo-50">
+      {/* 悬浮返回按钮 */}
+      <FloatingBackButton />
+      
       <div className="px-6 pt-10 pb-8">
         <div className="max-w-md mx-auto">
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 overflow-hidden">

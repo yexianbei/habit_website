@@ -5,6 +5,7 @@
 import { BASE_URL } from '../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
+import FloatingBackButton from '../../components/FloatingBackButton'
 
 // 功能特点数据
 const features = [
@@ -169,6 +170,9 @@ export default function BabyIntro() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-50">
+      {/* 悬浮返回按钮 */}
+      <FloatingBackButton />
+      
       {/* 头部装饰 */}
       <div className="relative pt-8 pb-12 px-6">
         <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-orange-100/60 to-transparent" />

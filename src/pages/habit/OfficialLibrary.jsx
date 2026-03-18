@@ -158,22 +158,9 @@ export default function OfficialLibrary() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
-      {/* 头部 */}
-      <div className="px-6 pt-8 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center text-2xl text-white shadow-md">
-            ⭐️
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">官方习惯库</h1>
-            <p className="text-xs text-gray-500">精选场景 · 一键添加到首页</p>
-          </div>
-        </div>
-      </div>
-
       {/* 官方习惯列表 */}
-      <div className="px-4 pb-6 grid grid-cols-2 gap-3">
-        {OFFICIAL_HABITS.filter(item => item.id === 'period_management').map((item) => {
+      <div className="px-4 pt-6 pb-6 grid grid-cols-2 gap-3">
+        {OFFICIAL_HABITS.map((item) => {
           const hasAdded = !!existMap[item.type]
           const ctaText = hasAdded ? '已添加 ✓' : '查看介绍 →'
 

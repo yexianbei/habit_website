@@ -5,6 +5,7 @@
 import { BASE_URL } from '../../config'
 import React, { useEffect, useState } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
+import FloatingBackButton from '../../components/FloatingBackButton'
 
 const features = [
   {
@@ -144,6 +145,9 @@ export default function BloodSugarIntro() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 via-white to-rose-50">
+      {/* 悬浮返回按钮 */}
+      <FloatingBackButton />
+      
       <div className="relative pt-8 pb-12 px-6">
         <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-rose-100/60 to-transparent" />
 
