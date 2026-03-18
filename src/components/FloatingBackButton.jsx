@@ -9,7 +9,7 @@ export default function FloatingBackButton() {
   const navigate = useNavigate()
 
   const handleBack = () => {
-    navigate('/habit/official-library')
+    navigate('/habit/library/official')
   }
 
   return (

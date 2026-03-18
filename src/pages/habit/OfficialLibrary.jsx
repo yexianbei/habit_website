@@ -160,7 +160,7 @@ export default function OfficialLibrary() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       {/* 官方习惯列表 */}
       <div className="px-4 pt-6 pb-6 grid grid-cols-2 gap-3">
-        {OFFICIAL_HABITS.map((item) => {
+        {OFFICIAL_HABITS.filter(item => item.id === 'period_management').map((item) => {
           const hasAdded = !!existMap[item.type]
           const ctaText = hasAdded ? '已添加 ✓' : '查看介绍 →'
 
