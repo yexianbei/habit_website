@@ -526,6 +526,7 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
     const saveDateStr = formatDate(selectedDate)
     const saveData = {
       date: saveDateStr,
+      saveType: 'period', // iOS 端根据此字段做字段分组合并，避免覆盖爱爱数据
       isPeriod,
       periodStartTime: isPeriod ? periodStartTime : null,
       periodEnded: isPeriod ? periodEnded : false,
@@ -534,8 +535,6 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
       pain: isPeriod ? pain : null,
       color: isPeriod ? color : null,
       mood,
-      isLove: false, // 明确标记不是爱爱记录
-      // 不传递 loveMeasure 和 loveTime，避免 iOS 端误判
       createTime: getCreateTimeForDate(saveDateStr),
     }
     onSave(saveData)
@@ -662,18 +661,12 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
     const recordTime = new Date(dateStr + 'T' + (loveTime || '12:00') + ':00').getTime()
     onSave({
       date: dateStr,
+      saveType: 'love', // iOS 端根据此字段做字段分组合并，避免覆盖经期数据
       createTime: recordTime,
-      isPeriod: false,
-      periodStartTime: null,
-      periodEnded: false,
-      periodEndTime: null,
-      flow: null,
-      pain: null,
-      color: null,
-      mood,
       isLove: true,
       loveMeasure,
       loveTime,
+      mood,
     })
   }
 
@@ -773,16 +766,9 @@ const MoodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
     const dateStr = formatDate(moodDate)
     onSave({
       date: dateStr,
+      saveType: 'mood', // iOS 端根据此字段做字段分组合并，仅更新 mood，不触碰经期/爱爱字段
       createTime: getCreateTimeForDate(dateStr),
-      isPeriod: false,
-      periodStartTime: null,
-      periodEnded: false,
-      periodEndTime: null,
-      flow: null,
-      pain: null,
-      color: null,
       mood,
-      isLove: false,
     })
   }
 
@@ -866,7 +852,7 @@ const SettingsModal = ({ isOpen, onClose, config, onSave }) => {
             <label className="block text-sm font-medium text-gray-600 mb-2">经期长度</label>
             <div className="flex items-center gap-3">
               <input 
-                type="range" min="3" max="10" value={periodLen} onChange={e => setPeriodLen(parseInt(e.target.value))}
+                type="range" min="2" max="10" value={periodLen} onChange={e => setPeriodLen(parseInt(e.target.value))}
                 className="flex-1 h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-pink-500"
               />
               <span className="w-12 text-center font-bold text-pink-500">{periodLen} 天</span>
