@@ -359,14 +359,10 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
                     第一天
                   </span>
                 )}
-                {hasMood && (
-                  <span className="absolute -top-1 -left-1 text-[10px] drop-shadow-sm">
-                    {MOOD_ICONS[info.mood]}
-                  </span>
-                )}
-                {hasLove && (
-                  <span className="absolute -top-1 -right-1 text-[10px] drop-shadow-sm">
-                    ❤️
+                {(hasMood || hasLove) && (
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 flex items-center gap-0.5 px-0.5 py-px border border-dashed border-gray-300/70 rounded text-[9px] leading-none drop-shadow-sm whitespace-nowrap">
+                    {hasMood && <span>{MOOD_ICONS[info.mood]}</span>}
+                    {hasLove && <span>❤️</span>}
                   </span>
                 )}
               </button>
