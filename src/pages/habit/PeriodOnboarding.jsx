@@ -77,20 +77,21 @@ export default function PeriodOnboarding() {
       })
 
       // 2) 写入一条“经期开始”的记录（不写结束时间），日期和时间分开处理
+      const saveCreateTime = new Date(lastStartDate + 'T' + (lastStartTime || '08:00') + ':00').getTime()
       await callNative('period.save', {
         date: lastStartDate,
+        createTime: saveCreateTime,
         details: JSON.stringify({
+          saveType: 'period',
           isPeriod: true,
           periodStartTime: lastStartTime || null,
-          // 不强制：用户以后记录时再补充 flow/pain/color
-          mood: null,
-          isLove: false,
         }),
       })
 
       await hideLoading()
       await showToast('初始化完成')
-      navigate('/habit/period', { replace: true })
+      // skipOnboarding=1 防止主页面因 lastPeriodStart 暂时未查到而再次跳回此页
+      navigate('/habit/period?skipOnboarding=1', { replace: true })
     } catch (e) {
       await hideLoading()
       await showToast('初始化失败: ' + (e?.message || '未知错误'))

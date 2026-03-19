@@ -524,6 +524,16 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
     
     // 构建保存数据，明确不包含爱爱相关字段（因为这是经期记录弹窗，不是爱爱弹窗）
     const saveDateStr = formatDate(selectedDate)
+
+    // createTime 优先使用 periodStartTime（用户明确设置了经期开始时间）
+    // 没有经期时间时才退回"今天用当前时间、历史日期用正午"的默认逻辑
+    let createTime
+    if (isPeriod && periodStartTime) {
+      createTime = new Date(saveDateStr + 'T' + periodStartTime + ':00').getTime()
+    } else {
+      createTime = getCreateTimeForDate(saveDateStr)
+    }
+
     const saveData = {
       date: saveDateStr,
       saveType: 'period', // iOS 端根据此字段做字段分组合并，避免覆盖爱爱数据
@@ -535,7 +545,7 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
       pain: isPeriod ? pain : null,
       color: isPeriod ? color : null,
       mood,
-      createTime: getCreateTimeForDate(saveDateStr),
+      createTime,
     }
     onSave(saveData)
   }
@@ -764,10 +774,20 @@ const MoodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
       return
     }
     const dateStr = formatDate(moodDate)
+    // 心情没有专属时间选择器：
+    //   - 今天 → 使用当前时间（Date.now()），方便在时间轴上精确定位
+    //   - 历史日期且有已有记录 → 沿用原记录时间，不改变时间轴位置
+    //   - 历史日期且无已有记录 → 使用正午（12:00）
+    let createTime
+    if (existingLog?.createTime) {
+      createTime = existingLog.createTime
+    } else {
+      createTime = getCreateTimeForDate(dateStr)
+    }
     onSave({
       date: dateStr,
       saveType: 'mood', // iOS 端根据此字段做字段分组合并，仅更新 mood，不触碰经期/爱爱字段
-      createTime: getCreateTimeForDate(dateStr),
+      createTime,
       mood,
     })
   }

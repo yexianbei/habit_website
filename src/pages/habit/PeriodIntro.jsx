@@ -91,13 +91,58 @@ export default function PeriodIntro() {
     try {
       await showLoading('添加中...')
       
-      // 创建经期管理习惯
+      // 经期管理的首页卡片展示配置（来自前端，客户端存入 conditionValue）
+      const displayConfig = {
+        progressMode: 'record',
+        monthlyCell: { coloringMode: 'presence' },
+        weeklyDot: { mode: 'presence' },
+        widgets: [
+          {
+            slotId: 1, visible: true, layout: 'split',
+            displaySource: 'computed:today_mood_emoji',
+            unit: '心情', emptyDisplay: '--',
+          },
+          {
+            slotId: 2, visible: true, layout: 'split',
+            displaySource: 'computed:today_love_status',
+            unit: '爱爱', emptyDisplay: '无',
+          },
+          { slotId: 3, visible: false },
+          {
+            slotId: 4, visible: true, layout: 'inline',
+            textSource: 'computed:period_status_text',
+          },
+        ],
+      }
+      const computations = [
+        {
+          id: 'period_status_text',
+          computationType: 'period_status_text',
+        },
+        {
+          id: 'today_mood_emoji',
+          computationType: 'today_log_attr_display',
+          inputs: { attributeKey: 'period_mood' },
+          displayMap: { '1': '😊', '2': '😐', '3': '😢', '4': '😰', '5': '😠' },
+        },
+        {
+          id: 'today_love_status',
+          computationType: 'today_log_attr_display',
+          inputs: { attributeKey: 'period_is_love' },
+          displayMap: { 'true': '有' },
+          emptyDisplay: '无',
+        },
+      ]
+
+      // 创建经期管理习惯，携带 displayConfig + computations 供客户端写入 conditionValue
       const result = await callNative('habit.create', {
-        type: 16,  // 经期管理类型
+        type: 16,
         name: '经期管理',
-        icon: 'ic_habit_lib_1',  // 使用本地图标名称
+        icon: 'ic_habit_lib_1',
         bgColor: '#FF6B8A',
-        description: '记录和预测经期，关爱女性健康'
+        description: '记录和预测经期，关爱女性健康',
+        displayConfig,
+        computations,
       })
       
       await hideLoading()
