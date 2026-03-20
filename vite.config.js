@@ -1,40 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['app_icon.png', 'favicon.ico'],
-      manifest: {
-        name: 'Tiny Habits - 小习惯',
-        short_name: '小习惯',
-        start_url: '/',
-        display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#FF6B8A',
-        icons: [
-          {
-            src: '/app_icon.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/app_icon.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-        ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        // 默认 2MB 过小，经期/戒烟引导页有大图，这里提高到 5MB
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-      },
-    }),
   ],
   base: '/',
   build: {

@@ -16,11 +16,14 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
     Pragma = "no-cache"
+    Expires = "0"
 
-# 页面允许缓存；客户端通过 URL ?v=版本号 区分版本，同版本可走本地缓存、断网可用
+# 页面禁用缓存；确保手机端能够及时拉取到最新更新
 [[headers]]
   for = "/*"
   [headers.values]
-    Cache-Control = "public, max-age=86400"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
     Vary = "Accept-Encoding"
 
