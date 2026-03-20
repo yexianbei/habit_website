@@ -127,6 +127,21 @@ class NativeBridge {
    */
   callNative(method, params = {}, timeout = 30000) {
     return new Promise((resolve, reject) => {
+      // Flutter 习惯库 WebView：只注入 JavaScriptChannel「NativeBridge」+ window.callNative polyfill，
+      // 没有 webkit.messageHandlers.HabitBridge / JSBridge.invoke。旧逻辑会误判为浏览器并走降级，
+      // period.save / period.updateSettings 等不会真正进原生（表现为初始化写不进去）。
+      if (
+        typeof window !== 'undefined' &&
+        window.__nativeBridgeReady &&
+        typeof window.callNative === 'function'
+      ) {
+        window
+          .callNative(method, params)
+          .then(resolve)
+          .catch(reject)
+        return
+      }
+
       const callbackId = ++this.callbackId
       
       // 设置超时
