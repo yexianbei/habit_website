@@ -548,16 +548,37 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
 
   if (!isOpen) return null
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" onClick={e => e.stopPropagation()}>
+    <div 
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" 
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }}
+    >
+      <div 
+        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" 
+        onClick={e => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-          <button onClick={onClose} className="text-gray-400 text-sm">取消</button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }} 
+            className="text-gray-400 text-sm py-2 px-4 -ml-4"
+          >
+            取消
+          </button>
           <span className="font-bold text-gray-800">{formatDate(selectedDate)}</span>
-          <div className="flex gap-3">
+          <div className="flex gap-1">
             {existingLog && (
-              <button onClick={() => onDelete()} className="text-red-500 font-medium text-sm">删除</button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onDelete(), 50); }} 
+                className="text-red-500 font-medium text-sm py-2 px-3"
+              >
+                删除
+              </button>
             )}
-            <button onClick={handleSave} className="text-pink-500 font-medium text-sm">保存</button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => handleSave(), 50); }} 
+              className="text-pink-500 font-medium text-sm py-2 px-3 -mr-3"
+            >
+              保存
+            </button>
           </div>
         </div>
 
@@ -678,16 +699,37 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
 
   if (!isOpen) return null
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" onClick={e => e.stopPropagation()}>
+    <div 
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" 
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }}
+    >
+      <div 
+        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" 
+        onClick={e => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-          <button onClick={onClose} className="text-gray-400 text-sm">取消</button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }} 
+            className="text-gray-400 text-sm py-2 px-4 -ml-4"
+          >
+            取消
+          </button>
           <span className="font-bold text-gray-800">{formatDate(loveDate)}</span>
-          <div className="flex gap-3">
+          <div className="flex gap-1">
             {existingLog && (
-              <button onClick={() => onDelete()} className="text-red-500 font-medium text-sm">删除</button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onDelete(), 50); }} 
+                className="text-red-500 font-medium text-sm py-2 px-3"
+              >
+                删除
+              </button>
             )}
-            <button onClick={handleSave} className="text-purple-600 font-medium text-sm">保存</button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => handleSave(), 50); }} 
+              className="text-purple-600 font-medium text-sm py-2 px-3 -mr-3"
+            >
+              保存
+            </button>
           </div>
         </div>
 
@@ -790,21 +832,37 @@ const MoodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
 
   if (!isOpen) return null
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" onClick={e => e.stopPropagation()}>
+    <div 
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" 
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }}
+    >
+      <div 
+        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" 
+        onClick={e => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-          <button onClick={onClose} className="text-gray-400 text-sm">取消</button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }} 
+            className="text-gray-400 text-sm py-2 px-4 -ml-4"
+          >
+            取消
+          </button>
           <span className="font-bold text-gray-800">{formatDate(moodDate)}</span>
-          <div className="flex gap-3">
+          <div className="flex gap-1">
             {existingLog && (
               <button 
-                onClick={() => onDelete(formatDate(new Date(existingLog.createTime)))} 
-                className="text-red-500 font-medium text-sm"
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onDelete(formatDate(new Date(existingLog.createTime))), 50); }} 
+                className="text-red-500 font-medium text-sm py-2 px-3"
               >
                 删除
               </button>
             )}
-            <button onClick={handleSave} className="text-amber-500 font-medium text-sm">保存</button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => handleSave(), 50); }} 
+              className="text-amber-500 font-medium text-sm py-2 px-3 -mr-3"
+            >
+              保存
+            </button>
           </div>
         </div>
 
@@ -851,7 +909,10 @@ const SettingsModal = ({ isOpen, onClose, config, onSave }) => {
   if (!isOpen) return null
   
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div 
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" 
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }}
+    >
       <div 
         className="bg-white rounded-3xl w-full max-w-sm p-6 animate-slideUp"
         onClick={e => e.stopPropagation()}
@@ -887,11 +948,14 @@ const SettingsModal = ({ isOpen, onClose, config, onSave }) => {
         </div>
         
         <div className="flex gap-3 mt-8">
-          <button onClick={onClose} className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-medium active:scale-98">
+          <button 
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }} 
+            className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-medium active:scale-98"
+          >
             取消
           </button>
           <button 
-            onClick={() => onSave(cycleLen, periodLen)}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onSave(cycleLen, periodLen), 50); }}
             className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium shadow-lg shadow-pink-200 active:scale-98"
           >
             保存
