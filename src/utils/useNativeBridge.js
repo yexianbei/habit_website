@@ -24,9 +24,8 @@ export function useNativeBridge() {
 
   // Memoize 常用方法
   const methods = useMemo(() => ({
-    // 核心方法
+    // 核心方法（勿放 isInApp：会与下方布尔 isInApp 冲突，且 Hook 需要稳定的 boolean）
     callNative: bridge.callNative.bind(bridge),
-    isInApp: bridge.isInApp.bind(bridge),
     getPlatform: bridge.getPlatform.bind(bridge),
     
     // 事件
@@ -88,6 +87,8 @@ export function useNativeBridge() {
     isReady,
     platform,
     isInApp: bridge.isInApp(),
+    /** 需要随环境变化时再算一次时用 */
+    getIsInApp: bridge.isInApp.bind(bridge),
     ...methods
   }
 }

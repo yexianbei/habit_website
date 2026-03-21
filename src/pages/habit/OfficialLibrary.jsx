@@ -112,19 +112,44 @@ const OFFICIAL_HABITS = [
 /** 当前开放添加的习惯 id，其余点击后提示「会尽快开放～请稍等」 */
 const ENABLED_HABIT_ID = 'period_management'
 
+/** Flutter WebView 在 onPageFinished 才注入 callNative，首屏 useEffect 可能早于注入，需短暂等待 */
+function waitForNativeCallNative(maxMs = 8000) {
+  return new Promise((resolve) => {
+    const ok = () =>
+      typeof window !== 'undefined' &&
+      window.__nativeBridgeReady &&
+      typeof window.callNative === 'function'
+    if (ok()) {
+      resolve(true)
+      return
+    }
+    const start = Date.now()
+    const id = setInterval(() => {
+      if (ok()) {
+        clearInterval(id)
+        resolve(true)
+      } else if (Date.now() - start >= maxMs) {
+        clearInterval(id)
+        resolve(false)
+      }
+    }, 40)
+  })
+}
+
 export default function OfficialLibrary() {
   const navigate = useNavigate()
-  const { isInApp, callNative, showToast } = useNativeBridge()
+  const { callNative } = useNativeBridge()
   const [existMap, setExistMap] = useState({})
 
-  // 在 App 内，根据类型检查是否已添加对应习惯
+  // 根据本地 habit.getList 刷新「已添加」状态（Flutter WebView 首帧常尚无 callNative，不能依赖首次 isInApp）
   useEffect(() => {
-    if (!isInApp) return
-
     let cancelled = false
 
     const checkAll = async () => {
       try {
+        const nativeOk = await waitForNativeCallNative(8000)
+        if (cancelled || !nativeOk) return
+
         const types = [...new Set(OFFICIAL_HABITS.map(h => h.type))].filter(Boolean)
         const results = await Promise.all(
           types.map(async (t) => {
@@ -154,7 +179,7 @@ export default function OfficialLibrary() {
     return () => {
       cancelled = true
     }
-  }, [isInApp, callNative])
+  }, [callNative])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
@@ -165,7 +190,7 @@ export default function OfficialLibrary() {
           const ctaText = hasAdded ? '已添加 ✓' : '查看介绍 →'
 
           const handleClick = () => {
-            if (hasAdded && isInApp) {
+            if (hasAdded) {
               callNative('ui.showToast', { message: '已经添加，可以直接到首页进行操作' })
             } else {
               navigate(item.introPath)

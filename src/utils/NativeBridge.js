@@ -78,8 +78,21 @@ class NativeBridge {
 
   /**
    * 是否在 App 内
+   * Flutter 习惯库 WebView：注入 window.callNative + __nativeBridgeReady，无 WK messageHandlers / 安卓 JSBridge
    */
   isInApp() {
+    if (typeof window !== 'undefined') {
+      if (window.__nativeBridgeReady && typeof window.callNative === 'function') {
+        return true
+      }
+      // 已注册 Channel、polyfill 尚未跑完时也算 App 内（避免 isInApp 误判导致不调原生）
+      if (
+        typeof window.NativeBridge !== 'undefined' &&
+        typeof window.NativeBridge?.postMessage === 'function'
+      ) {
+        return true
+      }
+    }
     return this._isIOS() || this._isAndroid()
   }
 
