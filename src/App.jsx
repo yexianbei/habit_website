@@ -48,6 +48,8 @@ const FlashcardStudy = lazy(() => import('./pages/habit/flashcard/FlashcardStudy
 const FlashcardImport = lazy(() => import('./pages/habit/flashcard/FlashcardImport'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 const FlashcardIntro = lazy(() => import('./pages/habit/flashcard/FlashcardIntro'))
+const NewEvent = lazy(() => import('./pages/habit/event/NewEvent'))
+const NewAttribute = lazy(() => import('./pages/habit/event/NewAttribute'))
 const ScreenGuider = lazy(() => import('./pages/ScreenGuider'))
 
 // 加载中的占位组件
@@ -448,6 +450,23 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <LedgerManagement />
+            </Suspense>
+          }
+        />
+        {/* 自定义打卡事件：新建事件、新建属性 */}
+        <Route
+          path="/habit/event/new"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <NewEvent />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/event/attribute/new"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <NewAttribute />
             </Suspense>
           }
         />
