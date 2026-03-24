@@ -5,14 +5,12 @@ import App from './App.jsx'
 import { LanguageProvider } from './i18n/LanguageContext'
 import './index.css'
 
-// 卸载可能存在的 Service Worker，防止旧缓存导致无法获取最新更新
+// 清理老版本残留的 Service Worker（PWA 功能已移除，确保用户设备上不留旧缓存）
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {
     for (let registration of registrations) {
       registration.unregister()
     }
-  }).catch((err) => {
-    console.error('Service Worker unregistration failed: ', err)
   })
 }
 

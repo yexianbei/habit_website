@@ -10,20 +10,3 @@
 [build.environment]
   NODE_VERSION = "18"
 
-# 版本与缓存：供客户端 WebView 做版本校验与离线缓存
-[[headers]]
-  for = "/version.json"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
-    Pragma = "no-cache"
-    Expires = "0"
-
-# 页面禁用缓存；确保手机端能够及时拉取到最新更新
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
-    Pragma = "no-cache"
-    Expires = "0"
-    Vary = "Accept-Encoding"
-
