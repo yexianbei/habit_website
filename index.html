@@ -9,8 +9,10 @@
       (function(){
         var ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
         var platform = 'browser';
-        if (/Android/i.test(ua)) platform = 'android';
+        if (/HarmonyOS|OpenHarmony|ArkWeb|OHOS/i.test(ua)) platform = 'harmony';
+        else if (/Android/i.test(ua)) platform = 'android';
         else if (/iPhone|iPad|iPod/i.test(ua)) platform = 'ios';
+        else if (window.NativeBridge && typeof window.NativeBridge.postMessage === 'function') platform = 'harmony';
         document.documentElement.setAttribute('data-platform', platform);
       })();
     </script>
