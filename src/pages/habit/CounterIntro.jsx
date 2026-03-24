@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
+import { PresentationKind } from '../../constants/presentationKind'
 import FloatingBackButton from '../../components/FloatingBackButton'
 
 const features = [
@@ -95,8 +96,31 @@ export default function CounterIntro() {
     try {
       await showLoading('添加中...')
 
+      const customAttributeDefines = [
+        {
+          id: 'counter_step', key: 'counter_step', name: '步长', type: 1, scope: 1,
+          position: 1, required: false,
+          config: { defaultValue: 1, minValue: 1, maxValue: 100, decimalPlaces: 0, showInList: true, showInStats: false },
+        },
+        {
+          id: 'counter_vibration_enabled', key: 'counter_vibration_enabled', name: '震动反馈', type: 5, scope: 1,
+          position: 2, required: false,
+          config: { defaultValue: true, trueLabel: '开启', falseLabel: '关闭' },
+        },
+        {
+          id: 'counter_dark_mode', key: 'counter_dark_mode', name: '黑夜模式', type: 5, scope: 1,
+          position: 3, required: false,
+          config: { defaultValue: false, trueLabel: '开启', falseLabel: '关闭' },
+        },
+        {
+          id: 'counter_step_log', key: 'counter_step', name: '本次步长', type: 1, scope: 2,
+          position: 10, required: true,
+          config: { defaultValue: 1, minValue: 1, maxValue: 100, decimalPlaces: 0, showInList: true, showInStats: true },
+        },
+      ]
+
       const displayConfig = {
-        progressMode: 'record',
+        progressMode: 'counter',
         monthlyCell: { coloringMode: 'presence' },
         weeklyDot: { mode: 'presence' },
         widgets: [
@@ -107,7 +131,7 @@ export default function CounterIntro() {
           },
           {
             slotId: 2, visible: true, layout: 'split',
-            displaySource: 'computed:today_step',
+            displaySource: 'computed:today_step_setting',
             unit: '步长', emptyDisplay: '1',
           },
           { slotId: 3, visible: false },
@@ -117,16 +141,17 @@ export default function CounterIntro() {
           },
         ],
       }
+
       const computations = [
         {
           id: 'today_total_count',
           computationType: 'today_log_attr_sum',
-          inputs: { attributeKey: 'counter_count' },
+          inputs: { attributeKey: 'counter_step' },
         },
         {
-          id: 'today_step',
-          computationType: 'today_log_attr_display',
-          inputs: { attributeKey: 'counter_step' },
+          id: 'today_step_setting',
+          computationType: 'attribute_value',
+          inputs: { attributeKey: 'counter_step', scope: 'habit' },
         },
         {
           id: 'counter_status_text',
@@ -140,6 +165,8 @@ export default function CounterIntro() {
         icon: 'ic_habit_lib_counter',
         bgColor: '#6C63FF',
         description: '极简计数习惯工具，每次点击记录坚持',
+        presentationKind: PresentationKind.COUNTER,
+        customAttributeDefines,
         displayConfig,
         computations,
       })
