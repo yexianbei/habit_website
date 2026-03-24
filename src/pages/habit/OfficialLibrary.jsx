@@ -140,17 +140,38 @@ export default function OfficialLibrary() {
   const navigate = useNavigate()
   const { callNative } = useNativeBridge()
   const [existMap, setExistMap] = useState({})
+  const [diagError, setDiagError] = useState('')
+
+  const reportStage = (stage, extra = {}) => {
+    try {
+      if (window.HabitBridge && typeof window.HabitBridge.postMessage === 'function') {
+        window.HabitBridge.postMessage(
+          JSON.stringify({
+            method: '__debug__.h5Render',
+            params: { page: 'OfficialLibrary', stage, ...extra },
+            callbackId: -1,
+          })
+        )
+      }
+    } catch (_) {}
+  }
 
   // 根据本地 habit.getList 刷新「已添加」状态（Flutter WebView 首帧常尚无 callNative，不能依赖首次 isInApp）
   useEffect(() => {
+    reportStage('effect-start')
     let cancelled = false
 
     const checkAll = async () => {
       try {
         const nativeOk = await waitForNativeCallNative(8000)
-        if (cancelled || !nativeOk) return
+        reportStage('native-ready', { nativeOk })
+        if (cancelled || !nativeOk) {
+          setDiagError('NativeBridge 未就绪（8s 超时）')
+          return
+        }
 
         const types = [...new Set(OFFICIAL_HABITS.map(h => h.type))].filter(Boolean)
+        reportStage('query-start', { types })
         const results = await Promise.all(
           types.map(async (t) => {
             try {
@@ -168,9 +189,12 @@ export default function OfficialLibrary() {
             map[r.type] = r.has
           })
           setExistMap(map)
+          reportStage('query-done', { map })
         }
       } catch (e) {
         console.error('[OfficialLibrary] 检查官方习惯是否已添加失败:', e)
+        setDiagError('习惯列表加载失败: ' + (e?.message || 'unknown'))
+        reportStage('query-error', { message: e?.message || String(e) })
       }
     }
 
@@ -181,8 +205,23 @@ export default function OfficialLibrary() {
     }
   }, [callNative])
 
+  useEffect(() => {
+    reportStage('render', {
+      hasError: !!diagError,
+      existsKeys: Object.keys(existMap || {}),
+    })
+  }, [diagError, existMap])
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      <div className="px-4 pt-4">
+        <h2 className="text-base font-semibold text-gray-800">官方习惯库</h2>
+        {diagError ? (
+          <div className="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            {diagError}
+          </div>
+        ) : null}
+      </div>
       {/* 官方习惯列表 */}
       <div className="px-4 pt-6 pb-6 grid grid-cols-2 gap-3">
         {OFFICIAL_HABITS.filter(item => item.id === 'period_management').map((item) => {
@@ -221,6 +260,11 @@ export default function OfficialLibrary() {
             </button>
           )
         })}
+        {OFFICIAL_HABITS.filter(item => item.id === 'period_management').length === 0 ? (
+          <div className="col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+            官方习惯列表为空（前端配置异常）
+          </div>
+        ) : null}
       </div>
     </div>
   )

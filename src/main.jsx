@@ -89,6 +89,17 @@ window.addEventListener('error', (event) => {
     env: getRuntimeEnvInfo(),
   }
   pushRuntimeDiag('error', 'window.onerror', payload)
+  try {
+    if (window.HabitBridge && typeof window.HabitBridge.postMessage === 'function') {
+      window.HabitBridge.postMessage(
+        JSON.stringify({
+          method: '__debug__.h5Error',
+          params: payload,
+          callbackId: -1,
+        })
+      )
+    }
+  } catch (_) {}
 })
 
 window.addEventListener('unhandledrejection', (event) => {
@@ -97,6 +108,17 @@ window.addEventListener('unhandledrejection', (event) => {
     env: getRuntimeEnvInfo(),
   }
   pushRuntimeDiag('error', 'unhandledrejection', payload)
+  try {
+    if (window.HabitBridge && typeof window.HabitBridge.postMessage === 'function') {
+      window.HabitBridge.postMessage(
+        JSON.stringify({
+          method: '__debug__.h5Error',
+          params: payload,
+          callbackId: -1,
+        })
+      )
+    }
+  } catch (_) {}
 })
 
 // 卸载可能存在的 Service Worker，防止旧缓存导致无法获取最新更新
