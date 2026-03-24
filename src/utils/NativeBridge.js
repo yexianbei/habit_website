@@ -111,6 +111,8 @@ class NativeBridge {
     return !!(
       window.HabitBridge ||
       window.AndroidBridge ||
+      // 鸿蒙容器常注入 NativeBridge.postMessage（但不一定有 JSBridge / AndroidBridge）
+      (window.NativeBridge && typeof window.NativeBridge.postMessage === 'function') ||
       (window.JSBridge && typeof window.JSBridge.invoke === 'function')
     )
   }
@@ -119,7 +121,7 @@ class NativeBridge {
    * 获取 Android Bridge 对象
    */
   _getAndroidBridge() {
-    return window.HabitBridge || window.AndroidBridge || window.JSBridge
+    return window.HabitBridge || window.AndroidBridge || window.JSBridge || window.NativeBridge
   }
 
   /**
@@ -221,6 +223,13 @@ class NativeBridge {
               androidBridge.postMessage(JSON.stringify(message))
             } else if (androidBridge.callNative) {
               androidBridge.callNative(method, JSON.stringify(params), callbackId)
+            } else if (window.NativeBridge && typeof window.NativeBridge.postMessage === 'function') {
+              // 兼容鸿蒙/部分容器：仅注入 NativeBridge.postMessage(callbackId 走统一回调)
+              window.NativeBridge.postMessage(JSON.stringify(message))
+            } else {
+              clearTimeout(timeoutId)
+              delete this.callbacks[callbackId]
+              this._handleBrowserFallback(method, params, resolve, reject)
             }
           }
         } else {
