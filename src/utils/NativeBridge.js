@@ -23,25 +23,6 @@ class NativeBridge {
     this._init()
   }
 
-  _diag(level, msg, extra) {
-    try {
-      if (!window.__H5_BRIDGE_DIAG__) window.__H5_BRIDGE_DIAG__ = []
-      window.__H5_BRIDGE_DIAG__.push({
-        t: Date.now(),
-        level,
-        msg,
-        extra: extra || null,
-      })
-      if (window.__H5_BRIDGE_DIAG__.length > 200) {
-        window.__H5_BRIDGE_DIAG__.shift()
-      }
-    } catch (_) {}
-    try {
-      const fn = level === 'error' ? console.error : (level === 'warn' ? console.warn : console.log)
-      fn('[NativeBridge]', msg, extra || '')
-    } catch (_) {}
-  }
-
   /**
    * 初始化 Bridge
    */
@@ -56,9 +37,6 @@ class NativeBridge {
 
     // 检测环境并标记就绪
     this._checkReady()
-    try {
-      window.__H5_BRIDGE_ENV__ = this.getEnvInfo()
-    } catch (_) {}
   }
 
   /**
@@ -97,26 +75,6 @@ class NativeBridge {
     if (this._isIOS()) return 'ios'
     if (this._isAndroid()) return 'android'
     return 'browser'
-  }
-
-  getEnvInfo() {
-    const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent : ''
-    return {
-      platform: this.getPlatform(),
-      ua,
-      hasCallNative: typeof window !== 'undefined' && typeof window.callNative === 'function',
-      hasNativeBridgeReady: typeof window !== 'undefined' && !!window.__nativeBridgeReady,
-      hasNativeBridge: typeof window !== 'undefined' && !!window.NativeBridge,
-      hasNativeBridgePostMessage:
-        typeof window !== 'undefined' &&
-        !!(window.NativeBridge && typeof window.NativeBridge.postMessage === 'function'),
-      hasJSBridgeInvoke:
-        typeof window !== 'undefined' &&
-        !!(window.JSBridge && typeof window.JSBridge.invoke === 'function'),
-      hasIOSBridge:
-        typeof window !== 'undefined' &&
-        !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.HabitBridge),
-    }
   }
 
   /**
@@ -208,7 +166,6 @@ class NativeBridge {
    */
   callNative(method, params = {}, timeout = 30000) {
     return new Promise((resolve, reject) => {
-      const env = this.getEnvInfo()
       // Flutter 习惯库 WebView：只注入 JavaScriptChannel「NativeBridge」+ window.callNative polyfill，
       // 没有 webkit.messageHandlers.HabitBridge / JSBridge.invoke。旧逻辑会误判为浏览器并走降级，
       // period.save / period.updateSettings 等不会真正进原生（表现为初始化写不进去）。
@@ -217,7 +174,6 @@ class NativeBridge {
         window.__nativeBridgeReady &&
         typeof window.callNative === 'function'
       ) {
-        this._diag('log', `callNative via window.callNative: ${method}`)
         window
           .callNative(method, params)
           .then(resolve)
@@ -225,22 +181,11 @@ class NativeBridge {
         return
       }
 
-      const hasDirectTransport =
-        env.hasIOSBridge ||
-        env.hasJSBridgeInvoke ||
-        env.hasNativeBridgePostMessage ||
-        !!(typeof window !== 'undefined' && window.HabitBridge && typeof window.HabitBridge.postMessage === 'function') ||
-        !!(typeof window !== 'undefined' && window.AndroidBridge)
-      if (!hasDirectTransport && this.isInApp()) {
-        this._diag('warn', `in-app detected but no direct transport for ${method}`, env)
-      }
-
       const callbackId = ++this.callbackId
       
       // 设置超时
       const timeoutId = setTimeout(() => {
         delete this.callbacks[callbackId]
-        this._diag('error', `bridge timeout: ${method}`, { method, callbackId, env })
         reject(new Error(`Bridge call timeout: ${method}`))
       }, timeout)
 
@@ -299,19 +244,15 @@ class NativeBridge {
           } else {
             const androidBridge = this._getAndroidBridge()
             if (androidBridge.postMessage) {
-              this._diag('log', `callNative via postMessage: ${method}`)
               androidBridge.postMessage(JSON.stringify(message))
             } else if (androidBridge.callNative) {
-              this._diag('log', `callNative via callNative: ${method}`)
               androidBridge.callNative(method, JSON.stringify(params), callbackId)
             } else if (window.NativeBridge && typeof window.NativeBridge.postMessage === 'function') {
               // 兼容鸿蒙/部分容器：仅注入 NativeBridge.postMessage(callbackId 走统一回调)
-              this._diag('log', `callNative via NativeBridge.postMessage: ${method}`)
               window.NativeBridge.postMessage(JSON.stringify(message))
             } else {
               clearTimeout(timeoutId)
               delete this.callbacks[callbackId]
-              this._diag('warn', `no bridge transport, fallback: ${method}`, env)
               this._handleBrowserFallback(method, params, resolve, reject)
             }
           }
@@ -319,13 +260,11 @@ class NativeBridge {
           // 浏览器环境：模拟响应或降级处理
           clearTimeout(timeoutId)
           delete this.callbacks[callbackId]
-          this._diag('warn', `browser fallback: ${method}`, env)
           this._handleBrowserFallback(method, params, resolve, reject)
         }
       } catch (error) {
         clearTimeout(timeoutId)
         delete this.callbacks[callbackId]
-        this._diag('error', `callNative exception: ${method}`, { error: String(error), env })
         reject(error)
       }
     })
