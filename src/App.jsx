@@ -43,6 +43,8 @@ const BabyManagement = lazy(() => import('./pages/habit/BabyManagement'))
 const BabyOnboarding = lazy(() => import('./pages/habit/BabyOnboarding'))
 const BloodSugarIntro = lazy(() => import('./pages/habit/BloodSugarIntro'))
 const BloodSugarManagement = lazy(() => import('./pages/habit/BloodSugarManagement'))
+const CounterIntro = lazy(() => import('./pages/habit/CounterIntro'))
+const CounterManagement = lazy(() => import('./pages/habit/CounterManagement'))
 const FlashcardHome = lazy(() => import('./pages/habit/flashcard/FlashcardHome'))
 const FlashcardStudy = lazy(() => import('./pages/habit/flashcard/FlashcardStudy'))
 const FlashcardImport = lazy(() => import('./pages/habit/flashcard/FlashcardImport'))
@@ -229,6 +231,23 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <OfficialLibrary />
+            </Suspense>
+          }
+        />
+        {/* 指尖计数器 */}
+        <Route
+          path="/habit/counter/intro"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <CounterIntro />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/counter"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <CounterManagement />
             </Suspense>
           }
         />

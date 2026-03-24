@@ -20,6 +20,17 @@ const OFFICIAL_HABITS = [
     tag: '女性健康',
   },
   {
+    id: 'finger_counter',
+    type: 26,
+    name: '指尖计数器',
+    desc: '极简计数，全屏黑夜模式，记录每日坚持次数',
+    icon: '👆',
+    bg: 'from-indigo-500 to-violet-500',
+    introPath: '/habit/counter/intro',
+    usePath: '/habit/counter',
+    tag: '专注打卡',
+  },
+  {
     id: 'quit_smoking',
     type: 17,
     name: '戒烟',
@@ -109,8 +120,8 @@ const OFFICIAL_HABITS = [
   },
 ]
 
-/** 当前开放添加的习惯 id，其余点击后提示「会尽快开放～请稍等」 */
-const ENABLED_HABIT_ID = 'period_management'
+/** 当前开放添加的习惯 id 集合，其余点击后提示「会尽快开放～请稍等」 */
+const ENABLED_HABIT_IDS = new Set(['period_management', 'finger_counter'])
 
 /** Flutter WebView 在 onPageFinished 才注入 callNative，首屏 useEffect 可能早于注入，需短暂等待 */
 function waitForNativeCallNative(maxMs = 8000) {
@@ -185,7 +196,7 @@ export default function OfficialLibrary() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
       {/* 官方习惯列表 */}
       <div className="px-4 pt-6 pb-6 grid grid-cols-2 gap-3">
-        {OFFICIAL_HABITS.filter(item => item.id === 'period_management').map((item) => {
+        {OFFICIAL_HABITS.filter(item => ENABLED_HABIT_IDS.has(item.id)).map((item) => {
           const hasAdded = !!existMap[item.type]
           const ctaText = hasAdded ? '已添加 ✓' : '查看介绍 →'
 

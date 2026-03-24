@@ -50,6 +50,14 @@ export function useNativeBridge() {
     setPeriodReminder: bridge.setPeriodReminder.bind(bridge),
     getPeriodSettings: bridge.getPeriodSettings.bind(bridge),
     updatePeriodSettings: bridge.updatePeriodSettings.bind(bridge),
+
+    // 指尖计数器
+    saveCounterRecord: bridge.saveCounterRecord.bind(bridge),
+    getCounterRecords: bridge.getCounterRecords.bind(bridge),
+    deleteCounterRecord: bridge.deleteCounterRecord.bind(bridge),
+    getCounterSettings: bridge.getCounterSettings.bind(bridge),
+    updateCounterSettings: bridge.updateCounterSettings.bind(bridge),
+    getCounterStatistics: bridge.getCounterStatistics.bind(bridge),
     
     // 用户相关
     getUserInfo: bridge.getUserInfo.bind(bridge),

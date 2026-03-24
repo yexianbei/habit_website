@@ -89,6 +89,17 @@ export const NOTIFICATION = {
   CANCEL_ALL: 'notification.cancelAll', // 取消所有通知
 }
 
+// ============ 指尖计数器模块 ============
+export const COUNTER = {
+  SAVE: 'counter.save',              // 保存一次计数记录
+  GET_RECORDS: 'counter.getRecords', // 获取计数记录列表
+  DELETE_RECORD: 'counter.deleteRecord', // 删除计数记录
+  GET_SETTINGS: 'counter.getSettings', // 获取计数器设置（步长、震动、主题）
+  UPDATE_SETTINGS: 'counter.updateSettings', // 更新计数器设置
+  GET_STATISTICS: 'counter.getStatistics', // 获取统计数据（时段/周/月分布）
+  RESET_TODAY: 'counter.resetToday', // 重置今日计数
+}
+
 // ============ 调试模块 ============
 export const DEBUG = {
   LOG: 'debug.log',                 // 打印日志
@@ -103,6 +114,9 @@ export const EVENTS = {
   HABIT_DELETED: 'habitDeleted',     // 习惯删除完成
   HABIT_CHECKED_IN: 'habitCheckedIn', // 打卡完成
   
+  // 计数器相关
+  COUNTER_UPDATED: 'counterUpdated', // 计数记录更新
+
   // 经期相关
   PERIOD_UPDATED: 'periodUpdated',   // 经期数据更新
   
@@ -125,6 +139,7 @@ export const EVENTS = {
 export default {
   HABIT,
   PERIOD,
+  COUNTER,
   USER,
   UI,
   DEVICE,

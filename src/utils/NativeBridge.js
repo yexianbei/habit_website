@@ -557,6 +557,55 @@ class NativeBridge {
     return this.callNative('period.updateSettings', settings)
   }
 
+  // ==================== 指尖计数器便捷方法 ====================
+
+  /**
+   * 保存一次计数记录
+   * @param {{ date: string, count: number, step: number, createTime?: number }} record
+   */
+  saveCounterRecord(record) {
+    return this.callNative('counter.save', record)
+  }
+
+  /**
+   * 获取计数记录列表
+   * @param {{ startDate: string, endDate: string }} params
+   */
+  getCounterRecords(params) {
+    return this.callNative('counter.getRecords', params)
+  }
+
+  /**
+   * 删除计数记录
+   * @param {{ recordId: string }} params
+   */
+  deleteCounterRecord(params) {
+    return this.callNative('counter.deleteRecord', params)
+  }
+
+  /**
+   * 获取计数器设置
+   */
+  getCounterSettings() {
+    return this.callNative('counter.getSettings', {})
+  }
+
+  /**
+   * 更新计数器设置
+   * @param {{ step?: number, vibrationEnabled?: boolean, darkMode?: boolean }} settings
+   */
+  updateCounterSettings(settings) {
+    return this.callNative('counter.updateSettings', settings)
+  }
+
+  /**
+   * 获取统计数据（时段/周/月分布）
+   * @param {{ habitId?: string }} params
+   */
+  getCounterStatistics(params = {}) {
+    return this.callNative('counter.getStatistics', params)
+  }
+
   // ==================== 用户相关便捷方法 ====================
 
   /**
