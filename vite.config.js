@@ -8,6 +8,8 @@ export default defineConfig({
   ],
   base: '/',
   build: {
+    // 兼容鸿蒙等较旧 WebView，避免现代语法导致白屏
+    target: 'es2015',
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),

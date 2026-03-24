@@ -71,6 +71,7 @@ class NativeBridge {
    * @returns {'ios' | 'android' | 'browser'}
    */
   getPlatform() {
+    if (this._isHarmony()) return 'harmony'
     if (this._isIOS()) return 'ios'
     if (this._isAndroid()) return 'android'
     return 'browser'
@@ -88,19 +89,42 @@ class NativeBridge {
       // 已注册 Channel、polyfill 尚未跑完时也算 App 内（避免 isInApp 误判导致不调原生）
       if (
         typeof window.NativeBridge !== 'undefined' &&
-        typeof window.NativeBridge?.postMessage === 'function'
+        window.NativeBridge &&
+        typeof window.NativeBridge.postMessage === 'function'
       ) {
         return true
       }
     }
-    return this._isIOS() || this._isAndroid()
+    return this._isHarmony() || this._isIOS() || this._isAndroid()
+  }
+
+  /**
+   * 检测鸿蒙环境（优先看容器注入，其次看 UA）
+   */
+  _isHarmony() {
+    if (typeof window === 'undefined') return false
+    // 鸿蒙容器常见注入：NativeBridge.postMessage
+    if (window.NativeBridge && typeof window.NativeBridge.postMessage === 'function') {
+      return true
+    }
+    const ua = (navigator && navigator.userAgent ? navigator.userAgent : '').toLowerCase()
+    return (
+      ua.indexOf('harmonyos') >= 0 ||
+      ua.indexOf('openharmony') >= 0 ||
+      ua.indexOf('arkweb') >= 0 ||
+      ua.indexOf('ohos') >= 0
+    )
   }
 
   /**
    * 检测 iOS 环境
    */
   _isIOS() {
-    return !!(window.webkit?.messageHandlers?.HabitBridge)
+    return !!(
+      window.webkit &&
+      window.webkit.messageHandlers &&
+      window.webkit.messageHandlers.HabitBridge
+    )
   }
 
   /**
