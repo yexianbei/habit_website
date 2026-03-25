@@ -78,6 +78,27 @@ function buildMockRecords() {
   return result
 }
 
+const WEB_SETTINGS_KEY = 'counter_web_settings_v1'
+
+function readWebSettings() {
+  try {
+    if (typeof window === 'undefined') return null
+    const raw = window.localStorage.getItem(WEB_SETTINGS_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? parsed : null
+  } catch (_) {
+    return null
+  }
+}
+
+function writeWebSettings(settings) {
+  try {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(WEB_SETTINGS_KEY, JSON.stringify(settings))
+  } catch (_) {}
+}
+
 // ─────────────────────────────────────────────
 // 统计面板子组件
 // ─────────────────────────────────────────────
@@ -289,13 +310,15 @@ export default function CounterManagement() {
   } = useNativeBridge()
 
   const { handleDeleteHabit } = useHabitDelete({ habitType: 26, habitName: '指尖计数器' })
+  const initialWebSettings = useMemo(() => readWebSettings() || {}, [])
 
-  // ── 状态 ──
   const [count, setCount] = useState(0)
-  const [step, setStep] = useState(1)
-  const [isDark, setIsDark] = useState(false)
-  const [isFullScreen, setIsFullScreen] = useState(false)
-  const [vibrationEnabled, setVibrationEnabled] = useState(true)
+  const [step, setStep] = useState(() => Math.max(1, parseInt(initialWebSettings.step) || 1))
+  const [isDark, setIsDark] = useState(() => Boolean(initialWebSettings.darkMode))
+  const [isFullScreen, setIsFullScreen] = useState(() => Boolean(initialWebSettings.isFullScreen))
+  const [vibrationEnabled, setVibrationEnabled] = useState(() => (
+    typeof initialWebSettings.vibrationEnabled === 'boolean' ? initialWebSettings.vibrationEnabled : true
+  ))
   const [showSettings, setShowSettings] = useState(false)
   const [showStats, setShowStats] = useState(false)
   const [allRecords, setAllRecords] = useState([])
@@ -306,13 +329,21 @@ export default function CounterManagement() {
   useEffect(() => { document.title = pageTitle }, [])
   useEffect(() => { if (isInApp) setTitle(pageTitle) }, [isInApp, setTitle])
 
-  // ── 加载设置 & 记录 ──
   useEffect(() => {
-    if (!isInApp || settingsLoadedRef.current) return
+    if (settingsLoadedRef.current) return
     settingsLoadedRef.current = true
-    loadSettings()
+    if (isInApp) loadSettings()
     loadRecords()
   }, [isInApp])
+
+  useEffect(() => {
+    writeWebSettings({
+      step,
+      vibrationEnabled,
+      darkMode: isDark,
+      isFullScreen,
+    })
+  }, [step, vibrationEnabled, isDark, isFullScreen])
 
   const loadSettings = async () => {
     try {
@@ -321,6 +352,7 @@ export default function CounterManagement() {
         if (res.step) setStep(Math.max(1, parseInt(res.step) || 1))
         if (typeof res.vibrationEnabled === 'boolean') setVibrationEnabled(res.vibrationEnabled)
         if (typeof res.darkMode === 'boolean') setIsDark(res.darkMode)
+        if (typeof res.isFullScreen === 'boolean') setIsFullScreen(res.isFullScreen)
       }
     } catch (e) {
       console.error('[CounterManagement] loadSettings error:', e)
@@ -430,6 +462,10 @@ export default function CounterManagement() {
     saveSettings({ step, vibrationEnabled, darkMode: next })
   }
 
+  const handleFullScreenToggle = () => {
+    setIsFullScreen((prev) => !prev)
+  }
+
   // ── 全屏点击 ──
   const handleFullScreenTap = useCallback((e) => {
     if (!isFullScreen) return
@@ -453,7 +489,19 @@ export default function CounterManagement() {
       style={{ background: bg, transition: 'background 0.3s' }}
       onClick={handleFullScreenTap}
     >
-      {/* ── 顶部工具栏（全屏时半透明） ── */}
+      {isFullScreen && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            setIsFullScreen(false)
+          }}
+          className="fixed top-4 left-4 z-40 px-3 py-1.5 rounded-full text-xs font-medium"
+          style={{ background: btnBg, color: btnText, boxShadow: '0 2px 10px rgba(0,0,0,0.12)' }}
+        >
+          退出全屏
+        </button>
+      )}
+
       <div
         className="flex items-center justify-between px-4 pt-4 pb-2 transition-opacity duration-300"
         style={{ opacity: isFullScreen ? 0.15 : 1 }}
@@ -545,7 +593,7 @@ export default function CounterManagement() {
         </button>
 
         <button
-          onClick={() => setIsFullScreen(!isFullScreen)}
+          onClick={handleFullScreenToggle}
           className="px-4 py-2 rounded-full text-xs font-medium"
           style={{ background: btnBg, color: btnText }}
         >
@@ -578,7 +626,7 @@ export default function CounterManagement() {
           className="fixed bottom-6 left-0 right-0 text-center text-xs pointer-events-none"
           style={{ color: isDark ? '#333' : '#bbb' }}
         >
-          点击任意位置计数 · 再次点击底部退出
+          点击任意位置计数 · 左上角可退出全屏
         </div>
       )}
 
