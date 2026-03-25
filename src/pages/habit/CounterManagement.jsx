@@ -79,6 +79,7 @@ function buildMockRecords() {
 }
 
 const WEB_SETTINGS_KEY = 'counter_web_settings_v1'
+const WEB_TODAY_COUNT_KEY = 'counter_web_today_count_v1'
 
 function readWebSettings() {
   try {
@@ -96,6 +97,31 @@ function writeWebSettings(settings) {
   try {
     if (typeof window === 'undefined') return
     window.localStorage.setItem(WEB_SETTINGS_KEY, JSON.stringify(settings))
+  } catch (_) {}
+}
+
+function readWebTodayCount() {
+  try {
+    if (typeof window === 'undefined') return 0
+    const raw = window.localStorage.getItem(WEB_TODAY_COUNT_KEY)
+    if (!raw) return 0
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object') return 0
+    if (parsed.date !== todayStr()) return 0
+    const count = Number(parsed.count)
+    return Number.isFinite(count) && count >= 0 ? count : 0
+  } catch (_) {
+    return 0
+  }
+}
+
+function writeWebTodayCount(count) {
+  try {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(WEB_TODAY_COUNT_KEY, JSON.stringify({
+      date: todayStr(),
+      count: Math.max(0, Number(count) || 0),
+    }))
   } catch (_) {}
 }
 
@@ -312,7 +338,7 @@ export default function CounterManagement() {
   const { handleDeleteHabit } = useHabitDelete({ habitType: 26, habitName: '指尖计数器' })
   const initialWebSettings = useMemo(() => readWebSettings() || {}, [])
 
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(() => readWebTodayCount())
   const [step, setStep] = useState(() => Math.max(1, parseInt(initialWebSettings.step) || 1))
   const [isDark, setIsDark] = useState(() => Boolean(initialWebSettings.darkMode))
   const [isFullScreen, setIsFullScreen] = useState(() => Boolean(initialWebSettings.isFullScreen))
@@ -323,6 +349,7 @@ export default function CounterManagement() {
   const [showStats, setShowStats] = useState(false)
   const [allRecords, setAllRecords] = useState([])
   const [isLoadingRecords, setIsLoadingRecords] = useState(false)
+  const [hasLoadedStatsRecords, setHasLoadedStatsRecords] = useState(false)
   const settingsLoadedRef = useRef(false)
 
   const pageTitle = '指尖计数器'
@@ -333,7 +360,7 @@ export default function CounterManagement() {
     if (settingsLoadedRef.current) return
     settingsLoadedRef.current = true
     if (isInApp) loadSettings()
-    loadRecords()
+    loadTodayCount()
   }, [isInApp])
 
   useEffect(() => {
@@ -359,12 +386,29 @@ export default function CounterManagement() {
     }
   }
 
+  const loadTodayCount = async () => {
+    try {
+      if (!isInApp) return
+      const today = todayStr()
+      const res = await callNative('counter.getRecords', {
+        startDate: today,
+        endDate: today,
+      })
+      const list = Array.isArray(res?.records) ? res.records : []
+      const todayTotal = list.reduce((s, r) => s + (r.step || 1), 0)
+      setCount(todayTotal)
+      writeWebTodayCount(todayTotal)
+    } catch (e) {
+      console.error('[CounterManagement] loadTodayCount error:', e)
+    }
+  }
+
   const loadRecords = async () => {
     setIsLoadingRecords(true)
     try {
       if (!isInApp) {
         setAllRecords(buildMockRecords())
-        setIsLoadingRecords(false)
+        setHasLoadedStatsRecords(true)
         return
       }
       const now = new Date()
@@ -376,15 +420,9 @@ export default function CounterManagement() {
       })
       const list = Array.isArray(res?.records) ? res.records : []
       setAllRecords(list)
-
-      // 今日累计
-      const todayTotal = list
-        .filter((r) => r.date === todayStr())
-        .reduce((s, r) => s + (r.step || 1), 0)
-      setCount(todayTotal)
+      setHasLoadedStatsRecords(true)
     } catch (e) {
       console.error('[CounterManagement] loadRecords error:', e)
-      if (!isInApp) setAllRecords(buildMockRecords())
     } finally {
       setIsLoadingRecords(false)
     }
@@ -394,6 +432,7 @@ export default function CounterManagement() {
   const handleAdd = useCallback(async () => {
     const newCount = count + step
     setCount(newCount)
+    writeWebTodayCount(newCount)
 
     if (vibrationEnabled) {
       try { vibrate('light') } catch (_) {}
@@ -409,26 +448,30 @@ export default function CounterManagement() {
         createTime: Date.now(),
       }
       await callNative('counter.save', record)
-      // 更新本地 records（追加，不重新拉取，避免闪烁）
-      setAllRecords((prev) => [
-        ...prev,
-        { ...record, recordId: `local-${Date.now()}` },
-      ])
+      if (hasLoadedStatsRecords) {
+        setAllRecords((prev) => [
+          ...prev,
+          { ...record, recordId: `local-${Date.now()}` },
+        ])
+      }
     } catch (e) {
       console.error('[CounterManagement] save error:', e)
     }
-  }, [count, step, vibrationEnabled, isInApp, callNative, vibrate])
+  }, [count, step, vibrationEnabled, isInApp, callNative, vibrate, hasLoadedStatsRecords])
 
   // ── 重置今日 ──
   const handleReset = async () => {
     setCount(0)
+    writeWebTodayCount(0)
     if (!isInApp) return
     try {
       await showLoading('重置中...')
       await callNative('counter.resetToday', { date: todayStr() })
       await hideLoading()
       await showToast('今日计数已清零')
-      setAllRecords((prev) => prev.filter((r) => r.date !== todayStr()))
+      if (hasLoadedStatsRecords) {
+        setAllRecords((prev) => prev.filter((r) => r.date !== todayStr()))
+      }
     } catch (e) {
       await hideLoading()
       console.error('[CounterManagement] reset error:', e)
@@ -460,6 +503,16 @@ export default function CounterManagement() {
     const next = !isDark
     setIsDark(next)
     saveSettings({ step, vibrationEnabled, darkMode: next })
+  }
+
+  const handleStatsToggle = () => {
+    setShowStats((prev) => {
+      const next = !prev
+      if (next && !hasLoadedStatsRecords && !isLoadingRecords) {
+        loadRecords()
+      }
+      return next
+    })
   }
 
   const handleFullScreenToggle = () => {
@@ -522,7 +575,7 @@ export default function CounterManagement() {
           data-no-tap
         >
           <button
-            onClick={() => setShowStats(!showStats)}
+            onClick={handleStatsToggle}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
             style={{ background: btnBg, color: btnText }}
           >
