@@ -62,7 +62,8 @@ export default function BodyIntro() {
       const result = await callNative('habit.create', {
         type: 19,
         name: '身体数据',
-        icon: 'ic_habit_lib_1',
+        icon: 'emoji:🧍',
+        emojiIcon: '🧍',
         bgColor: '#14B8A6',
         description: '记录身材各项数据和体重、体脂率'
       })

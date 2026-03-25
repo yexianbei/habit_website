@@ -121,6 +121,8 @@ export default function CounterIntro() {
 
       const displayConfig = {
         progressMode: 'counter',
+        detailOpenMode: 'h5',
+        h5Path: 'counter',
         monthlyCell: { coloringMode: 'presence' },
         weeklyDot: { mode: 'presence' },
         widgets: [
@@ -162,7 +164,8 @@ export default function CounterIntro() {
       const result = await callNative('habit.create', {
         type: 26,
         name: '指尖计数器',
-        icon: 'ic_habit_lib_counter',
+        icon: 'emoji:👆',
+        emojiIcon: '👆',
         bgColor: '#6C63FF',
         description: '极简计数习惯工具，每次点击记录坚持',
         presentationKind: PresentationKind.COUNTER,

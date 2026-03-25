@@ -103,7 +103,8 @@ export default function QuitIntro() {
       const result = await callNative('habit.create', {
         type: 17,  // 戒烟类型（与 Android HabitType.QUIT 对应）
         name: '戒烟',
-        icon: 'ic_habit_lib_quit',  // 使用本地图标名称
+        icon: 'emoji:🚭',
+        emojiIcon: '🚭',
         bgColor: '#00E300',
         description: '记录戒烟天数，追踪健康改善和节省金额'
       })

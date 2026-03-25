@@ -90,7 +90,8 @@ export default function TrainingIntro() {
       const result = await callNative('habit.create', {
         type: HABIT_TYPE_TRAINING,
         name: '力量训练',
-        icon: 'ic_habit_training',
+        icon: 'emoji:🏋️',
+        emojiIcon: '🏋️',
         bgColor: '#8B5CF6',
         description: '像训记一样记录力量训练、训练计划和训练量统计',
       })

@@ -99,7 +99,8 @@ export default function BabyIntro() {
       const result = await callNative('habit.create', {
         type: HABIT_TYPE_BABY,
         name: '宝宝成长',
-        icon: 'ic_habit_baby', // 由原生映射到宝宝相关图标
+        icon: 'emoji:👶',
+        emojiIcon: '👶',
         bgColor: '#FDBA74', // 暖橙渐变主色
         description: '记录宝宝喂奶、睡眠、体温、身高体重等成长数据',
       })

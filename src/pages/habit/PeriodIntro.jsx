@@ -138,7 +138,8 @@ export default function PeriodIntro() {
       const result = await callNative('habit.create', {
         type: 16,
         name: '经期管理',
-        icon: 'ic_habit_lib_1',
+        icon: 'emoji:🌸',
+        emojiIcon: '🌸',
         bgColor: '#FF6B8A',
         description: '记录和预测经期，关爱女性健康',
         displayConfig,

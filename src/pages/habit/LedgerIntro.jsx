@@ -63,7 +63,8 @@ export default function LedgerIntro() {
         // 对齐 iOS 端 HabitTypeAccounting = 22
         type: 22,
         name: '记账',
-        icon: 'ic_habit_lib_1',
+        icon: 'emoji:📒',
+        emojiIcon: '📒',
         bgColor: '#34D399',
         description: '多账本记账与分类统计'
       })

@@ -64,7 +64,8 @@ export default function SleepIntro() {
         // 对齐 iOS 端 HabitTypeSleep = 20
         type: 20,
         name: '睡眠管理',
-        icon: 'ic_habit_lib_1',
+        icon: 'emoji:🛌',
+        emojiIcon: '🛌',
         bgColor: '#4F46E5',
         description: '记录睡觉与起床时间，统计睡眠时长'
       })

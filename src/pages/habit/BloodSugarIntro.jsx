@@ -89,7 +89,8 @@ export default function BloodSugarIntro() {
       const result = await callNative('habit.create', {
         type: HABIT_TYPE_BLOOD_SUGAR,
         name: '血糖记录',
-        icon: 'ic_habit_blood_sugar',
+        icon: 'emoji:🩸',
+        emojiIcon: '🩸',
         bgColor: '#F97373',
         description: '记录每日血糖，配合用药调整，守护血糖稳定',
       })

@@ -65,7 +65,8 @@ export default function FlashcardIntro() {
       const result = await callNative('habit.create', {
         type: 21,  // 闪卡记忆类型
         name: '记忆闪卡',
-        icon: 'habit_35',
+        icon: 'emoji:🧠',
+        emojiIcon: '🧠',
         bgColor: '#579d91',
         description: '使用闪卡法复习知识点，巩固记忆'
       })
