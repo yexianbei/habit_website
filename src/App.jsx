@@ -45,6 +45,7 @@ const BloodSugarIntro = lazy(() => import('./pages/habit/BloodSugarIntro'))
 const BloodSugarManagement = lazy(() => import('./pages/habit/BloodSugarManagement'))
 const CounterIntro = lazy(() => import('./pages/habit/CounterIntro'))
 const CounterManagement = lazy(() => import('./pages/habit/CounterManagement'))
+const CounterAdvancedStats = lazy(() => import('./pages/habit/CounterAdvancedStats'))
 const FlashcardHome = lazy(() => import('./pages/habit/flashcard/FlashcardHome'))
 const FlashcardStudy = lazy(() => import('./pages/habit/flashcard/FlashcardStudy'))
 const FlashcardImport = lazy(() => import('./pages/habit/flashcard/FlashcardImport'))
@@ -248,6 +249,14 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <CounterManagement />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/counter/stats"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <CounterAdvancedStats />
             </Suspense>
           }
         />
