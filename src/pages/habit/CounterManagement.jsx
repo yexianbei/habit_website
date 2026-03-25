@@ -463,7 +463,14 @@ export default function CounterManagement() {
   }
 
   const handleFullScreenToggle = () => {
-    setIsFullScreen((prev) => !prev)
+    setIsFullScreen((prev) => {
+      const next = !prev
+      if (next) {
+        setShowStats(false)
+        setShowSettings(false)
+      }
+      return next
+    })
   }
 
   // ── 全屏点击 ──
@@ -485,8 +492,15 @@ export default function CounterManagement() {
 
   return (
     <div
-      className="min-h-screen flex flex-col"
-      style={{ background: bg, transition: 'background 0.3s' }}
+      className="min-h-screen flex flex-col select-none touch-manipulation"
+      style={{
+        background: bg,
+        transition: 'background 0.3s',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitTapHighlightColor: 'transparent',
+      }}
       onClick={handleFullScreenTap}
     >
       {isFullScreen && (
@@ -502,36 +516,37 @@ export default function CounterManagement() {
         </button>
       )}
 
-      <div
-        className="flex items-center justify-between px-4 pt-4 pb-2 transition-opacity duration-300"
-        style={{ opacity: isFullScreen ? 0.15 : 1 }}
-        data-no-tap
-      >
-        <button
-          onClick={() => setShowStats(!showStats)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-          style={{ background: btnBg, color: btnText }}
+      {!isFullScreen && (
+        <div
+          className="flex items-center justify-between px-4 pt-4 pb-2"
+          data-no-tap
         >
-          <span>📊</span> 统计
-        </button>
+          <button
+            onClick={() => setShowStats(!showStats)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+            style={{ background: btnBg, color: btnText }}
+          >
+            <span>📊</span> 统计
+          </button>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowSettings(true)}
-            className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ background: btnBg, color: btnText }}
-          >
-            ⚙️
-          </button>
-          <button
-            onClick={handleDarkToggle}
-            className="w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ background: btnBg, color: btnText }}
-          >
-            {isDark ? '☀️' : '🌙'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowSettings(true)}
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: btnBg, color: btnText }}
+            >
+              ⚙️
+            </button>
+            <button
+              onClick={handleDarkToggle}
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: btnBg, color: btnText }}
+            >
+              {isDark ? '☀️' : '🌙'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── 统计面板（可折叠） ── */}
       {showStats && !isFullScreen && (
@@ -578,47 +593,47 @@ export default function CounterManagement() {
         </button>
       </div>
 
-      {/* ── 底部工具栏（全屏时半透明） ── */}
-      <div
-        className="flex items-center justify-center gap-3 px-4 pb-8 pt-2 flex-wrap transition-opacity duration-300"
-        style={{ opacity: isFullScreen ? 0.15 : 1 }}
-        data-no-tap
-      >
-        <button
-          onClick={handleReset}
-          className="px-4 py-2 rounded-full text-xs font-medium"
-          style={{ background: btnBg, color: btnText }}
+      {!isFullScreen && (
+        <div
+          className="flex items-center justify-center gap-3 px-4 pb-8 pt-2 flex-wrap"
+          data-no-tap
         >
-          复位
-        </button>
+          <button
+            onClick={handleReset}
+            className="px-4 py-2 rounded-full text-xs font-medium"
+            style={{ background: btnBg, color: btnText }}
+          >
+            复位
+          </button>
 
-        <button
-          onClick={handleFullScreenToggle}
-          className="px-4 py-2 rounded-full text-xs font-medium"
-          style={{ background: btnBg, color: btnText }}
-        >
-          {isFullScreen ? '退出全屏' : '全屏模式'}
-        </button>
+          <button
+            onClick={handleFullScreenToggle}
+            className="px-4 py-2 rounded-full text-xs font-medium"
+            style={{ background: btnBg, color: btnText }}
+          >
+            {isFullScreen ? '退出全屏' : '全屏模式'}
+          </button>
 
-        <button
-          onClick={() => {
-            const next = step === 1 ? 5 : step === 5 ? 10 : 1
-            handleStepChange(next)
-          }}
-          className="px-4 py-2 rounded-full text-xs font-medium"
-          style={{ background: btnBg, color: btnText }}
-        >
-          步长 {step}
-        </button>
+          <button
+            onClick={() => {
+              const next = step === 1 ? 5 : step === 5 ? 10 : 1
+              handleStepChange(next)
+            }}
+            className="px-4 py-2 rounded-full text-xs font-medium"
+            style={{ background: btnBg, color: btnText }}
+          >
+            步长 {step}
+          </button>
 
-        <button
-          onClick={() => handleDeleteHabit()}
-          className="px-4 py-2 rounded-full text-xs font-medium"
-          style={{ background: btnBg, color: isDark ? '#6b4444' : '#c8a0a0' }}
-        >
-          删除习惯
-        </button>
-      </div>
+          <button
+            onClick={() => handleDeleteHabit()}
+            className="px-4 py-2 rounded-full text-xs font-medium"
+            style={{ background: btnBg, color: isDark ? '#6b4444' : '#c8a0a0' }}
+          >
+            删除习惯
+          </button>
+        </div>
+      )}
 
       {/* 全屏模式提示 */}
       {isFullScreen && (
