@@ -6,8 +6,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
-import { useHabitDelete } from '../../hooks/useHabitDelete'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
 // ─────────────────────────────────────────────
 // 工具函数
@@ -22,151 +20,6 @@ function formatDate(d) {
 
 function todayStr() {
   return formatDate(new Date())
-}
-
-/** 将 timestamp 转成 "HH:mm" */
-function tsToTime(ts) {
-  const d = new Date(ts)
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
-
-/** 根据 timestamp 返回小时段标签（0-23） */
-function tsToHour(ts) {
-  return new Date(ts).getHours()
-}
-
-function parseDateStr(dateStr) {
-  if (!dateStr || typeof dateStr !== 'string') return new Date()
-  const [y, m, d] = dateStr.split('-').map(Number)
-  if (!y || !m || !d) return new Date()
-  return new Date(y, m - 1, d)
-}
-
-function getRecordDateKey(r) {
-  if (r?.date) return r.date
-  if (r?.createTime) return formatDate(new Date(r.createTime))
-  return todayStr()
-}
-
-function getRecordStep(r) {
-  const val = Number(r?.step)
-  return Number.isFinite(val) && val > 0 ? val : 1
-}
-
-/** 将 records 聚合成小时分布 */
-function buildHourlyData(records) {
-  const buckets = Array.from({ length: 24 }, (_, h) => ({ hour: `${h}时`, count: 0 }))
-  records.forEach((r) => {
-    const h = tsToHour(r.createTime || Date.now())
-    buckets[h].count += getRecordStep(r)
-  })
-  return buckets
-}
-
-function buildRecentDaysData(records, days) {
-  const map = {}
-  const now = new Date()
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now)
-    d.setDate(d.getDate() - i)
-    const key = formatDate(d)
-    const label = i === 0 ? '今天' : `${d.getMonth() + 1}/${d.getDate()}`
-    map[key] = { label, count: 0 }
-  }
-  records.forEach((r) => {
-    const key = getRecordDateKey(r)
-    if (map[key]) map[key].count += getRecordStep(r)
-  })
-  return Object.values(map).map((v) => ({ day: v.label, count: v.count }))
-}
-
-function buildWeekdayData(records) {
-  const labels = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-  const buckets = labels.map((label) => ({ day: label, count: 0 }))
-  records.forEach((r) => {
-    const d = parseDateStr(getRecordDateKey(r))
-    const idx = d.getDay()
-    buckets[idx].count += getRecordStep(r)
-  })
-  return buckets
-}
-
-function buildMonthlyData(records, months = 12) {
-  const map = {}
-  const now = new Date()
-  for (let i = months - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    map[key] = { month: `${d.getMonth() + 1}月`, count: 0 }
-  }
-  records.forEach((r) => {
-    const key = getRecordDateKey(r).slice(0, 7)
-    if (map[key]) map[key].count += getRecordStep(r)
-  })
-  return Object.values(map)
-}
-
-function buildStepDistributionData(records) {
-  const map = {}
-  records.forEach((r) => {
-    const step = getRecordStep(r)
-    const key = `+${step}`
-    if (!map[key]) map[key] = { step: key, count: 0 }
-    map[key].count += 1
-  })
-  return Object.values(map).sort((a, b) => Number(a.step.slice(1)) - Number(b.step.slice(1)))
-}
-
-function buildRangeDailyTotals(records, days) {
-  const map = {}
-  const now = new Date()
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now)
-    d.setDate(d.getDate() - i)
-    const key = formatDate(d)
-    const label = i === 0 ? '今天' : `${d.getMonth() + 1}/${d.getDate()}`
-    map[key] = { date: key, day: label, count: 0 }
-  }
-  records.forEach((r) => {
-    const key = getRecordDateKey(r)
-    if (map[key]) map[key].count += getRecordStep(r)
-  })
-  return Object.values(map)
-}
-
-function calcStreakInfo(dailyTotals, dailyGoal) {
-  let currentStreak = 0
-  let longestStreak = 0
-  let running = 0
-  dailyTotals.forEach((item) => {
-    if (item.count >= dailyGoal) {
-      running += 1
-      if (running > longestStreak) longestStreak = running
-    } else {
-      running = 0
-    }
-  })
-  for (let i = dailyTotals.length - 1; i >= 0; i--) {
-    if (dailyTotals[i].count >= dailyGoal) currentStreak += 1
-    else break
-  }
-  return { currentStreak, longestStreak }
-}
-
-/** mock 记录（浏览器预览用） */
-function buildMockRecords() {
-  const now = Date.now()
-  const result = []
-  for (let i = 0; i < 240; i++) {
-    const offset = Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000)
-    result.push({
-      recordId: `mock-${i}`,
-      date: formatDate(new Date(now - offset)),
-      step: Math.random() > 0.6 ? 5 : 1,
-      createTime: now - offset,
-    })
-  }
-  return result
 }
 
 const WEB_SETTINGS_KEY = 'counter_web_settings_v1'
@@ -216,251 +69,6 @@ function writeWebTodayCount(count) {
       count: Math.max(0, Number(count) || 0),
     }))
   } catch (_) {}
-}
-
-// ─────────────────────────────────────────────
-// 统计面板子组件
-// ─────────────────────────────────────────────
-
-function StatPanel({ records, isDark, showUnit, unitName, dailyGoal }) {
-  const [tab, setTab] = useState('hourly')
-  const [rangeDays, setRangeDays] = useState(30)
-
-  const rangeOptions = useMemo(() => ([
-    { key: 7, label: '7天' },
-    { key: 30, label: '30天' },
-    { key: 90, label: '90天' },
-    { key: 365, label: '365天' },
-  ]), [])
-  const filteredRecords = useMemo(() => {
-    const end = new Date()
-    end.setHours(23, 59, 59, 999)
-    const start = new Date(end)
-    start.setDate(start.getDate() - (rangeDays - 1))
-    start.setHours(0, 0, 0, 0)
-    return records.filter((r) => {
-      const key = getRecordDateKey(r)
-      const d = parseDateStr(key)
-      return d >= start && d <= end
-    })
-  }, [records, rangeDays])
-  const previousRecords = useMemo(() => {
-    const end = new Date()
-    end.setHours(23, 59, 59, 999)
-    const start = new Date(end)
-    start.setDate(start.getDate() - (rangeDays - 1))
-    start.setHours(0, 0, 0, 0)
-    const prevEnd = new Date(start)
-    prevEnd.setDate(prevEnd.getDate() - 1)
-    prevEnd.setHours(23, 59, 59, 999)
-    const prevStart = new Date(prevEnd)
-    prevStart.setDate(prevStart.getDate() - (rangeDays - 1))
-    prevStart.setHours(0, 0, 0, 0)
-    return records.filter((r) => {
-      const key = getRecordDateKey(r)
-      const d = parseDateStr(key)
-      return d >= prevStart && d <= prevEnd
-    })
-  }, [records, rangeDays])
-  const rangeDailyData = useMemo(() => buildRecentDaysData(filteredRecords, rangeDays), [filteredRecords, rangeDays])
-  const rangeDailyTotals = useMemo(() => buildRangeDailyTotals(filteredRecords, rangeDays), [filteredRecords, rangeDays])
-  const hourlyData = useMemo(() => buildHourlyData(filteredRecords), [filteredRecords])
-  const weekdayData = useMemo(() => buildWeekdayData(filteredRecords), [filteredRecords])
-  const monthlyData = useMemo(() => buildMonthlyData(filteredRecords, Math.max(1, Math.min(12, Math.ceil(rangeDays / 30)))), [filteredRecords, rangeDays])
-  const stepDistributionData = useMemo(() => buildStepDistributionData(filteredRecords), [filteredRecords])
-  const streakData = useMemo(() => rangeDailyTotals.map((d) => ({ day: d.day, count: d.count >= dailyGoal ? 1 : 0 })), [rangeDailyTotals, dailyGoal])
-  const compareData = useMemo(() => {
-    const currentTotal = filteredRecords.reduce((sum, r) => sum + getRecordStep(r), 0)
-    const previousTotal = previousRecords.reduce((sum, r) => sum + getRecordStep(r), 0)
-    return [
-      { period: '本期', count: currentTotal },
-      { period: '上期', count: previousTotal },
-    ]
-  }, [filteredRecords, previousRecords])
-  const streakInfo = useMemo(() => calcStreakInfo(rangeDailyTotals, dailyGoal), [rangeDailyTotals, dailyGoal])
-  const goalAchievedDays = useMemo(() => rangeDailyTotals.filter((d) => d.count >= dailyGoal).length, [rangeDailyTotals, dailyGoal])
-
-  const ACCENT = isDark ? '#7C6FD4' : '#6C63FF'
-  const BG_COLOR = isDark ? '#1a1a2e' : '#F7F7FF'
-  const TEXT_COLOR = isDark ? '#aaa' : '#666'
-  const AXIS_COLOR = isDark ? '#444' : '#ccc'
-  const displayUnit = (unitName && unitName.trim()) ? unitName.trim() : '次'
-
-  const tabConfig = useMemo(() => ([
-    { key: 'hourly', label: '时段分布', data: hourlyData, xKey: 'hour', interval: 3, metric: 'unit' },
-    { key: 'trend', label: '趋势', data: rangeDailyData, xKey: 'day', interval: rangeDays >= 90 ? 8 : rangeDays >= 30 ? 4 : 0, metric: 'unit' },
-    { key: 'weekday', label: '星期分布', data: weekdayData, xKey: 'day', interval: 0, metric: 'unit' },
-    { key: 'monthly', label: '月度分布', data: monthlyData, xKey: 'month', interval: 1, metric: 'unit' },
-    { key: 'step', label: '步长分布', data: stepDistributionData, xKey: 'step', interval: 0, metric: 'times' },
-    { key: 'continuity', label: '连续性', data: streakData, xKey: 'day', interval: rangeDays >= 90 ? 8 : rangeDays >= 30 ? 4 : 0, metric: 'day' },
-    { key: 'goal', label: '目标达成', data: rangeDailyData, xKey: 'day', interval: rangeDays >= 90 ? 8 : rangeDays >= 30 ? 4 : 0, metric: 'unit' },
-    { key: 'compare', label: '同比环比', data: compareData, xKey: 'period', interval: 0, metric: 'unit' },
-  ]), [hourlyData, rangeDailyData, rangeDays, weekdayData, monthlyData, stepDistributionData, streakData, compareData])
-  const activeConfig = tabConfig.find((item) => item.key === tab) || tabConfig[0]
-  const chartData = activeConfig.data
-  const dataKey = 'count'
-  const xKey = activeConfig.xKey
-
-  const maxVal = Math.max(...chartData.map((d) => d[dataKey]), 1)
-  const totalCount = chartData.reduce((sum, item) => sum + (item.count || 0), 0)
-  const peakItem = chartData.reduce((best, cur) => (cur.count > best.count ? cur : best), chartData[0] || { count: 0 })
-
-  return (
-    <div
-      className="rounded-2xl p-4 mt-4"
-      style={{ background: BG_COLOR }}
-    >
-      <div className="overflow-x-auto mb-4">
-        <div className="flex gap-2 w-max pr-2">
-          {tabConfig.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className="px-3 py-1 rounded-full text-xs font-medium transition-all"
-            style={{
-              background: tab === t.key ? ACCENT : 'transparent',
-              color: tab === t.key ? '#fff' : TEXT_COLOR,
-              border: `1px solid ${tab === t.key ? ACCENT : AXIS_COLOR}`,
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-        </div>
-      </div>
-      <div className="overflow-x-auto mb-4">
-        <div className="flex gap-2 w-max pr-2">
-          {rangeOptions.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => setRangeDays(item.key)}
-              className="px-3 py-1 rounded-full text-xs font-medium transition-all"
-              style={{
-                background: rangeDays === item.key ? ACCENT : 'transparent',
-                color: rangeDays === item.key ? '#fff' : TEXT_COLOR,
-                border: `1px solid ${rangeDays === item.key ? ACCENT : AXIS_COLOR}`,
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ height: 140 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
-            <XAxis
-              dataKey={xKey}
-              tick={{ fontSize: 9, fill: TEXT_COLOR }}
-              tickLine={false}
-              axisLine={{ stroke: AXIS_COLOR }}
-              interval={activeConfig.interval}
-            />
-            <YAxis
-              tick={{ fontSize: 9, fill: TEXT_COLOR }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip
-              contentStyle={{
-                background: isDark ? '#222' : '#fff',
-                border: 'none',
-                borderRadius: 8,
-                color: isDark ? '#ddd' : '#333',
-                fontSize: 12,
-              }}
-              cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' }}
-              formatter={(val) => {
-                if (activeConfig.metric === 'times') return [`${val} 下`, '点击次数']
-                if (activeConfig.metric === 'day') return [`${val > 0 ? '达标' : '未达标'}`, '目标状态']
-                return [showUnit ? `${val} ${displayUnit}` : `${val}`, '计数']
-              }}
-            />
-            <Bar dataKey={dataKey} radius={[3, 3, 0, 0]}>
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={index}
-                  fill={entry[dataKey] >= maxVal * 0.7 ? ACCENT : isDark ? '#333' : '#DDD8FF'}
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {tab === 'hourly' && (() => {
-        const total = filteredRecords.reduce((s, r) => s + getRecordStep(r), 0)
-        const times = filteredRecords.length
-        const peakHour = hourlyData.reduce((best, cur) => cur.count > best.count ? cur : best, hourlyData[0])
-        return (
-          <div className="mt-3 flex gap-3 text-xs" style={{ color: TEXT_COLOR }}>
-            <span>{rangeDays}天累计 <strong style={{ color: ACCENT }}>{total}</strong>{showUnit ? ` ${displayUnit}` : ''}</span>
-            <span>点击 <strong style={{ color: ACCENT }}>{times}</strong> 下</span>
-            {peakHour.count > 0 && (
-              <span>高峰 <strong style={{ color: ACCENT }}>{peakHour.hour}</strong></span>
-            )}
-          </div>
-        )
-      })()}
-      {tab === 'trend' && (
-        <div className="mt-3 flex gap-3 text-xs" style={{ color: TEXT_COLOR }}>
-          <span>{rangeDays}天累计 <strong style={{ color: ACCENT }}>{totalCount}</strong>{showUnit ? ` ${displayUnit}` : ''}</span>
-          <span>日均 <strong style={{ color: ACCENT }}>{Math.round(totalCount / rangeDays)}</strong>{showUnit ? ` ${displayUnit}` : ''}</span>
-          <span>活跃天 <strong style={{ color: ACCENT }}>{rangeDailyData.filter((d) => d.count > 0).length}</strong> 天</span>
-          <span>最高 <strong style={{ color: ACCENT }}>{peakItem.day}</strong></span>
-        </div>
-      )}
-      {tab === 'weekday' && (
-        <div className="mt-3 flex gap-3 text-xs" style={{ color: TEXT_COLOR }}>
-          <span>最活跃 <strong style={{ color: ACCENT }}>{peakItem.day}</strong></span>
-          <span>总计 <strong style={{ color: ACCENT }}>{totalCount}</strong>{showUnit ? ` ${displayUnit}` : ''}</span>
-        </div>
-      )}
-      {tab === 'monthly' && (
-        <div className="mt-3 flex gap-3 text-xs" style={{ color: TEXT_COLOR }}>
-          <span>{Math.max(1, Math.min(12, Math.ceil(rangeDays / 30)))}月累计 <strong style={{ color: ACCENT }}>{totalCount}</strong>{showUnit ? ` ${displayUnit}` : ''}</span>
-          <span>峰值月 <strong style={{ color: ACCENT }}>{peakItem.month}</strong></span>
-        </div>
-      )}
-      {tab === 'step' && (
-        <div className="mt-3 flex gap-3 text-xs" style={{ color: TEXT_COLOR }}>
-          <span>常用步长 <strong style={{ color: ACCENT }}>{peakItem.step || '+1'}</strong></span>
-          <span>总点击 <strong style={{ color: ACCENT }}>{totalCount}</strong> 下</span>
-        </div>
-      )}
-      {tab === 'continuity' && (
-        <div className="mt-3 flex gap-3 text-xs" style={{ color: TEXT_COLOR }}>
-          <span>当前连胜 <strong style={{ color: ACCENT }}>{streakInfo.currentStreak}</strong> 天</span>
-          <span>最长连胜 <strong style={{ color: ACCENT }}>{streakInfo.longestStreak}</strong> 天</span>
-          <span>目标 <strong style={{ color: ACCENT }}>{dailyGoal}</strong>{showUnit ? ` ${displayUnit}` : ''}</span>
-        </div>
-      )}
-      {tab === 'goal' && (
-        <div className="mt-3 flex gap-3 text-xs" style={{ color: TEXT_COLOR }}>
-          <span>达标天数 <strong style={{ color: ACCENT }}>{goalAchievedDays}</strong> / {rangeDays}</span>
-          <span>达标率 <strong style={{ color: ACCENT }}>{Math.round((goalAchievedDays / rangeDays) * 100)}</strong>%</span>
-          <span>目标 <strong style={{ color: ACCENT }}>{dailyGoal}</strong>{showUnit ? ` ${displayUnit}` : ''}</span>
-        </div>
-      )}
-      {tab === 'compare' && (
-        <div className="mt-3 flex gap-3 text-xs" style={{ color: TEXT_COLOR }}>
-          <span>本期 <strong style={{ color: ACCENT }}>{compareData[0]?.count || 0}</strong>{showUnit ? ` ${displayUnit}` : ''}</span>
-          <span>上期 <strong style={{ color: ACCENT }}>{compareData[1]?.count || 0}</strong>{showUnit ? ` ${displayUnit}` : ''}</span>
-          <span>变化 <strong style={{ color: ACCENT }}>
-            {(() => {
-              const prev = compareData[1]?.count || 0
-              const curr = compareData[0]?.count || 0
-              if (prev === 0 && curr === 0) return '0%'
-              if (prev === 0) return '+100%'
-              const delta = Math.round(((curr - prev) / prev) * 100)
-              return `${delta > 0 ? '+' : ''}${delta}%`
-            })()}
-          </strong></span>
-        </div>
-      )}
-    </div>
-  )
 }
 
 // ─────────────────────────────────────────────
@@ -714,11 +322,11 @@ export default function CounterManagement() {
     showToast,
     showLoading,
     hideLoading,
+    closePage,
     callNative,
     vibrate,
   } = useNativeBridge()
 
-  const { handleDeleteHabit } = useHabitDelete({ habitType: 26, habitName: '指尖计数器' })
   const initialWebSettings = useMemo(() => readWebSettings() || {}, [])
 
   const [count, setCount] = useState(() => readWebTodayCount())
@@ -746,10 +354,7 @@ export default function CounterManagement() {
     typeof initialWebSettings.useDemoData === 'boolean' ? initialWebSettings.useDemoData : false
   ))
   const [showSettings, setShowSettings] = useState(false)
-  const [showStats, setShowStats] = useState(false)
-  const [allRecords, setAllRecords] = useState([])
-  const [isLoadingRecords, setIsLoadingRecords] = useState(false)
-  const [hasLoadedStatsRecords, setHasLoadedStatsRecords] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const settingsLoadedRef = useRef(false)
 
   const pageTitle = '指尖计数器'
@@ -759,8 +364,14 @@ export default function CounterManagement() {
   useEffect(() => {
     if (settingsLoadedRef.current) return
     settingsLoadedRef.current = true
-    if (isInApp) loadSettings()
-    loadTodayCount()
+    const rafId = window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        loadTodayCount()
+      }, 280)
+    })
+    return () => {
+      window.cancelAnimationFrame(rafId)
+    }
   }, [isInApp])
 
   useEffect(() => {
@@ -817,36 +428,6 @@ export default function CounterManagement() {
     }
   }
 
-  const loadRecords = async () => {
-    setIsLoadingRecords(true)
-    try {
-      if (!isInApp) {
-        setAllRecords(useDemoData ? buildMockRecords() : [])
-        setHasLoadedStatsRecords(true)
-        return
-      }
-      if (useDemoData) {
-        setAllRecords(buildMockRecords())
-        setHasLoadedStatsRecords(true)
-        return
-      }
-      const now = new Date()
-      const start = new Date(now)
-      start.setDate(start.getDate() - 364)
-      const res = await callNative('counter.getRecords', {
-        startDate: formatDate(start),
-        endDate: formatDate(now),
-      })
-      const list = Array.isArray(res?.records) ? res.records : []
-      setAllRecords(list)
-      setHasLoadedStatsRecords(true)
-    } catch (e) {
-      console.error('[CounterManagement] loadRecords error:', e)
-    } finally {
-      setIsLoadingRecords(false)
-    }
-  }
-
   // ── 计数核心逻辑 ──
   const handleAdd = useCallback(async () => {
     const newCount = count + step
@@ -871,24 +452,10 @@ export default function CounterManagement() {
         : { ...baseRecord }
 
       await callNative('counter.save', record)
-      if (hasLoadedStatsRecords) {
-        setAllRecords((prev) => {
-          const localRecord = { ...record, recordId: `local-${Date.now()}` }
-          if (perClickRecord) {
-            return [...prev, localRecord]
-          }
-          const today = todayStr()
-          const idx = prev.findIndex((r) => r.date === today)
-          if (idx === -1) return [...prev, localRecord]
-          const next = [...prev]
-          next[idx] = { ...next[idx], ...localRecord }
-          return next
-        })
-      }
     } catch (e) {
       console.error('[CounterManagement] save error:', e)
     }
-  }, [count, step, vibrationEnabled, isInApp, callNative, vibrate, hasLoadedStatsRecords, perClickRecord])
+  }, [count, step, vibrationEnabled, isInApp, callNative, vibrate, perClickRecord])
 
   // ── 重置今日 ──
   const handleReset = async () => {
@@ -900,9 +467,6 @@ export default function CounterManagement() {
       await callNative('counter.resetToday', { date: todayStr() })
       await hideLoading()
       await showToast('今日计数已清零')
-      if (hasLoadedStatsRecords) {
-        setAllRecords((prev) => prev.filter((r) => r.date !== todayStr()))
-      }
     } catch (e) {
       await hideLoading()
       console.error('[CounterManagement] reset error:', e)
@@ -946,10 +510,6 @@ export default function CounterManagement() {
     const next = !useDemoData
     setUseDemoData(next)
     saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData: next })
-    setHasLoadedStatsRecords(false)
-    if (showStats && !isLoadingRecords) {
-      loadRecords()
-    }
   }
 
   const handleVibrationToggle = () => {
@@ -984,21 +544,51 @@ export default function CounterManagement() {
     saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData })
   }
 
-  const handleStatsToggle = () => {
-    setShowStats((prev) => {
-      const next = !prev
-      if (next && !hasLoadedStatsRecords && !isLoadingRecords) {
-        loadRecords()
-      }
-      return next
-    })
+  const handleOpenSettings = () => {
+    setShowSettings(true)
+    if (isInApp) {
+      window.setTimeout(() => {
+        loadSettings()
+      }, 0)
+    }
   }
+
+  const handleDeleteHabit = useCallback(async () => {
+    if (!isInApp || isDeleting) return
+    let confirmed = false
+    try {
+      const result = await callNative('ui.showConfirm', {
+        title: '删除指尖计数器',
+        message: '确定要删除「指尖计数器」吗？\n删除后该习惯及全部打卡记录将被清除，且无法恢复。',
+      })
+      confirmed = result?.confirmed === true
+    } catch (_) {
+      return
+    }
+    if (!confirmed) return
+    setIsDeleting(true)
+    try {
+      await callNative('ui.showLoading', { message: '删除中...' })
+      const result = await callNative('habit.deleteWithData', { type: 26 })
+      await callNative('ui.hideLoading', {})
+      if (result?.success) {
+        await showToast('「指尖计数器」已删除')
+        window.setTimeout(() => closePage(), 800)
+      } else {
+        await showToast('删除失败，请重试')
+      }
+    } catch (_) {
+      await callNative('ui.hideLoading', {})
+      await showToast('删除失败，请重试')
+    } finally {
+      setIsDeleting(false)
+    }
+  }, [isInApp, isDeleting, callNative, showToast, closePage])
 
   const handleFullScreenToggle = () => {
     setIsFullScreen((prev) => {
       const next = !prev
       if (next) {
-        setShowStats(false)
         setShowSettings(false)
       }
       if (isInApp) {
@@ -1059,23 +649,16 @@ export default function CounterManagement() {
           data-no-tap
         >
           <button
-            onClick={handleStatsToggle}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-            style={{ background: btnBg, color: btnText }}
-          >
-            <span>📊</span> 统计
-          </button>
-          <button
             onClick={() => navigate('/habit/counter/stats')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
             style={{ background: btnBg, color: btnText }}
           >
-            <span>📈</span> 高级
+            <span>📈</span> 统计
           </button>
 
           <div className="flex gap-2">
             <button
-              onClick={() => setShowSettings(true)}
+              onClick={handleOpenSettings}
               className="w-8 h-8 rounded-full flex items-center justify-center"
               style={{ background: btnBg, color: btnText }}
             >
@@ -1089,17 +672,6 @@ export default function CounterManagement() {
               {isDark ? '☀️' : '🌙'}
             </button>
           </div>
-        </div>
-      )}
-
-      {/* ── 统计面板（可折叠） ── */}
-      {showStats && !isFullScreen && (
-        <div className="px-4" data-no-tap>
-          {isLoadingRecords ? (
-            <div className="text-center py-4 text-xs" style={{ color: textSecondary }}>加载中...</div>
-          ) : (
-            <StatPanel records={allRecords} isDark={isDark} showUnit={showUnit} unitName={unitName} dailyGoal={dailyGoal} />
-          )}
         </div>
       )}
 
@@ -1203,9 +775,9 @@ export default function CounterManagement() {
           <button
             onClick={() => handleDeleteHabit()}
             className="px-4 py-2 rounded-full text-xs font-medium"
-            style={{ background: btnBg, color: isDark ? '#6b4444' : '#c8a0a0' }}
+            style={{ background: btnBg, color: isDark ? '#6b4444' : '#c8a0a0', opacity: isDeleting ? 0.6 : 1 }}
           >
-            删除习惯
+            {isDeleting ? '删除中...' : '删除习惯'}
           </button>
         </div>
       )}
