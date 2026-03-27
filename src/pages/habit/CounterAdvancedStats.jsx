@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import {
@@ -45,23 +45,6 @@ function getRecordDateKey(r) {
 function getRecordStep(r) {
   const val = Number(r?.step)
   return Number.isFinite(val) && val > 0 ? val : 1
-}
-
-function buildMockRecords() {
-  const now = Date.now()
-  const result = []
-  for (let i = 0; i < 420; i++) {
-    const offset = Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000)
-    const stepPool = [1, 1, 1, 2, 5, 10]
-    const step = stepPool[Math.floor(Math.random() * stepPool.length)]
-    result.push({
-      recordId: `mock-${i}`,
-      date: formatDate(new Date(now - offset)),
-      step,
-      createTime: now - offset,
-    })
-  }
-  return result
 }
 
 function getDefaultDateRange(rangeDays) {
@@ -243,18 +226,23 @@ function getHeatColor(count, maxCount, isDark) {
   return '#dfdcff'
 }
 
+function getRecordSubmissionCount(r) {
+  // 在 GitHub 逻辑中，无论步长是多少，一次点击操作（一条记录）算作一次提交
+  return 1
+}
+
 function getGithubHeatColor(count, maxCount, isDark) {
   if (maxCount <= 0 || count <= 0) return isDark ? '#2a2339' : '#ede9ff'
-  const ratio = count / maxCount
+  // GitHub 逻辑：1, 2, 3, 4+ 次提交对应不同深浅
   if (isDark) {
-    if (ratio >= 0.75) return '#9a86ff'
-    if (ratio >= 0.5) return '#765ac0'
-    if (ratio >= 0.25) return '#574287'
+    if (count >= 4) return '#9a86ff'
+    if (count >= 3) return '#765ac0'
+    if (count >= 2) return '#574287'
     return '#3a2f59'
   }
-  if (ratio >= 0.75) return '#6c63ff'
-  if (ratio >= 0.5) return '#907bff'
-  if (ratio >= 0.25) return '#b5a7ff'
+  if (count >= 4) return '#6c63ff'
+  if (count >= 3) return '#907bff'
+  if (count >= 2) return '#b5a7ff'
   return '#d4ccff'
 }
 
@@ -271,7 +259,8 @@ function buildGithubCalendarData(records, days = 365) {
     const d = parseDateStr(key)
     d.setHours(0, 0, 0, 0)
     if (d < start || d > end) return
-    countMap[key] = (countMap[key] || 0) + getRecordStep(r)
+    // 累计提交次数（记录条数）
+    countMap[key] = (countMap[key] || 0) + getRecordSubmissionCount(r)
   })
 
   const dayItems = []
@@ -309,13 +298,14 @@ function buildGithubCalendarData(records, days = 365) {
     }
   })
 
-  const maxCount = Math.max(...dayItems.map((d) => d.count), 0)
-  return { weeks, monthLabels, maxCount }
+  // GitHub 样式通常固定分阶，不再依赖 maxCount 动态计算 ratio
+  return { weeks, monthLabels, maxCount: 4 }
 }
 
 export default function CounterAdvancedStats() {
   const navigate = useNavigate()
   const { isInApp, setTitle, callNative, showDatePicker } = useNativeBridge()
+  const calendarScrollRef = useRef(null)
 
   const [rangeDays, setRangeDays] = useState(90)
   const defaultRange = useMemo(() => getDefaultDateRange(90), [])
@@ -324,24 +314,36 @@ export default function CounterAdvancedStats() {
   const [totalGoal, setTotalGoal] = useState(100)
   const [showUnit, setShowUnit] = useState(false)
   const [unitName, setUnitName] = useState('次')
+  const [loading, setLoading] = useState(true)
   const [isDark, setIsDark] = useState(false)
-  const [useDemoData, setUseDemoData] = useState(false)
   const [rangeMode, setRangeMode] = useState('quick')
   const [customStartDate, setCustomStartDate] = useState(() => formatDate(defaultRange.start))
   const [customEndDate, setCustomEndDate] = useState(() => formatDate(defaultRange.end))
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     document.title = '高级统计'
     if (isInApp) setTitle('高级统计')
   }, [isInApp, setTitle])
 
+  // 挂载后及数据加载完成后，GitHub 贡献图自动滚动到最右侧（显示最新日期）
+  useEffect(() => {
+    if (calendarScrollRef.current && !loading) {
+      // 使用 setTimeout 确保在 DOM 更新并渲染完成后再执行滚动，
+      // 以获得正确的 scrollWidth
+      const timer = setTimeout(() => {
+        if (calendarScrollRef.current) {
+          calendarScrollRef.current.scrollLeft = calendarScrollRef.current.scrollWidth
+        }
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [loading, records])
+
   useEffect(() => {
     const load = async () => {
       setLoading(true)
       try {
         if (!isInApp) {
-          let localUseDemoData = false
           const raw = window.localStorage.getItem(WEB_SETTINGS_KEY)
           if (raw) {
             const parsed = JSON.parse(raw)
@@ -351,13 +353,10 @@ export default function CounterAdvancedStats() {
               if (typeof parsed.showUnit === 'boolean') setShowUnit(parsed.showUnit)
               if (typeof parsed.unitName === 'string') setUnitName(parsed.unitName || '次')
               if (typeof parsed.darkMode === 'boolean') setIsDark(parsed.darkMode)
-              if (typeof parsed.useDemoData === 'boolean') {
-                localUseDemoData = parsed.useDemoData
-                setUseDemoData(parsed.useDemoData)
-              }
             }
           }
-          setRecords(localUseDemoData ? buildMockRecords() : [])
+          // Web 环境不再自动生成演示数据，除非以后有明确需求
+          setRecords([])
           return
         }
         const settings = await callNative('counter.getSettings', {})
@@ -367,11 +366,7 @@ export default function CounterAdvancedStats() {
           if (typeof settings.showUnit === 'boolean') setShowUnit(settings.showUnit)
           if (typeof settings.unitName === 'string') setUnitName(settings.unitName || '次')
           if (typeof settings.darkMode === 'boolean') setIsDark(settings.darkMode)
-          if (typeof settings.useDemoData === 'boolean') setUseDemoData(settings.useDemoData)
-          if (settings.useDemoData) {
-            setRecords(buildMockRecords())
-            return
-          }
+          // 首页已经去掉了演示数据入口，这里也彻底禁用逻辑
         }
         const now = new Date()
         const start = new Date(now)
@@ -383,13 +378,13 @@ export default function CounterAdvancedStats() {
         const list = Array.isArray(res?.records) ? res.records : []
         setRecords(list)
       } catch (_) {
-        setRecords(useDemoData ? buildMockRecords() : [])
+        setRecords([])
       } finally {
         setLoading(false)
       }
     }
     load()
-  }, [isInApp, callNative, useDemoData])
+  }, [isInApp, callNative])
 
   const displayUnit = (unitName && unitName.trim()) ? unitName.trim() : '次'
 
@@ -818,43 +813,79 @@ export default function CounterAdvancedStats() {
           </div>
 
           <div className="rounded-2xl p-4" style={{ background: cardBg }}>
-            <div className="text-sm font-medium mb-2" style={{ color: textPrimary }}>GitHub 风格活跃图（近365天）</div>
-            <div className="overflow-x-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-sm font-medium" style={{ color: textPrimary }}>GitHub 风格活跃图（近365天）</div>
+              <div className="text-[10px]" style={{ color: textSecondary }}>左滑查看历史</div>
+            </div>
+            <div className="overflow-x-auto pb-2 scroll-smooth" ref={calendarScrollRef}>
               <div className="inline-block min-w-max">
-                <div className="relative h-4 mb-1">
-                  {githubCalendar.monthLabels.map((m) => (
-                    <span
-                      key={`${m.label}-${m.col}`}
-                      className="absolute text-[10px]"
-                      style={{ left: `${m.col * 13}px`, color: textSecondary }}
-                    >
-                      {m.label}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-1">
-                  <div className="flex flex-col justify-between pr-1 text-[10px]" style={{ color: textSecondary, height: 84 }}>
-                    <span>一</span>
-                    <span>三</span>
-                    <span>五</span>
+                <div className="relative flex">
+                  {/* 周几标签 - 固定在左侧 */}
+                  <div 
+                    className="sticky left-0 z-10 pr-2 pt-5" 
+                    style={{ background: cardBg }}
+                  >
+                    <div className="grid grid-rows-7 gap-[3px] text-[9px] leading-[10px]" style={{ color: textSecondary }}>
+                      <div className="h-[10px]" /> {/* 日 */}
+                      <div className="h-[10px] flex items-center">一</div>
+                      <div className="h-[10px]" /> {/* 二 */}
+                      <div className="h-[10px] flex items-center">三</div>
+                      <div className="h-[10px]" /> {/* 四 */}
+                      <div className="h-[10px] flex items-center">五</div>
+                      <div className="h-[10px]" /> {/* 六 */}
+                    </div>
                   </div>
-                  <div className="flex gap-[3px]">
-                    {githubCalendar.weeks.map((week, colIdx) => (
-                      <div key={`week-${colIdx}`} className="grid grid-rows-7 gap-[3px]">
-                        {week.map((cell, rowIdx) => (
-                          <div
-                            key={`cell-${colIdx}-${rowIdx}`}
-                            className="w-[10px] h-[10px] rounded-[2px]"
-                            style={{
-                              background: cell ? getGithubHeatColor(cell.count, githubCalendar.maxCount, isDark) : 'transparent',
-                            }}
-                            title={cell ? `${cell.date}: ${cell.count}${showUnit ? ` ${displayUnit}` : ''}` : ''}
-                          />
-                        ))}
-                      </div>
-                    ))}
+
+                  {/* 热度图主体 */}
+                  <div>
+                    {/* 月份标签 */}
+                    <div className="relative h-4 mb-1">
+                      {githubCalendar.monthLabels.map((m) => (
+                        <span
+                          key={`${m.label}-${m.col}`}
+                          className="absolute text-[10px]"
+                          style={{ left: `${m.col * 13}px`, color: textSecondary }}
+                        >
+                          {m.label}
+                        </span>
+                      ))}
+                    </div>
+                    {/* 方块网格 */}
+                    <div className="flex gap-[3px]">
+                      {githubCalendar.weeks.map((week, colIdx) => (
+                        <div key={`week-${colIdx}`} className="grid grid-rows-7 gap-[3px]">
+                          {week.map((cell, rowIdx) => (
+                            <div
+                              key={`cell-${colIdx}-${rowIdx}`}
+                              className="w-[10px] h-[10px] rounded-[2px]"
+                              style={{
+                                background: cell ? getGithubHeatColor(cell.count, githubCalendar.maxCount, isDark) : 'transparent',
+                              }}
+                              title={cell ? `${cell.date}: ${cell.count} 次打卡` : ''}
+                            />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-[10px]" style={{ color: textSecondary }}>
+                共 {records.length} 条记录 (近1年)
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px]" style={{ color: textSecondary }}>Less</span>
+                {[0, 1, 2, 3, 4].map((level) => (
+                  <div
+                    key={`legend-${level}`}
+                    className="w-[10px] h-[10px] rounded-[2px]"
+                    style={{ background: getGithubHeatColor(level, 4, isDark) }}
+                  />
+                ))}
+                <span className="text-[10px]" style={{ color: textSecondary }}>More</span>
               </div>
             </div>
           </div>
