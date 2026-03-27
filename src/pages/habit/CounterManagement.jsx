@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
+import { useHabitDelete } from '../../hooks/useHabitDelete'
 
 // ─────────────────────────────────────────────
 // 工具函数
@@ -326,6 +327,7 @@ export default function CounterManagement() {
     callNative,
     vibrate,
   } = useNativeBridge()
+  const { deleteHabit, isDeleting } = useHabitDelete({ type: 26, name: '指尖计数器' })
 
   const initialWebSettings = useMemo(() => readWebSettings() || {}, [])
 
@@ -354,7 +356,6 @@ export default function CounterManagement() {
     typeof initialWebSettings.useDemoData === 'boolean' ? initialWebSettings.useDemoData : false
   ))
   const [showSettings, setShowSettings] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
   const settingsLoadedRef = useRef(false)
 
   const pageTitle = '指尖计数器'
@@ -366,7 +367,8 @@ export default function CounterManagement() {
     settingsLoadedRef.current = true
     const rafId = window.requestAnimationFrame(() => {
       window.setTimeout(() => {
-        loadTodayCount()
+        // 优先从原生属性系统加载设置（跨设备同步），再加载今日计数
+        loadSettings().finally(() => loadTodayCount())
       }, 280)
     })
     return () => {
@@ -546,44 +548,8 @@ export default function CounterManagement() {
 
   const handleOpenSettings = () => {
     setShowSettings(true)
-    if (isInApp) {
-      window.setTimeout(() => {
-        loadSettings()
-      }, 0)
-    }
   }
 
-  const handleDeleteHabit = useCallback(async () => {
-    if (!isInApp || isDeleting) return
-    let confirmed = false
-    try {
-      const result = await callNative('ui.showConfirm', {
-        title: '删除指尖计数器',
-        message: '确定要删除「指尖计数器」吗？\n删除后该习惯及全部打卡记录将被清除，且无法恢复。',
-      })
-      confirmed = result?.confirmed === true
-    } catch (_) {
-      return
-    }
-    if (!confirmed) return
-    setIsDeleting(true)
-    try {
-      await callNative('ui.showLoading', { message: '删除中...' })
-      const result = await callNative('habit.deleteWithData', { type: 26 })
-      await callNative('ui.hideLoading', {})
-      if (result?.success) {
-        await showToast('「指尖计数器」已删除')
-        window.setTimeout(() => closePage(), 800)
-      } else {
-        await showToast('删除失败，请重试')
-      }
-    } catch (_) {
-      await callNative('ui.hideLoading', {})
-      await showToast('删除失败，请重试')
-    } finally {
-      setIsDeleting(false)
-    }
-  }, [isInApp, isDeleting, callNative, showToast, closePage])
 
   const handleFullScreenToggle = () => {
     setIsFullScreen((prev) => {
@@ -773,7 +739,7 @@ export default function CounterManagement() {
           </button>
 
           <button
-            onClick={() => handleDeleteHabit()}
+            onClick={deleteHabit}
             className="px-4 py-2 rounded-full text-xs font-medium"
             style={{ background: btnBg, color: isDark ? '#6b4444' : '#c8a0a0', opacity: isDeleting ? 0.6 : 1 }}
           >
