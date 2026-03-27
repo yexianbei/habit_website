@@ -123,6 +123,7 @@ export default function CounterIntro() {
         progressMode: 'counter',
         detailOpenMode: 'h5',
         h5Path: 'counter',
+        h5StatsPath: 'counter/stats',
         monthlyCell: { coloringMode: 'presence' },
         weeklyDot: { mode: 'presence' },
         widgets: [
