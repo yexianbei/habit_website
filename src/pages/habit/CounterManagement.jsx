@@ -85,10 +85,6 @@ function SettingsDrawer({
   onDailyGoalChange,
   totalGoal,
   onTotalGoalChange,
-  showHomeGoalProgress,
-  onShowHomeGoalProgressToggle,
-  useDemoData,
-  onUseDemoDataToggle,
   vibration,
   onVibrationToggle,
   isDark,
@@ -181,40 +177,6 @@ function SettingsDrawer({
               style={{ background: isDark ? '#2a2a3e' : '#f0efff', color: '#6C63FF' }}
             >＋</button>
           </div>
-        </div>
-
-        <div className="flex items-center justify-between py-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
-          <div>
-            <p className="text-sm font-medium" style={{ color: textColor }}>首页显示目标进度</p>
-            <p className="text-xs mt-0.5" style={{ color: subColor }}>默认关闭，仅在首页展示总目标进度条</p>
-          </div>
-          <button
-            onClick={onShowHomeGoalProgressToggle}
-            className="w-12 h-6 rounded-full relative transition-all"
-            style={{ background: showHomeGoalProgress ? '#6C63FF' : (isDark ? '#333' : '#ddd') }}
-          >
-            <span
-              className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
-              style={{ left: showHomeGoalProgress ? '26px' : '2px' }}
-            />
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between py-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
-          <div>
-            <p className="text-sm font-medium" style={{ color: textColor }}>演示数据</p>
-            <p className="text-xs mt-0.5" style={{ color: subColor }}>仅用于统计演示；关闭后使用客户端真实记录</p>
-          </div>
-          <button
-            onClick={onUseDemoDataToggle}
-            className="w-12 h-6 rounded-full relative transition-all"
-            style={{ background: useDemoData ? '#6C63FF' : (isDark ? '#333' : '#ddd') }}
-          >
-            <span
-              className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
-              style={{ left: useDemoData ? '26px' : '2px' }}
-            />
-          </button>
         </div>
 
         {/* 震动 */}
@@ -349,12 +311,6 @@ export default function CounterManagement() {
   ))
   const [dailyGoal, setDailyGoal] = useState(() => Math.max(1, parseInt(initialWebSettings.dailyGoal) || 10))
   const [totalGoal, setTotalGoal] = useState(() => Math.max(1, parseInt(initialWebSettings.totalGoal) || 100))
-  const [showHomeGoalProgress, setShowHomeGoalProgress] = useState(() => (
-    typeof initialWebSettings.showHomeGoalProgress === 'boolean' ? initialWebSettings.showHomeGoalProgress : false
-  ))
-  const [useDemoData, setUseDemoData] = useState(() => (
-    typeof initialWebSettings.useDemoData === 'boolean' ? initialWebSettings.useDemoData : false
-  ))
   const [showSettings, setShowSettings] = useState(false)
   const settingsLoadedRef = useRef(false)
 
@@ -387,10 +343,8 @@ export default function CounterManagement() {
       unitName,
       dailyGoal,
       totalGoal,
-      showHomeGoalProgress,
-      useDemoData,
     })
-  }, [step, vibrationEnabled, isDark, isFullScreen, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData])
+  }, [step, vibrationEnabled, isDark, isFullScreen, perClickRecord, showUnit, unitName, dailyGoal, totalGoal])
 
   const loadSettings = async () => {
     try {
@@ -405,8 +359,6 @@ export default function CounterManagement() {
         if (typeof res.unitName === 'string') setUnitName(res.unitName)
         if (res.dailyGoal) setDailyGoal(Math.max(1, parseInt(res.dailyGoal) || 10))
         if (res.totalGoal) setTotalGoal(Math.max(1, parseInt(res.totalGoal) || 100))
-        if (typeof res.showHomeGoalProgress === 'boolean') setShowHomeGoalProgress(res.showHomeGoalProgress)
-        if (typeof res.useDemoData === 'boolean') setUseDemoData(res.useDemoData)
       }
     } catch (e) {
       console.error('[CounterManagement] loadSettings error:', e)
@@ -476,66 +428,52 @@ export default function CounterManagement() {
   }
 
   // ── 保存设置 ──
-  const saveSettings = useCallback(async (newSettings) => {
+  const saveSettings = useCallback((updates) => {
     if (!isInApp) return
-    try {
-      await callNative('counter.updateSettings', newSettings)
-    } catch (e) {
+    callNative('counter.updateSettings', updates).catch((e) => {
       console.error('[CounterManagement] saveSettings error:', e)
-    }
+    })
   }, [isInApp, callNative])
 
   const handleStepChange = (newStep) => {
     setStep(newStep)
-    saveSettings({ step: newStep, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData })
+    saveSettings({ step: newStep, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal })
   }
 
   const handleDailyGoalChange = (newGoal) => {
     const next = Math.max(1, parseInt(newGoal) || 1)
     setDailyGoal(next)
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal: next, totalGoal, showHomeGoalProgress, useDemoData })
+    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal: next, totalGoal })
   }
 
   const handleTotalGoalChange = (newGoal) => {
     const next = Math.max(1, parseInt(newGoal) || 1)
     setTotalGoal(next)
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal: next, showHomeGoalProgress, useDemoData })
-  }
-
-  const handleShowHomeGoalProgressToggle = () => {
-    const next = !showHomeGoalProgress
-    setShowHomeGoalProgress(next)
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress: next, useDemoData })
-  }
-
-  const handleUseDemoDataToggle = () => {
-    const next = !useDemoData
-    setUseDemoData(next)
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData: next })
+    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal: next })
   }
 
   const handleVibrationToggle = () => {
     const next = !vibrationEnabled
     setVibrationEnabled(next)
-    saveSettings({ step, vibrationEnabled: next, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData })
+    saveSettings({ step, vibrationEnabled: next, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal })
   }
 
   const handleDarkToggle = () => {
     const next = !isDark
     setIsDark(next)
-    saveSettings({ step, vibrationEnabled, darkMode: next, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData })
+    saveSettings({ step, vibrationEnabled, darkMode: next, perClickRecord, showUnit, unitName, dailyGoal, totalGoal })
   }
 
   const handlePerClickRecordToggle = () => {
     const next = !perClickRecord
     setPerClickRecord(next)
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord: next, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData })
+    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord: next, showUnit, unitName, dailyGoal, totalGoal })
   }
 
   const handleShowUnitToggle = () => {
     const next = !showUnit
     setShowUnit(next)
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit: next, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData })
+    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit: next, unitName, dailyGoal, totalGoal })
   }
 
   const handleUnitNameChange = (val) => {
@@ -543,7 +481,7 @@ export default function CounterManagement() {
   }
 
   const handleUnitNameBlur = () => {
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData })
+    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal })
   }
 
   const handleOpenSettings = () => {
@@ -558,7 +496,7 @@ export default function CounterManagement() {
         setShowSettings(false)
       }
       if (isInApp) {
-        saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, isFullScreen: next, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress, useDemoData })
+        saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, isFullScreen: next, showUnit, unitName, dailyGoal, totalGoal })
       }
       return next
     })
@@ -580,8 +518,8 @@ export default function CounterManagement() {
   const textSecondary = isDark ? '#555' : '#9b96db'
   const btnBg = isDark ? '#1e1e32' : '#ebe9ff'
   const btnText = isDark ? '#666' : '#7a75d6'
+  const dailyProgress = Math.min(100, (count / Math.max(1, dailyGoal)) * 100)
   const displayUnit = (unitName && unitName.trim()) ? unitName.trim() : '次'
-  const totalProgress = Math.min(100, Math.round((count / Math.max(1, totalGoal)) * 100))
 
   return (
     <div
@@ -670,17 +608,7 @@ export default function CounterManagement() {
         <div className="text-xs mb-8" style={{ color: textSecondary }}>
           今日累计{showUnit ? `（${displayUnit}）` : ''} · 每次 +{step}{showUnit ? ` ${displayUnit}` : ''}
         </div>
-        {showHomeGoalProgress && (
-          <div className="w-full max-w-xs mb-8">
-            <div className="flex items-center justify-between text-xs mb-1" style={{ color: textSecondary }}>
-              <span>总目标进度</span>
-              <span>{count}/{totalGoal}{showUnit ? ` ${displayUnit}` : ''}</span>
-            </div>
-            <div className="h-2 rounded-full" style={{ background: isDark ? '#2a2a3e' : '#e7e4ff' }}>
-              <div className="h-2 rounded-full" style={{ width: `${totalProgress}%`, background: '#6C63FF' }} />
-            </div>
-          </div>
-        )}
+
 
         {/* 主计数按钮（全屏时隐藏，但保留占位防布局跳动） */}
         <button
@@ -720,25 +648,6 @@ export default function CounterManagement() {
           </button>
 
           <button
-            onClick={() => {
-              const next = step === 1 ? 5 : step === 5 ? 10 : 1
-              handleStepChange(next)
-            }}
-            className="px-4 py-2 rounded-full text-xs font-medium"
-            style={{ background: btnBg, color: btnText }}
-          >
-            步长 {step}
-          </button>
-
-          <button
-            onClick={() => navigate('/habit/counter/stats')}
-            className="px-4 py-2 rounded-full text-xs font-medium"
-            style={{ background: btnBg, color: btnText }}
-          >
-            高级统计
-          </button>
-
-          <button
             onClick={deleteHabit}
             className="px-4 py-2 rounded-full text-xs font-medium"
             style={{ background: btnBg, color: isDark ? '#6b4444' : '#c8a0a0', opacity: isDeleting ? 0.6 : 1 }}
@@ -768,10 +677,6 @@ export default function CounterManagement() {
         onDailyGoalChange={handleDailyGoalChange}
         totalGoal={totalGoal}
         onTotalGoalChange={handleTotalGoalChange}
-        showHomeGoalProgress={showHomeGoalProgress}
-        onShowHomeGoalProgressToggle={handleShowHomeGoalProgressToggle}
-        useDemoData={useDemoData}
-        onUseDemoDataToggle={handleUseDemoDataToggle}
         vibration={vibrationEnabled}
         onVibrationToggle={handleVibrationToggle}
         isDark={isDark}

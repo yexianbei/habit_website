@@ -315,7 +315,7 @@ function buildGithubCalendarData(records, days = 365) {
 
 export default function CounterAdvancedStats() {
   const navigate = useNavigate()
-  const { isInApp, setTitle, callNative } = useNativeBridge()
+  const { isInApp, setTitle, callNative, showDatePicker } = useNativeBridge()
 
   const [rangeDays, setRangeDays] = useState(90)
   const defaultRange = useMemo(() => getDefaultDateRange(90), [])
@@ -472,6 +472,23 @@ export default function CounterAdvancedStats() {
   const buttonSoftText = isDark ? '#b7b1ff' : '#7a75d6'
   const gridLine = isDark ? '#2d2d45' : '#f0efff'
 
+  const handlePickDate = async (current, setter) => {
+    if (isInApp && showDatePicker) {
+      try {
+        const result = await showDatePicker({
+          current,
+          min: '2020-01-01',
+          max: formatDate(new Date()),
+        })
+        if (result && result.date) {
+          setter(result.date)
+        }
+      } catch (e) {
+        console.error('[CounterStats] showDatePicker error:', e)
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen px-4 pb-10" style={{ background: pageBg }}>
       <div className="sticky top-0 z-20 py-4" style={{ background: headerBg, backdropFilter: 'blur(8px)' }}>
@@ -528,23 +545,47 @@ export default function CounterAdvancedStats() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <div className="text-xs mb-1" style={{ color: textSecondary }}>开始日期</div>
-              <input
-                type="date"
-                value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
-                className="w-full rounded-lg px-3 py-2 text-sm"
-                style={{ border: `1px solid ${borderSoft}`, color: textPrimary, background: isDark ? '#202034' : '#fff' }}
-              />
+              <div className="relative">
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  onClick={(e) => {
+                    if (isInApp) {
+                      e.preventDefault()
+                      handlePickDate(customStartDate, setCustomStartDate)
+                    } else if (e.target.showPicker) {
+                      try { e.target.showPicker() } catch (err) {}
+                    }
+                  }}
+                  readOnly={isInApp}
+                  className="w-full rounded-lg px-3 py-2 text-sm appearance-none"
+                  style={{ border: `1px solid ${borderSoft}`, color: textPrimary, background: isDark ? '#202034' : '#fff' }}
+                />
+                {!isInApp && <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs" style={{ color: textSecondary }}>📅</div>}
+              </div>
             </div>
             <div>
               <div className="text-xs mb-1" style={{ color: textSecondary }}>结束日期</div>
-              <input
-                type="date"
-                value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
-                className="w-full rounded-lg px-3 py-2 text-sm"
-                style={{ border: `1px solid ${borderSoft}`, color: textPrimary, background: isDark ? '#202034' : '#fff' }}
-              />
+              <div className="relative">
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  onClick={(e) => {
+                    if (isInApp) {
+                      e.preventDefault()
+                      handlePickDate(customEndDate, setCustomEndDate)
+                    } else if (e.target.showPicker) {
+                      try { e.target.showPicker() } catch (err) {}
+                    }
+                  }}
+                  readOnly={isInApp}
+                  className="w-full rounded-lg px-3 py-2 text-sm appearance-none"
+                  style={{ border: `1px solid ${borderSoft}`, color: textPrimary, background: isDark ? '#202034' : '#fff' }}
+                />
+                {!isInApp && <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-xs" style={{ color: textSecondary }}>📅</div>}
+              </div>
             </div>
           </div>
         </div>
