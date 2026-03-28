@@ -113,6 +113,16 @@ export default function CounterIntro() {
           config: { defaultValue: false, trueLabel: '开启', falseLabel: '关闭' },
         },
         {
+          id: 'counter_per_click_record', key: 'counter_per_click_record', name: '每次点击生成记录', type: 5, scope: 1,
+          position: 4, required: false,
+          config: {
+            defaultValue: false,
+            trueLabel: '开启',
+            falseLabel: '关闭',
+            helpText: '开启后每次 + 步长都会新增一条记录；关闭则当天共用一条（与 CounterManagement 设置一致）',
+          },
+        },
+        {
           id: 'counter_step_log', key: 'counter_step', name: '本次步长', type: 1, scope: 2,
           position: 10, required: true,
           config: { defaultValue: 1, minValue: 1, maxValue: 100, decimalPlaces: 0, showInList: true, showInStats: true },

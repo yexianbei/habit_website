@@ -350,7 +350,10 @@ export default function CounterManagement() {
     try {
       const res = await callNative('counter.getSettings', {})
       if (res) {
-        if (res.step) setStep(Math.max(1, parseInt(res.step) || 1))
+        if (res.step !== undefined && res.step !== null) {
+          const s = parseInt(res.step, 10)
+          if (!Number.isNaN(s)) setStep(Math.max(1, s))
+        }
         if (typeof res.vibrationEnabled === 'boolean') setVibrationEnabled(res.vibrationEnabled)
         if (typeof res.darkMode === 'boolean') setIsDark(res.darkMode)
         if (typeof res.isFullScreen === 'boolean') setIsFullScreen(res.isFullScreen)
@@ -374,7 +377,10 @@ export default function CounterManagement() {
         endDate: today,
       })
       const list = Array.isArray(res?.records) ? res.records : []
-      const todayTotal = list.reduce((s, r) => s + (r.step || 1), 0)
+      const todayTotal = list.reduce((s, r) => {
+        const n = Number(r?.step)
+        return s + (Number.isFinite(n) ? n : 0)
+      }, 0)
       setCount(todayTotal)
       writeWebTodayCount(todayTotal)
     } catch (e) {
