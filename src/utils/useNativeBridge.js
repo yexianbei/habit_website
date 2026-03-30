@@ -43,22 +43,14 @@ export function useNativeBridge() {
     cancelCheckIn: bridge.cancelCheckIn.bind(bridge),
     getCheckInRecords: bridge.getCheckInRecords.bind(bridge),
     
-    // 经期管理
-    savePeriodRecord: bridge.savePeriodRecord.bind(bridge),
-    getPeriodRecords: bridge.getPeriodRecords.bind(bridge),
-    predictNextPeriod: bridge.predictNextPeriod.bind(bridge),
-    setPeriodReminder: bridge.setPeriodReminder.bind(bridge),
-    getPeriodSettings: bridge.getPeriodSettings.bind(bridge),
-    updatePeriodSettings: bridge.updatePeriodSettings.bind(bridge),
+    // B 层 eventAttr（docs/platform/bridge-api.md）
+    getHabitAttrs: bridge.getHabitAttrs.bind(bridge),
+    setHabitAttrs: bridge.setHabitAttrs.bind(bridge),
+    saveLog: bridge.saveLog.bind(bridge),
+    getLogAttrs: bridge.getLogAttrs.bind(bridge),
+    queryLogs: bridge.queryLogs.bind(bridge),
+    deleteLog: bridge.deleteLog.bind(bridge),
 
-    // 指尖计数器
-    saveCounterRecord: bridge.saveCounterRecord.bind(bridge),
-    getCounterRecords: bridge.getCounterRecords.bind(bridge),
-    deleteCounterRecord: bridge.deleteCounterRecord.bind(bridge),
-    getCounterSettings: bridge.getCounterSettings.bind(bridge),
-    updateCounterSettings: bridge.updateCounterSettings.bind(bridge),
-    getCounterStatistics: bridge.getCounterStatistics.bind(bridge),
-    
     // 用户相关
     getUserInfo: bridge.getUserInfo.bind(bridge),
     isVIP: bridge.isVIP.bind(bridge),
@@ -175,12 +167,14 @@ export function useHabitList(params = {}) {
 }
 
 /**
- * 获取经期记录的 Hook
+ * 按日期范围查询日志（B 层 eventAttr.log.query）
  */
-export function usePeriodRecords(startDate, endDate) {
-  return useNativeCall('period.getRecords', { startDate, endDate }, { 
-    immediate: !!(startDate && endDate) 
-  })
+export function useLogQuery(startDate, endDate, options = {}) {
+  return useNativeCall(
+    'eventAttr.log.query',
+    { startDate, endDate, ...options },
+    { immediate: !!(startDate && endDate) },
+  )
 }
 
 export default useNativeBridge

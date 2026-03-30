@@ -8,6 +8,14 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useNativeBridge, useNativeEvent } from '../../utils/useNativeBridge'
 import { useWechatShare } from '../../hooks/useShare'
 import { useHabitDelete } from '../../hooks/useHabitDelete'
+import {
+  fetchPeriodSettings,
+  fetchPeriodRecords,
+  predictNextPeriod,
+  savePeriodRecord,
+  deletePeriodDay,
+  updatePeriodSettings,
+} from '../../utils/periodEventAttr'
 
 // ============ 常量定义 ============
 
@@ -898,11 +906,16 @@ const MoodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
 const SettingsModal = ({ isOpen, onClose, config, onSave }) => {
   const [cycleLen, setCycleLen] = useState(28)
   const [periodLen, setPeriodLen] = useState(5)
-  
+  const [reminderEnabled, setReminderEnabled] = useState(false)
+  const [reminderAdvance, setReminderAdvance] = useState(3)
+
   useEffect(() => {
     if (isOpen) {
       setCycleLen(config.cycleLen || 28)
       setPeriodLen(config.periodLen || 5)
+      setReminderEnabled(config.reminderEnabled === true)
+      const adv = Number(config.reminderAdvance)
+      setReminderAdvance(Number.isFinite(adv) ? Math.min(7, Math.max(1, adv)) : 3)
     }
   }, [isOpen, config])
   
@@ -921,10 +934,42 @@ const SettingsModal = ({ isOpen, onClose, config, onSave }) => {
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-pink-200">
             <span className="text-3xl">⚙️</span>
           </div>
-          <h2 className="font-bold text-xl text-gray-800">周期设置</h2>
+          <h2 className="font-bold text-xl text-gray-800">周期与提醒</h2>
         </div>
         
         <div className="space-y-5">
+          <div className="flex items-center justify-between py-1">
+            <div>
+              <p className="text-sm font-medium text-gray-700">经期提醒</p>
+              <p className="text-xs text-gray-400 mt-0.5">将偏好写入习惯配置（推送能力依赖系统与客户端）</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setReminderEnabled((v) => !v)}
+              className={`w-12 h-6 rounded-full relative transition-all ${reminderEnabled ? 'bg-pink-500' : 'bg-gray-200'}`}
+            >
+              <span
+                className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
+                style={{ left: reminderEnabled ? '26px' : '2px' }}
+              />
+            </button>
+          </div>
+          {reminderEnabled && (
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">提前几天提醒</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="range"
+                  min="1"
+                  max="7"
+                  value={reminderAdvance}
+                  onChange={(e) => setReminderAdvance(parseInt(e.target.value, 10))}
+                  className="flex-1 h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-pink-500"
+                />
+                <span className="w-12 text-center font-bold text-pink-500">{reminderAdvance} 天</span>
+              </div>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">经期长度</label>
             <div className="flex items-center gap-3">
@@ -955,7 +1000,7 @@ const SettingsModal = ({ isOpen, onClose, config, onSave }) => {
             取消
           </button>
           <button 
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onSave(cycleLen, periodLen), 50); }}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onSave(cycleLen, periodLen, reminderEnabled, reminderAdvance), 50); }}
             className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium shadow-lg shadow-pink-200 active:scale-98"
           >
             保存
@@ -1069,7 +1114,12 @@ export default function PeriodManagement() {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [periodLogs, setPeriodLogs] = useState([])
   const [predictions, setPredictions] = useState(null)
-  const [config, setConfig] = useState({ cycleLen: 28, periodLen: 5 })
+  const [config, setConfig] = useState({
+    cycleLen: 28,
+    periodLen: 5,
+    reminderEnabled: false,
+    reminderAdvance: 3,
+  })
   const [lastPeriodStart, setLastPeriodStart] = useState(null)
   const [showPeriodModal, setShowPeriodModal] = useState(false)
   const [showLoveModal, setShowLoveModal] = useState(false)
@@ -1121,17 +1171,32 @@ export default function PeriodManagement() {
   
   const loadConfig = async () => {
     try {
-      const result = await callNative('period.getSettings')
+      const result = await fetchPeriodSettings(callNative)
       if (result) {
-        setConfig({ cycleLen: result.cycleLength || 28, periodLen: result.periodLength || 5 })
+        setConfig({
+          cycleLen: result.cycleLength || 28,
+          periodLen: result.periodLength || 5,
+          reminderEnabled: result.reminderEnabled === true,
+          reminderAdvance: Number.isFinite(Number(result.reminderAdvance))
+            ? Math.min(7, Math.max(1, Number(result.reminderAdvance)))
+            : 3,
+        })
       } else {
-        // 如果没有返回结果，使用默认值
-        setConfig({ cycleLen: 28, periodLen: 5 })
+        setConfig({
+          cycleLen: 28,
+          periodLen: 5,
+          reminderEnabled: false,
+          reminderAdvance: 3,
+        })
       }
-    } catch (e) { 
+    } catch (e) {
       console.error('加载配置失败:', e)
-      // 配置加载失败时使用默认值，不阻塞页面显示
-      setConfig({ cycleLen: 28, periodLen: 5 })
+      setConfig({
+        cycleLen: 28,
+        periodLen: 5,
+        reminderEnabled: false,
+        reminderAdvance: 3,
+      })
     }
   }
   
@@ -1145,39 +1210,32 @@ export default function PeriodManagement() {
       const startDate = formatDate(new Date(year, month - 1, 1))
       const endDate = formatDate(new Date(year, month + 2, 0))
       
-      const result = await callNative('period.getRecords', { startDate, endDate })
+      const result = await fetchPeriodRecords(callNative, startDate, endDate)
+      const lastStartStr = result?.lastPeriodStart || null
       if (result?.records) {
         setPeriodLogs(result.records)
-        if (result.lastPeriodStart) setLastPeriodStart(parseDate(result.lastPeriodStart))
-        // 如果没有任何"经期开始"数据，引导用户先做初始化（不强制结束时间）
-        // 但如果带了 skipOnboarding=1，则尊重用户"稍后再填"的选择，不再强制跳转
-        if (!result.lastPeriodStart && !skipOnboarding) {
+        if (lastStartStr) setLastPeriodStart(parseDate(lastStartStr))
+        if (!lastStartStr && !skipOnboarding) {
           navigate('/habit/period/onboarding', { replace: true })
           return
         }
       } else {
-        // 如果没有返回记录，初始化为空数组
         setPeriodLogs([])
       }
-      
-      // 只有在已初始化（有 lastPeriodStart）时才获取预测
-      const hasInitialized = !!(result?.lastPeriodStart || lastPeriodStart)
-      if (hasInitialized) {
+
+      if (lastStartStr) {
         try {
-          const pred = await callNative('period.predict')
-          // 只有当 hasData 为 true 时才设置预测数据
+          const pred = await predictNextPeriod(callNative)
           if (pred?.hasData === true) {
             setPredictions(pred)
           } else {
             setPredictions(null)
           }
         } catch (e) {
-          // 预测失败不影响主页面显示
           console.error('获取预测失败:', e)
           setPredictions(null)
         }
       } else {
-        // 没有初始化时，清空预测数据，不显示任何预测信息
         setPredictions(null)
       }
     } catch (e) { 
@@ -1460,9 +1518,11 @@ export default function PeriodManagement() {
       const saveDate = data.date ? data.date : formatDate(selectedDate)
       // 从 data 中移除 date、createTime，避免保存到 details 中
       const { date, createTime, ...detailsData } = data
-      const payload = { date: saveDate, details: JSON.stringify(detailsData) }
-      if (createTime != null) payload.createTime = createTime
-      await callNative('period.save', payload)
+      await savePeriodRecord(callNative, {
+        date: saveDate,
+        details: detailsData,
+        createTime: createTime != null ? createTime : undefined,
+      })
       await hideLoading()
       await showToast('保存成功')
       setShowPeriodModal(false)
@@ -1478,7 +1538,7 @@ export default function PeriodManagement() {
   const handleDeleteRecord = async (dateStr) => {
     try {
       const toDelete = dateStr != null ? dateStr : formatDate(selectedDate)
-      await callNative('period.delete', { date: toDelete })
+      await deletePeriodDay(callNative, toDelete)
       await showToast('已删除')
       setShowPeriodModal(false)
       setShowLoveModal(false)
@@ -1486,10 +1546,20 @@ export default function PeriodManagement() {
     } catch (e) { await showToast('删除失败: ' + e.message) }
   }
   
-  const handleSaveSettings = async (cycleLen, periodLen) => {
+  const handleSaveSettings = async (cycleLen, periodLen, reminderEnabled, reminderAdvance) => {
     try {
-      await callNative('period.updateSettings', { cycleLength: cycleLen, periodLength: periodLen })
-      setConfig({ cycleLen, periodLen })
+      await updatePeriodSettings(callNative, {
+        cycleLength: cycleLen,
+        periodLength: periodLen,
+        reminderEnabled,
+        reminderAdvance,
+      })
+      setConfig({
+        cycleLen,
+        periodLen,
+        reminderEnabled,
+        reminderAdvance: Math.min(7, Math.max(1, Number(reminderAdvance) || 3)),
+      })
       setShowSettingsModal(false)
       await showToast('设置已保存')
       loadData()

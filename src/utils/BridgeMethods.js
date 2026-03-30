@@ -20,18 +20,6 @@ export const HABIT = {
   GET_STATISTICS: 'habit.getStatistics', // 获取统计数据
 }
 
-// ============ 经期管理模块 ============
-export const PERIOD = {
-  SAVE: 'period.save',              // 保存经期记录
-  GET_RECORDS: 'period.getRecords', // 获取经期记录
-  DELETE_RECORD: 'period.deleteRecord', // 删除经期记录
-  PREDICT: 'period.predict',        // 预测下次经期
-  SET_REMINDER: 'period.setReminder', // 设置提醒
-  GET_SETTINGS: 'period.getSettings', // 获取设置
-  UPDATE_SETTINGS: 'period.updateSettings', // 更新设置
-  GET_ANALYSIS: 'period.getAnalysis', // 获取经期分析
-}
-
 // ============ 用户模块 ============
 export const USER = {
   GET_INFO: 'user.getInfo',         // 获取用户信息
@@ -89,15 +77,14 @@ export const NOTIFICATION = {
   CANCEL_ALL: 'notification.cancelAll', // 取消所有通知
 }
 
-// ============ 指尖计数器模块 ============
-export const COUNTER = {
-  SAVE: 'counter.save',              // 保存一次计数记录
-  GET_RECORDS: 'counter.getRecords', // 获取计数记录列表
-  DELETE_RECORD: 'counter.deleteRecord', // 删除计数记录
-  GET_SETTINGS: 'counter.getSettings', // 获取计数器设置（步长、震动、主题）
-  UPDATE_SETTINGS: 'counter.updateSettings', // 更新计数器设置
-  GET_STATISTICS: 'counter.getStatistics', // 获取统计数据（时段/周/月分布）
-  RESET_TODAY: 'counter.resetToday', // 重置今日计数
+// ============ 通用属性模块（B 层核心） ============
+export const EVENT_ATTR = {
+  HABIT_GET: 'eventAttr.habit.get',     // 读取习惯级属性值
+  HABIT_SET: 'eventAttr.habit.set',     // 写入习惯级属性值
+  LOG_SAVE: 'eventAttr.log.save',       // 保存打卡记录（日志锚点 + 属性值）
+  LOG_GET: 'eventAttr.log.get',         // 读取某条/某天日志的属性值
+  LOG_QUERY: 'eventAttr.log.query',     // 按日期范围查询日志列表
+  LOG_DELETE: 'eventAttr.log.delete',   // 删除日志
 }
 
 // ============ 调试模块 ============
@@ -138,8 +125,7 @@ export const EVENTS = {
 // 导出所有
 export default {
   HABIT,
-  PERIOD,
-  COUNTER,
+  EVENT_ATTR,
   USER,
   UI,
   DEVICE,

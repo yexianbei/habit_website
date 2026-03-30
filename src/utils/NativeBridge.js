@@ -168,7 +168,7 @@ class NativeBridge {
     return new Promise((resolve, reject) => {
       // Flutter 习惯库 WebView：只注入 JavaScriptChannel「NativeBridge」+ window.callNative polyfill，
       // 没有 webkit.messageHandlers.HabitBridge / JSBridge.invoke。旧逻辑会误判为浏览器并走降级，
-      // period.save / period.updateSettings 等不会真正进原生（表现为初始化写不进去）。
+      // eventAttr.* / habit.* 等需走真实容器；勿误判为纯浏览器导致写库失败。
       if (
         typeof window !== 'undefined' &&
         window.__nativeBridgeReady &&
@@ -311,21 +311,6 @@ class NativeBridge {
           window.close()
         }
         resolve(true)
-        break
-      
-      case 'period.getSettings':
-        // 经期设置降级：返回默认值
-        resolve({ cycleLength: 28, periodLength: 5 })
-        break
-      
-      case 'period.getRecords':
-        // 经期记录降级：返回空记录
-        resolve({ records: [], lastPeriodStart: null })
-        break
-      
-      case 'period.predict':
-        // 经期预测降级：返回无数据
-        resolve({ hasData: false })
         break
       
       default:
@@ -508,102 +493,64 @@ class NativeBridge {
     return this.callNative('habit.getRecords', { habitId, startDate, endDate })
   }
 
-  // ==================== 经期管理便捷方法 ====================
+  // ==================== 通用属性便捷方法（B 层核心） ====================
 
   /**
-   * 保存经期记录
-   * @param {object} record - 经期记录
+   * 读取习惯级属性值
+   * @param {string[]} keys - 属性 key 列表
+   * @param {string} [habitId] - 习惯ID，省略则使用上下文
    */
-  savePeriodRecord(record) {
-    return this.callNative('period.save', record)
+  getHabitAttrs(keys, habitId) {
+    const params = { keys }
+    if (habitId) params.habitId = habitId
+    return this.callNative('eventAttr.habit.get', params)
   }
 
   /**
-   * 获取经期记录
-   * @param {string} startDate - 开始日期 (YYYY-MM-DD)
-   * @param {string} endDate - 结束日期 (YYYY-MM-DD)
+   * 写入习惯级属性值
+   * @param {Array<{attributeKey: string, attributeValue: string, attributeType?: number}>} attributes
+   * @param {string} [habitId]
    */
-  getPeriodRecords(startDate, endDate) {
-    return this.callNative('period.getRecords', { startDate, endDate })
+  setHabitAttrs(attributes, habitId) {
+    const params = { attributes }
+    if (habitId) params.habitId = habitId
+    return this.callNative('eventAttr.habit.set', params)
   }
 
   /**
-   * 预测下次经期
+   * 保存打卡记录
+   * @param {string} date - 日期 YYYY-MM-DD
+   * @param {Array<{attributeKey: string, attributeValue: string, attributeType?: number}>} attributes
+   * @param {object} [options] - { habitId?, mergePolicy?, createTime?, removeAttributeKeys? }
    */
-  predictNextPeriod() {
-    return this.callNative('period.predict')
+  saveLog(date, attributes, options = {}) {
+    return this.callNative('eventAttr.log.save', { date, attributes, ...options })
   }
 
   /**
-   * 设置经期提醒
-   * @param {object} settings - 提醒设置
+   * 读取日志属性值
+   * @param {object} params - { logId?, date?, keys?, habitId? }
    */
-  setPeriodReminder(settings) {
-    return this.callNative('period.setReminder', settings)
+  getLogAttrs(params) {
+    return this.callNative('eventAttr.log.get', params)
   }
 
   /**
-   * 获取经期设置
+   * 按日期范围查询日志列表
+   * @param {string} startDate
+   * @param {string} endDate
+   * @param {object} [options] - { keys?, limit?, offset?, habitId? }
    */
-  getPeriodSettings() {
-    return this.callNative('period.getSettings')
+  queryLogs(startDate, endDate, options = {}) {
+    return this.callNative('eventAttr.log.query', { startDate, endDate, ...options })
   }
 
   /**
-   * 更新经期设置
-   * @param {object} settings - 设置数据
+   * 删除日志
+   * @param {object} params - { logId?, date?, habitId? }
    */
-  updatePeriodSettings(settings) {
-    return this.callNative('period.updateSettings', settings)
-  }
-
-  // ==================== 指尖计数器便捷方法 ====================
-
-  /**
-   * 保存一次计数记录
-   * @param {{ date: string, count: number, step: number, createTime?: number }} record
-   */
-  saveCounterRecord(record) {
-    return this.callNative('counter.save', record)
-  }
-
-  /**
-   * 获取计数记录列表
-   * @param {{ startDate: string, endDate: string }} params
-   */
-  getCounterRecords(params) {
-    return this.callNative('counter.getRecords', params)
-  }
-
-  /**
-   * 删除计数记录
-   * @param {{ recordId: string }} params
-   */
-  deleteCounterRecord(params) {
-    return this.callNative('counter.deleteRecord', params)
-  }
-
-  /**
-   * 获取计数器设置
-   */
-  getCounterSettings() {
-    return this.callNative('counter.getSettings', {})
-  }
-
-  /**
-   * 更新计数器设置
-   * @param {{ step?: number, vibrationEnabled?: boolean, darkMode?: boolean }} settings
-   */
-  updateCounterSettings(settings) {
-    return this.callNative('counter.updateSettings', settings)
-  }
-
-  /**
-   * 获取统计数据（时段/周/月分布）
-   * @param {{ habitId?: string }} params
-   */
-  getCounterStatistics(params = {}) {
-    return this.callNative('counter.getStatistics', params)
+  deleteLog(params) {
+    return this.callNative('eventAttr.log.delete', params)
   }
 
   // ==================== 用户相关便捷方法 ====================

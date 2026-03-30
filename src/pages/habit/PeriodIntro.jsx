@@ -5,6 +5,12 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
+import { PresentationKind } from '../../constants/presentationKind'
+import {
+  HABIT_TYPE_H5,
+  HABIT_SUBTYPE_PERIOD,
+} from '../../constants/platformHabit'
+import { hasPeriodHabit } from '../../utils/platformHabitExists'
 import FloatingBackButton from '../../components/FloatingBackButton'
 
 // 功能特点数据
@@ -63,12 +69,10 @@ export default function PeriodIntro() {
   
   const checkIfAdded = async () => {
     if (!isInApp) return
-    
+
     try {
-      const result = await callNative('habit.getList', { type: 16 })
-      if (result?.habits && result.habits.length > 0) {
-        setHasAdded(true)
-      }
+      const exists = await hasPeriodHabit(callNative)
+      if (exists) setHasAdded(true)
     } catch (error) {
       console.error('检查习惯失败:', error)
     }
@@ -134,14 +138,24 @@ export default function PeriodIntro() {
         },
       ]
 
-      // 创建经期管理习惯，携带 displayConfig + computations 供客户端写入 conditionValue
+      const conditionValue = {
+        presentationKind: PresentationKind.RECORD,
+        habitSubType: HABIT_SUBTYPE_PERIOD,
+        displayConfig,
+        computations,
+      }
+
+      // H5 统一 type + habitSubType；无 customAttributeDefines 时原生合并经期模板（HabitBridgeHandler）
       const result = await callNative('habit.create', {
-        type: 16,
+        type: HABIT_TYPE_H5,
         name: '经期管理',
         icon: 'emoji:🌸',
         emojiIcon: '🌸',
         bgColor: '#FF6B8A',
         description: '记录和预测经期，关爱女性健康',
+        presentationKind: PresentationKind.RECORD,
+        habitSubType: HABIT_SUBTYPE_PERIOD,
+        conditionValue,
         displayConfig,
         computations,
       })
@@ -267,7 +281,7 @@ export default function PeriodIntro() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-pink-500 mt-0.5">•</span>
-              <span>支持设置周期长度和经期长度</span>
+              <span>支持设置周期长度、经期长度及经期提醒偏好（主页面「周期设置」）</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-pink-500 mt-0.5">•</span>

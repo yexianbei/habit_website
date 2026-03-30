@@ -7,6 +7,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import { useHabitDelete } from '../../hooks/useHabitDelete'
+import { resolveFingerCounterHabitId } from '../../utils/platformHabitExists'
+import {
+  fetchCounterSettingsViaEventAttr,
+  saveCounterSettingsViaEventAttr,
+  fetchTodayCounterTotalViaEventAttr,
+  saveCounterIncrementViaEventAttr,
+  deleteCounterLogsForDateViaEventAttr,
+} from '../../utils/counterEventAttr'
 
 // ─────────────────────────────────────────────
 // 工具函数
@@ -96,6 +104,8 @@ function SettingsDrawer({
   unitName,
   onUnitNameChange,
   onUnitNameBlur,
+  showHomeGoalProgress,
+  onShowHomeGoalProgressToggle,
 }) {
   if (!visible) return null
 
@@ -267,6 +277,23 @@ function SettingsDrawer({
           </div>
         </div>
 
+        <div className="flex items-center justify-between py-4" style={{ borderTop: `1px solid ${borderColor}` }}>
+          <div>
+            <p className="text-sm font-medium" style={{ color: textColor }}>首页显示总目标进度</p>
+            <p className="text-xs mt-0.5" style={{ color: subColor }}>在习惯列表卡片上展示累计进度（依赖客户端展示配置）</p>
+          </div>
+          <button
+            onClick={onShowHomeGoalProgressToggle}
+            className="w-12 h-6 rounded-full relative transition-all"
+            style={{ background: showHomeGoalProgress ? '#6C63FF' : (isDark ? '#333' : '#ddd') }}
+          >
+            <span
+              className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
+              style={{ left: showHomeGoalProgress ? '26px' : '2px' }}
+            />
+          </button>
+        </div>
+
         <div className="h-safe-bottom" style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
       </div>
     </div>
@@ -289,7 +316,14 @@ export default function CounterManagement() {
     callNative,
     vibrate,
   } = useNativeBridge()
-  const { deleteHabit, isDeleting } = useHabitDelete({ type: 26, name: '指尖计数器' })
+  const resolveCounterHabitId = useCallback(
+    () => resolveFingerCounterHabitId(callNative),
+    [callNative],
+  )
+  const { deleteHabit, isDeleting } = useHabitDelete({
+    name: '指尖计数器',
+    resolveHabitId: resolveCounterHabitId,
+  })
 
   const initialWebSettings = useMemo(() => readWebSettings() || {}, [])
 
@@ -311,6 +345,9 @@ export default function CounterManagement() {
   ))
   const [dailyGoal, setDailyGoal] = useState(() => Math.max(1, parseInt(initialWebSettings.dailyGoal) || 10))
   const [totalGoal, setTotalGoal] = useState(() => Math.max(1, parseInt(initialWebSettings.totalGoal) || 100))
+  const [showHomeGoalProgress, setShowHomeGoalProgress] = useState(() => (
+    typeof initialWebSettings.showHomeGoalProgress === 'boolean' ? initialWebSettings.showHomeGoalProgress : false
+  ))
   const [showSettings, setShowSettings] = useState(false)
   const settingsLoadedRef = useRef(false)
 
@@ -343,12 +380,13 @@ export default function CounterManagement() {
       unitName,
       dailyGoal,
       totalGoal,
+      showHomeGoalProgress,
     })
-  }, [step, vibrationEnabled, isDark, isFullScreen, perClickRecord, showUnit, unitName, dailyGoal, totalGoal])
+  }, [step, vibrationEnabled, isDark, isFullScreen, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress])
 
   const loadSettings = async () => {
     try {
-      const res = await callNative('counter.getSettings', {})
+      const res = await fetchCounterSettingsViaEventAttr(callNative)
       if (res) {
         if (res.step !== undefined && res.step !== null) {
           const s = parseInt(res.step, 10)
@@ -360,8 +398,9 @@ export default function CounterManagement() {
         if (typeof res.perClickRecord === 'boolean') setPerClickRecord(res.perClickRecord)
         if (typeof res.showUnit === 'boolean') setShowUnit(res.showUnit)
         if (typeof res.unitName === 'string') setUnitName(res.unitName)
-        if (res.dailyGoal) setDailyGoal(Math.max(1, parseInt(res.dailyGoal) || 10))
-        if (res.totalGoal) setTotalGoal(Math.max(1, parseInt(res.totalGoal) || 100))
+        if (res.dailyGoal) setDailyGoal(Math.max(1, parseInt(res.dailyGoal, 10) || 10))
+        if (res.totalGoal) setTotalGoal(Math.max(1, parseInt(res.totalGoal, 10) || 100))
+        if (typeof res.showHomeGoalProgress === 'boolean') setShowHomeGoalProgress(res.showHomeGoalProgress)
       }
     } catch (e) {
       console.error('[CounterManagement] loadSettings error:', e)
@@ -372,15 +411,7 @@ export default function CounterManagement() {
     try {
       if (!isInApp) return
       const today = todayStr()
-      const res = await callNative('counter.getRecords', {
-        startDate: today,
-        endDate: today,
-      })
-      const list = Array.isArray(res?.records) ? res.records : []
-      const todayTotal = list.reduce((s, r) => {
-        const n = Number(r?.step)
-        return s + (Number.isFinite(n) ? n : 0)
-      }, 0)
+      const todayTotal = await fetchTodayCounterTotalViaEventAttr(callNative, today)
       setCount(todayTotal)
       writeWebTodayCount(todayTotal)
     } catch (e) {
@@ -401,17 +432,11 @@ export default function CounterManagement() {
     if (!isInApp) return
 
     try {
-      const baseRecord = {
+      await saveCounterIncrementViaEventAttr(callNative, {
         date: todayStr(),
         step,
-        count: newCount,
-      }
-
-      const record = perClickRecord
-        ? { ...baseRecord, createTime: Date.now() }
-        : { ...baseRecord }
-
-      await callNative('counter.save', record)
+        perClickRecord,
+      })
     } catch (e) {
       console.error('[CounterManagement] save error:', e)
     }
@@ -424,7 +449,7 @@ export default function CounterManagement() {
     if (!isInApp) return
     try {
       await showLoading('重置中...')
-      await callNative('counter.resetToday', { date: todayStr() })
+      await deleteCounterLogsForDateViaEventAttr(callNative, todayStr())
       await hideLoading()
       await showToast('今日计数已清零')
     } catch (e) {
@@ -433,53 +458,74 @@ export default function CounterManagement() {
     }
   }
 
-  // ── 保存设置 ──
-  const saveSettings = useCallback((updates) => {
+  // ── 保存设置（合并当前 state，避免单次只写部分字段覆盖原生其它配置）──
+  const persistSettings = useCallback((patch = {}) => {
     if (!isInApp) return
-    callNative('counter.updateSettings', updates).catch((e) => {
-      console.error('[CounterManagement] saveSettings error:', e)
+    const payload = {
+      step: patch.step !== undefined ? patch.step : step,
+      vibrationEnabled: patch.vibrationEnabled !== undefined ? patch.vibrationEnabled : vibrationEnabled,
+      darkMode: patch.darkMode !== undefined ? patch.darkMode : isDark,
+      isFullScreen: patch.isFullScreen !== undefined ? patch.isFullScreen : isFullScreen,
+      perClickRecord: patch.perClickRecord !== undefined ? patch.perClickRecord : perClickRecord,
+      showUnit: patch.showUnit !== undefined ? patch.showUnit : showUnit,
+      unitName: patch.unitName !== undefined ? patch.unitName : unitName,
+      dailyGoal: patch.dailyGoal !== undefined ? patch.dailyGoal : dailyGoal,
+      totalGoal: patch.totalGoal !== undefined ? patch.totalGoal : totalGoal,
+      showHomeGoalProgress: patch.showHomeGoalProgress !== undefined ? patch.showHomeGoalProgress : showHomeGoalProgress,
+    }
+    saveCounterSettingsViaEventAttr(callNative, payload).catch((e) => {
+      console.error('[CounterManagement] persistSettings error:', e)
     })
-  }, [isInApp, callNative])
+  }, [
+    isInApp, callNative, step, vibrationEnabled, isDark, isFullScreen, perClickRecord,
+    showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress,
+  ])
 
   const handleStepChange = (newStep) => {
     setStep(newStep)
-    saveSettings({ step: newStep, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal })
+    persistSettings({ step: newStep })
   }
 
   const handleDailyGoalChange = (newGoal) => {
     const next = Math.max(1, parseInt(newGoal) || 1)
     setDailyGoal(next)
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal: next, totalGoal })
+    persistSettings({ dailyGoal: next })
   }
 
   const handleTotalGoalChange = (newGoal) => {
     const next = Math.max(1, parseInt(newGoal) || 1)
     setTotalGoal(next)
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal: next })
+    persistSettings({ totalGoal: next })
   }
 
   const handleVibrationToggle = () => {
     const next = !vibrationEnabled
     setVibrationEnabled(next)
-    saveSettings({ step, vibrationEnabled: next, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal })
+    persistSettings({ vibrationEnabled: next })
   }
 
   const handleDarkToggle = () => {
     const next = !isDark
     setIsDark(next)
-    saveSettings({ step, vibrationEnabled, darkMode: next, perClickRecord, showUnit, unitName, dailyGoal, totalGoal })
+    persistSettings({ darkMode: next })
   }
 
   const handlePerClickRecordToggle = () => {
     const next = !perClickRecord
     setPerClickRecord(next)
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord: next, showUnit, unitName, dailyGoal, totalGoal })
+    persistSettings({ perClickRecord: next })
   }
 
   const handleShowUnitToggle = () => {
     const next = !showUnit
     setShowUnit(next)
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit: next, unitName, dailyGoal, totalGoal })
+    persistSettings({ showUnit: next })
+  }
+
+  const handleShowHomeGoalProgressToggle = () => {
+    const next = !showHomeGoalProgress
+    setShowHomeGoalProgress(next)
+    persistSettings({ showHomeGoalProgress: next })
   }
 
   const handleUnitNameChange = (val) => {
@@ -487,7 +533,7 @@ export default function CounterManagement() {
   }
 
   const handleUnitNameBlur = () => {
-    saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, showUnit, unitName, dailyGoal, totalGoal })
+    persistSettings({ unitName })
   }
 
   const handleOpenSettings = () => {
@@ -496,16 +542,10 @@ export default function CounterManagement() {
 
 
   const handleFullScreenToggle = () => {
-    setIsFullScreen((prev) => {
-      const next = !prev
-      if (next) {
-        setShowSettings(false)
-      }
-      if (isInApp) {
-        saveSettings({ step, vibrationEnabled, darkMode: isDark, perClickRecord, isFullScreen: next, showUnit, unitName, dailyGoal, totalGoal })
-      }
-      return next
-    })
+    const next = !isFullScreen
+    setIsFullScreen(next)
+    if (next) setShowSettings(false)
+    persistSettings({ isFullScreen: next })
   }
 
   // ── 全屏点击 ──
@@ -545,6 +585,7 @@ export default function CounterManagement() {
           onClick={(e) => {
             e.stopPropagation()
             setIsFullScreen(false)
+            persistSettings({ isFullScreen: false })
           }}
           className="fixed top-4 left-4 z-40 px-3 py-1.5 rounded-full text-xs font-medium"
           style={{ background: btnBg, color: btnText, boxShadow: '0 2px 10px rgba(0,0,0,0.12)' }}
@@ -694,6 +735,8 @@ export default function CounterManagement() {
         unitName={unitName}
         onUnitNameChange={handleUnitNameChange}
         onUnitNameBlur={handleUnitNameBlur}
+        showHomeGoalProgress={showHomeGoalProgress}
+        onShowHomeGoalProgressToggle={handleShowHomeGoalProgressToggle}
       />
     </div>
   )

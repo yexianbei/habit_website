@@ -1,11 +1,16 @@
 /**
  * 经期管理 - 首次使用引导页
  * 目标：收集最小必要信息（周期长度、经期长度、上一次经期开始日期）
- * 写入：period.updateSettings + period.save（仅写开始日期即可，不强制结束日期）
+ * 写入：eventAttr.habit.set + eventAttr.log.save（经 periodEventAttr 封装）
  */
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
+import {
+  fetchPeriodSettings,
+  updatePeriodSettings,
+  savePeriodRecord,
+} from '../../utils/periodEventAttr'
 
 const formatDate = (date) => {
   if (!date) return ''
@@ -55,7 +60,7 @@ export default function PeriodOnboarding() {
     const load = async () => {
       if (!isInApp) return
       try {
-        const s = await callNative('period.getSettings')
+        const s = await fetchPeriodSettings(callNative)
         if (s) {
           if (s.cycleLength) setCycleLen(s.cycleLength)
           if (s.periodLength) setPeriodLen(s.periodLength)
@@ -70,22 +75,20 @@ export default function PeriodOnboarding() {
     try {
       await showLoading('初始化中...')
 
-      // 1) 保存设置
-      await callNative('period.updateSettings', {
+      await updatePeriodSettings(callNative, {
         cycleLength: Number(cycleLen),
         periodLength: Number(periodLen),
       })
 
-      // 2) 写入一条“经期开始”的记录（不写结束时间），日期和时间分开处理
       const saveCreateTime = new Date(lastStartDate + 'T' + (lastStartTime || '08:00') + ':00').getTime()
-      await callNative('period.save', {
+      await savePeriodRecord(callNative, {
         date: lastStartDate,
         createTime: saveCreateTime,
-        details: JSON.stringify({
+        details: {
           saveType: 'period',
           isPeriod: true,
           periodStartTime: lastStartTime || null,
-        }),
+        },
       })
 
       await hideLoading()

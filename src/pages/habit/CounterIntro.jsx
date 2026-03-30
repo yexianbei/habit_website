@@ -1,11 +1,16 @@
 /**
  * 指尖计数器介绍页
- * 用户从习惯库点击后先看到此页面，点击添加后创建习惯（type: 26）
+ * 与 docs/platform/bridge-api.md 一致：H5 习惯 type=3000 + habitSubType + conditionValue
  */
 
 import React, { useState, useEffect } from 'react'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import { PresentationKind } from '../../constants/presentationKind'
+import {
+  HABIT_TYPE_H5,
+  HABIT_SUBTYPE_FINGER_COUNTER,
+} from '../../constants/platformHabit'
+import { hasFingerCounterHabit } from '../../utils/platformHabitExists'
 import FloatingBackButton from '../../components/FloatingBackButton'
 
 const features = [
@@ -71,10 +76,8 @@ export default function CounterIntro() {
   const checkIfAdded = async () => {
     if (!isInApp) return
     try {
-      const result = await callNative('habit.getList', { type: 26 })
-      if (result?.habits && result.habits.length > 0) {
-        setHasAdded(true)
-      }
+      const exists = await hasFingerCounterHabit(callNative)
+      if (exists) setHasAdded(true)
     } catch (error) {
       console.error('[CounterIntro] 检查习惯失败:', error)
     }
@@ -121,6 +124,41 @@ export default function CounterIntro() {
             falseLabel: '关闭',
             helpText: '开启后每次 + 步长都会新增一条记录；关闭则当天共用一条（与 CounterManagement 设置一致）',
           },
+        },
+        {
+          id: 'counter_is_fullscreen', key: 'counter_is_fullscreen', name: '全屏模式', type: 5, scope: 1,
+          position: 5, required: false,
+          config: { defaultValue: false, trueLabel: '开启', falseLabel: '关闭' },
+        },
+        {
+          id: 'counter_unit', key: 'counter_unit', name: '默认单位文案', type: 4, scope: 1,
+          position: 6, required: false,
+          config: { defaultValue: '次', showInList: true, showInStats: false },
+        },
+        {
+          id: 'counter_show_unit', key: 'counter_show_unit', name: '显示计数单位', type: 5, scope: 1,
+          position: 7, required: false,
+          config: { defaultValue: false, trueLabel: '显示', falseLabel: '隐藏' },
+        },
+        {
+          id: 'counter_unit_name', key: 'counter_unit_name', name: '自定义单位', type: 4, scope: 1,
+          position: 8, required: false,
+          config: { defaultValue: '', showInList: true, showInStats: true },
+        },
+        {
+          id: 'counter_daily_goal', key: 'counter_daily_goal', name: '每日目标', type: 1, scope: 1,
+          position: 9, required: false,
+          config: { defaultValue: 10, minValue: 1, maxValue: 999999, decimalPlaces: 0, showInList: true, showInStats: true },
+        },
+        {
+          id: 'counter_total_goal', key: 'counter_total_goal', name: '总目标', type: 1, scope: 1,
+          position: 10, required: false,
+          config: { defaultValue: 100, minValue: 1, maxValue: 99999999, decimalPlaces: 0, showInList: true, showInStats: true },
+        },
+        {
+          id: 'counter_show_home_goal_progress', key: 'counter_show_home_goal_progress', name: '首页显示总目标进度', type: 5, scope: 1,
+          position: 11, required: false,
+          config: { defaultValue: false, trueLabel: '开启', falseLabel: '关闭' },
         },
         {
           id: 'counter_step_log', key: 'counter_step', name: '本次步长', type: 1, scope: 2,
@@ -172,14 +210,24 @@ export default function CounterIntro() {
         },
       ]
 
+      const conditionValue = {
+        presentationKind: PresentationKind.COUNTER,
+        habitSubType: HABIT_SUBTYPE_FINGER_COUNTER,
+        customAttributeDefines,
+        displayConfig,
+        computations,
+      }
+
       const result = await callNative('habit.create', {
-        type: 26,
+        type: HABIT_TYPE_H5,
         name: '指尖计数器',
         icon: 'emoji:👆',
         emojiIcon: '👆',
         bgColor: '#6C63FF',
         description: '极简计数习惯工具，每次点击记录坚持',
         presentationKind: PresentationKind.COUNTER,
+        habitSubType: HABIT_SUBTYPE_FINGER_COUNTER,
+        conditionValue,
         customAttributeDefines,
         displayConfig,
         computations,

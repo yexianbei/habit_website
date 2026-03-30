@@ -2,6 +2,11 @@ import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import {
+  COUNTER_ATTR_KEYS,
+  fetchCounterSettingsViaEventAttr,
+  mapLogQueryToCounterRecords,
+} from '../../utils/counterEventAttr'
+import {
   ResponsiveContainer,
   LineChart,
   Line,
@@ -359,23 +364,27 @@ export default function CounterAdvancedStats() {
           setRecords([])
           return
         }
-        const settings = await callNative('counter.getSettings', {})
+        const settings = await fetchCounterSettingsViaEventAttr(callNative)
         if (settings) {
-          if (settings.dailyGoal) setDailyGoal(Math.max(1, parseInt(settings.dailyGoal) || 10))
-          if (settings.totalGoal) setTotalGoal(Math.max(1, parseInt(settings.totalGoal) || 100))
+          if (settings.dailyGoal) setDailyGoal(Math.max(1, parseInt(settings.dailyGoal, 10) || 10))
+          if (settings.totalGoal) setTotalGoal(Math.max(1, parseInt(settings.totalGoal, 10) || 100))
           if (typeof settings.showUnit === 'boolean') setShowUnit(settings.showUnit)
           if (typeof settings.unitName === 'string') setUnitName(settings.unitName || '次')
           if (typeof settings.darkMode === 'boolean') setIsDark(settings.darkMode)
-          // 首页已经去掉了演示数据入口，这里也彻底禁用逻辑
         }
         const now = new Date()
         const start = new Date(now)
         start.setDate(start.getDate() - 364)
-        const res = await callNative('counter.getRecords', {
-          startDate: formatDate(start),
-          endDate: formatDate(now),
+        const startStr = formatDate(start)
+        const endStr = formatDate(now)
+        const q = await callNative('eventAttr.log.query', {
+          startDate: startStr,
+          endDate: endStr,
+          keys: [COUNTER_ATTR_KEYS.STEP],
+          limit: 10000,
+          offset: 0,
         })
-        const list = Array.isArray(res?.records) ? res.records : []
+        const list = mapLogQueryToCounterRecords(q).records
         setRecords(list)
       } catch (_) {
         setRecords([])

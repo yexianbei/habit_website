@@ -6,11 +6,13 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
+import { HABIT_TYPE_H5 } from '../../constants/platformHabit'
+import { hasPeriodHabit, hasFingerCounterHabit } from '../../utils/platformHabitExists'
 
 const OFFICIAL_HABITS = [
   {
     id: 'period_management',
-    type: 16,
+    type: HABIT_TYPE_H5,
     name: '经期管理',
     desc: '记录与预测经期，关爱女性健康',
     icon: '🌸',
@@ -21,13 +23,15 @@ const OFFICIAL_HABITS = [
   },
   {
     id: 'finger_counter',
-    type: 26,
+    type: HABIT_TYPE_H5,
     name: '指尖计数器',
     desc: '极简计数，全屏黑夜模式，记录每日坚持次数',
     icon: '👆',
     bg: 'from-indigo-500 to-violet-500',
     introPath: '/habit/counter/intro',
     usePath: '/habit/counter',
+    /** 已添加时习惯库卡片展示的快捷入口（与 displayConfig.h5StatsPath 一致） */
+    statsPath: '/habit/counter/stats',
     tag: '专注打卡',
   },
   {
@@ -123,6 +127,12 @@ const OFFICIAL_HABITS = [
 /** 当前开放添加的习惯 id 集合，其余点击后提示「会尽快开放～请稍等」 */
 const ENABLED_HABIT_IDS = new Set(['period_management', 'finger_counter'])
 
+/** 官方习惯 id → 是否已添加（与 docs/platform 一致，不限于单一 HabitType） */
+const HABIT_EXISTENCE_CHECKERS = {
+  period_management: hasPeriodHabit,
+  finger_counter: hasFingerCounterHabit,
+}
+
 /** Flutter WebView 在 onPageFinished 才注入 callNative，首屏 useEffect 可能早于注入，需短暂等待 */
 function waitForNativeCallNative(maxMs = 8000) {
   return new Promise((resolve) => {
@@ -149,8 +159,13 @@ function waitForNativeCallNative(maxMs = 8000) {
 
 export default function OfficialLibrary() {
   const navigate = useNavigate()
-  const { callNative } = useNativeBridge()
+  const { callNative, isInApp, setTitle } = useNativeBridge()
   const [existMap, setExistMap] = useState({})
+
+  useEffect(() => {
+    document.title = '官方习惯库'
+    if (isInApp) setTitle('官方习惯库')
+  }, [isInApp, setTitle])
 
   // 根据本地 habit.getList 刷新「已添加」状态（Flutter WebView 首帧常尚无 callNative，不能依赖首次 isInApp）
   useEffect(() => {
@@ -161,23 +176,17 @@ export default function OfficialLibrary() {
         const nativeOk = await waitForNativeCallNative(8000)
         if (cancelled || !nativeOk) return
 
-        const types = [...new Set(OFFICIAL_HABITS.map(h => h.type))].filter(Boolean)
-        const results = await Promise.all(
-          types.map(async (t) => {
-            try {
-              const res = await callNative('habit.getList', { type: t })
-              const has = res && Array.isArray(res.habits) && res.habits.length > 0
-              return { type: t, has }
-            } catch {
-              return { type: t, has: false }
-            }
-          })
-        )
         if (!cancelled) {
           const map = {}
-          results.forEach(r => {
-            map[r.type] = r.has
-          })
+          for (const item of OFFICIAL_HABITS) {
+            if (!ENABLED_HABIT_IDS.has(item.id)) continue
+            const checker = HABIT_EXISTENCE_CHECKERS[item.id]
+            try {
+              map[item.id] = checker ? await checker(callNative) : false
+            } catch {
+              map[item.id] = false
+            }
+          }
           setExistMap(map)
         }
       } catch (e) {
@@ -197,39 +206,59 @@ export default function OfficialLibrary() {
       {/* 官方习惯列表 */}
       <div className="px-4 pt-6 pb-6 grid grid-cols-2 gap-3">
         {OFFICIAL_HABITS.filter(item => ENABLED_HABIT_IDS.has(item.id)).map((item) => {
-          const hasAdded = !!existMap[item.type]
-          const ctaText = hasAdded ? '已添加 ✓' : '查看介绍 →'
-
-          const handleClick = () => {
-            if (hasAdded) {
-              callNative('ui.showToast', { message: '已经添加，可以直接到首页进行操作' })
-            } else {
-              navigate(item.introPath)
-            }
-          }
+          const hasAdded = !!existMap[item.id]
+          const ctaText = hasAdded ? '点击进入' : '查看介绍 →'
 
           return (
-            <button
+            <div
               key={item.id}
-              onClick={handleClick}
-              className="group bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-left active:scale-[0.97] transition-transform"
+              className="group bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col active:scale-[0.98] transition-transform"
             >
-              <div
-                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.bg} flex items-center justify-center text-xl text-white shadow-sm mb-3`}
+              <button
+                type="button"
+                onClick={() => {
+                  if (hasAdded) navigate(item.usePath)
+                  else navigate(item.introPath)
+                }}
+                className="p-4 text-left w-full"
               >
-                {item.icon}
-              </div>
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-semibold text-gray-900 truncate">{item.name}</h3>
-                <span className="ml-2 px-2 py-[2px] rounded-full bg-slate-100 text-[10px] text-slate-500">
-                  {item.tag}
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{item.desc}</p>
-              <div className="mt-3 text-[10px] text-indigo-500 font-medium group-active:opacity-70">
-                {ctaText}
-              </div>
-            </button>
+                <div
+                  className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.bg} flex items-center justify-center text-xl text-white shadow-sm mb-3`}
+                >
+                  {item.icon}
+                </div>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="text-sm font-semibold text-gray-900 truncate">{item.name}</h3>
+                  <span className="ml-2 px-2 py-[2px] rounded-full bg-slate-100 text-[10px] text-slate-500">
+                    {item.tag}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{item.desc}</p>
+                <div className="mt-3 text-[10px] text-indigo-500 font-medium group-active:opacity-70">
+                  {ctaText}
+                </div>
+              </button>
+              {hasAdded && (
+                <div className="flex items-center gap-2 px-4 pb-3 pt-0 border-t border-slate-50">
+                  <button
+                    type="button"
+                    onClick={() => navigate(item.introPath)}
+                    className="text-[10px] text-slate-500 font-medium py-1"
+                  >
+                    介绍
+                  </button>
+                  {item.statsPath ? (
+                    <button
+                      type="button"
+                      onClick={() => navigate(item.statsPath)}
+                      className="text-[10px] text-indigo-600 font-medium py-1"
+                    >
+                      高级统计
+                    </button>
+                  ) : null}
+                </div>
+              )}
+            </div>
           )
         })}
       </div>

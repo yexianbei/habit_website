@@ -14,10 +14,12 @@ import { useNativeBridge } from '../utils/useNativeBridge'
 
 /**
  * @param {object} options
- * @param {number} options.type     习惯类型（与原生 HabitType 枚举对应）
- * @param {string} options.name     习惯名称（用于弹窗文案）
+ * @param {number} [options.type]           习惯类型（与原生 HabitType 枚举对应）
+ * @param {string} options.name             习惯名称（用于弹窗文案）
+ * @param {string} [options.habitId]        优先使用：精确删除该习惯（多 H5 习惯共存时必传）
+ * @param {() => Promise<string|null>} [options.resolveHabitId]  无 habitId 时异步解析 habitId
  */
-export function useHabitDelete({ type, name }) {
+export function useHabitDelete({ type, name, habitId: habitIdProp, resolveHabitId }) {
   const { isInApp, callNative, showToast, closePage } = useNativeBridge()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -41,7 +43,25 @@ export function useHabitDelete({ type, name }) {
     setIsDeleting(true)
     try {
       await callNative('ui.showLoading', { message: '删除中...' })
-      const result = await callNative('habit.deleteWithData', { type })
+      let habitId = habitIdProp
+      if (!habitId && typeof resolveHabitId === 'function') {
+        try {
+          habitId = await resolveHabitId()
+        } catch {
+          habitId = null
+        }
+      }
+      let result
+      if (habitId) {
+        result = await callNative('habit.deleteWithData', { habitId })
+      } else if (type != null) {
+        result = await callNative('habit.deleteWithData', { type })
+      } else {
+        await callNative('ui.hideLoading', {})
+        await showToast('无法定位习惯，请从首页重新进入')
+        setIsDeleting(false)
+        return
+      }
       await callNative('ui.hideLoading', {})
 
       if (result?.success) {
@@ -57,7 +77,7 @@ export function useHabitDelete({ type, name }) {
     } finally {
       setIsDeleting(false)
     }
-  }, [isInApp, isDeleting, callNative, showToast, closePage, type, name])
+  }, [isInApp, isDeleting, callNative, showToast, closePage, type, name, habitIdProp, resolveHabitId])
 
   return { deleteHabit, isDeleting }
 }
