@@ -10,6 +10,7 @@ import {
   HABIT_TYPE_H5,
   HABIT_SUBTYPE_PERIOD,
 } from '../../constants/platformHabit'
+import { HABIT_SCHEMA_VERSION } from '../../constants/habitSchemaVersion'
 import { hasPeriodHabit } from '../../utils/platformHabitExists'
 import FloatingBackButton from '../../components/FloatingBackButton'
 
@@ -66,7 +67,7 @@ export default function PeriodIntro() {
   useEffect(() => {
     checkIfAdded()
   }, [isInApp])
-  
+
   const checkIfAdded = async () => {
     if (!isInApp) return
 
@@ -97,6 +98,8 @@ export default function PeriodIntro() {
       
       // 经期管理的首页卡片展示配置（来自前端，客户端存入 conditionValue）
       const displayConfig = {
+        detailOpenMode: 'h5',
+        h5Path: 'period',
         progressMode: 'record',
         monthlyCell: { coloringMode: 'presence' },
         weeklyDot: { mode: 'presence' },
@@ -139,6 +142,8 @@ export default function PeriodIntro() {
       ]
 
       const conditionValue = {
+        // schemaVersion=2：要求 displayConfig 必须包含 detailOpenMode+h5Path，确保首页点击进 H5 详情
+        schemaVersion: HABIT_SCHEMA_VERSION.PERIOD,
         presentationKind: PresentationKind.RECORD,
         habitSubType: HABIT_SUBTYPE_PERIOD,
         displayConfig,

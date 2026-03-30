@@ -10,6 +10,7 @@ import {
   HABIT_TYPE_H5,
   HABIT_SUBTYPE_FINGER_COUNTER,
 } from '../../constants/platformHabit'
+import { HABIT_SCHEMA_VERSION } from '../../constants/habitSchemaVersion'
 import { hasFingerCounterHabit } from '../../utils/platformHabitExists'
 import FloatingBackButton from '../../components/FloatingBackButton'
 
@@ -211,6 +212,8 @@ export default function CounterIntro() {
       ]
 
       const conditionValue = {
+        // schemaVersion=2：已包含 detailOpenMode/h5Path/h5StatsPath 与完整 counter 属性定义
+        schemaVersion: HABIT_SCHEMA_VERSION.COUNTER,
         presentationKind: PresentationKind.COUNTER,
         habitSubType: HABIT_SUBTYPE_FINGER_COUNTER,
         customAttributeDefines,

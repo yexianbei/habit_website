@@ -97,3 +97,4 @@ export async function resolveFingerCounterHabitId(callNative) {
   }
   return null
 }
+
