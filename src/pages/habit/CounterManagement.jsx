@@ -386,7 +386,8 @@ export default function CounterManagement() {
 
   const loadSettings = async () => {
     try {
-      const res = await fetchCounterSettingsViaEventAttr(callNative)
+      const hid = await resolveCounterHabitId()
+      const res = await fetchCounterSettingsViaEventAttr(callNative, hid)
       if (res) {
         if (res.step !== undefined && res.step !== null) {
           const s = parseInt(res.step, 10)
@@ -411,7 +412,8 @@ export default function CounterManagement() {
     try {
       if (!isInApp) return
       const today = todayStr()
-      const todayTotal = await fetchTodayCounterTotalViaEventAttr(callNative, today)
+      const hid = await resolveCounterHabitId()
+      const todayTotal = await fetchTodayCounterTotalViaEventAttr(callNative, today, hid)
       setCount(todayTotal)
       writeWebTodayCount(todayTotal)
     } catch (e) {
@@ -432,10 +434,12 @@ export default function CounterManagement() {
     if (!isInApp) return
 
     try {
+      const hid = await resolveCounterHabitId()
       await saveCounterIncrementViaEventAttr(callNative, {
         date: todayStr(),
         step,
         perClickRecord,
+        habitId: hid,
       })
     } catch (e) {
       console.error('[CounterManagement] save error:', e)
@@ -449,7 +453,8 @@ export default function CounterManagement() {
     if (!isInApp) return
     try {
       await showLoading('重置中...')
-      await deleteCounterLogsForDateViaEventAttr(callNative, todayStr())
+      const hid = await resolveCounterHabitId()
+      await deleteCounterLogsForDateViaEventAttr(callNative, todayStr(), hid)
       await hideLoading()
       await showToast('今日计数已清零')
     } catch (e) {
@@ -461,6 +466,7 @@ export default function CounterManagement() {
   // ── 保存设置（合并当前 state，避免单次只写部分字段覆盖原生其它配置）──
   const persistSettings = useCallback((patch = {}) => {
     if (!isInApp) return
+    resolveCounterHabitId().then((hid) => {
     const payload = {
       step: patch.step !== undefined ? patch.step : step,
       vibrationEnabled: patch.vibrationEnabled !== undefined ? patch.vibrationEnabled : vibrationEnabled,
@@ -473,11 +479,12 @@ export default function CounterManagement() {
       totalGoal: patch.totalGoal !== undefined ? patch.totalGoal : totalGoal,
       showHomeGoalProgress: patch.showHomeGoalProgress !== undefined ? patch.showHomeGoalProgress : showHomeGoalProgress,
     }
-    saveCounterSettingsViaEventAttr(callNative, payload).catch((e) => {
+    saveCounterSettingsViaEventAttr(callNative, payload, hid).catch((e) => {
       console.error('[CounterManagement] persistSettings error:', e)
     })
+    })
   }, [
-    isInApp, callNative, step, vibrationEnabled, isDark, isFullScreen, perClickRecord,
+    isInApp, callNative, resolveCounterHabitId, step, vibrationEnabled, isDark, isFullScreen, perClickRecord,
     showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress,
   ])
 

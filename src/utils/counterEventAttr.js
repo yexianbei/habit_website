@@ -95,8 +95,10 @@ export function mapEventAttrToCounterSettings(res) {
 /**
  * @param {(m: string, p?: object) => Promise<any>} callNative
  */
-export async function fetchCounterSettingsViaEventAttr(callNative) {
-  const res = await callNative('eventAttr.habit.get', { keys: HABIT_GET_KEYS })
+export async function fetchCounterSettingsViaEventAttr(callNative, habitId) {
+  const params = { keys: HABIT_GET_KEYS }
+  if (habitId) params.habitId = habitId
+  const res = await callNative('eventAttr.habit.get', params)
   if (!res?.success && res?.values == null) {
     return null
   }
@@ -107,7 +109,7 @@ export async function fetchCounterSettingsViaEventAttr(callNative) {
  * @param {(m: string, p?: object) => Promise<any>} callNative
  * @param {object} u 字段名：step, unit, vibrationEnabled, darkMode, isFullScreen, perClickRecord, showUnit, unitName, dailyGoal, totalGoal, showHomeGoalProgress
  */
-export async function saveCounterSettingsViaEventAttr(callNative, u) {
+export async function saveCounterSettingsViaEventAttr(callNative, u, habitId) {
   const attrs = []
   if (u.step !== undefined) {
     attrs.push({
@@ -189,7 +191,9 @@ export async function saveCounterSettingsViaEventAttr(callNative, u) {
     })
   }
   if (attrs.length === 0) return
-  await callNative('eventAttr.habit.set', { attributes: attrs })
+  const params = { attributes: attrs }
+  if (habitId) params.habitId = habitId
+  await callNative('eventAttr.habit.set', params)
 }
 
 /**
@@ -214,12 +218,14 @@ export function mapLogQueryToCounterRecords(queryRes) {
 /**
  * 今日合计（多条 per-click 或单条累计）
  */
-export async function fetchTodayCounterTotalViaEventAttr(callNative, todayStr) {
-  const res = await callNative('eventAttr.log.query', {
+export async function fetchTodayCounterTotalViaEventAttr(callNative, todayStr, habitId) {
+  const params = {
     startDate: todayStr,
     endDate: todayStr,
     keys: [COUNTER_ATTR_KEYS.STEP],
-  })
+  }
+  if (habitId) params.habitId = habitId
+  const res = await callNative('eventAttr.log.query', params)
   const { records } = mapLogQueryToCounterRecords(res)
   return records.reduce((s, r) => s + (Number(r.step) || 0), 0)
 }
@@ -227,9 +233,9 @@ export async function fetchTodayCounterTotalViaEventAttr(callNative, todayStr) {
 /**
  * 单次计数写入（mergePolicy 由 perClickRecord 决定）
  */
-export async function saveCounterIncrementViaEventAttr(callNative, { date, step, perClickRecord }) {
+export async function saveCounterIncrementViaEventAttr(callNative, { date, step, perClickRecord, habitId }) {
   const s = Math.max(1, Number(step) || 1)
-  return callNative('eventAttr.log.save', {
+  const params = {
     date,
     mergePolicy: perClickRecord ? 'always_new' : 'accumulate',
     createTime: perClickRecord ? Date.now() : undefined,
@@ -241,10 +247,14 @@ export async function saveCounterIncrementViaEventAttr(callNative, { date, step,
         attributeDisplay: String(s),
       },
     ],
-  })
+  }
+  if (habitId) params.habitId = habitId
+  return callNative('eventAttr.log.save', params)
 }
 
 /** 清空某日计数日志（如「重置今日」） */
-export async function deleteCounterLogsForDateViaEventAttr(callNative, date) {
-  return callNative('eventAttr.log.delete', { date })
+export async function deleteCounterLogsForDateViaEventAttr(callNative, date, habitId) {
+  const params = { date }
+  if (habitId) params.habitId = habitId
+  return callNative('eventAttr.log.delete', params)
 }

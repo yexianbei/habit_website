@@ -8,6 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useNativeBridge, useNativeEvent } from '../../utils/useNativeBridge'
 import { useWechatShare } from '../../hooks/useShare'
 import { useHabitDelete } from '../../hooks/useHabitDelete'
+import { resolvePeriodHabitId } from '../../utils/platformHabitExists'
 import {
   fetchPeriodSettings,
   fetchPeriodRecords,
@@ -1109,6 +1110,9 @@ export default function PeriodManagement() {
   const location = useLocation()
   const { isInApp, setTitle, showToast, showLoading, hideLoading, callNative } = useNativeBridge()
   useWechatShare({ title: '经期管理 - 小习惯', description: '记录经期，了解自己的身体，关爱自己的健康。' })
+
+  // 合规：显式解析 habitId（容器上下文缺失时兜底），确保日志/配置归属正确，首页 computed widget 才能展示
+  const resolveHabitId = useCallback(() => resolvePeriodHabitId(callNative), [callNative])
   
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -1171,7 +1175,8 @@ export default function PeriodManagement() {
   
   const loadConfig = async () => {
     try {
-      const result = await fetchPeriodSettings(callNative)
+      const hid = await resolveHabitId()
+      const result = await fetchPeriodSettings(callNative, hid)
       if (result) {
         setConfig({
           cycleLen: result.cycleLength || 28,
@@ -1210,7 +1215,8 @@ export default function PeriodManagement() {
       const startDate = formatDate(new Date(year, month - 1, 1))
       const endDate = formatDate(new Date(year, month + 2, 0))
       
-      const result = await fetchPeriodRecords(callNative, startDate, endDate)
+      const hid = await resolveHabitId()
+      const result = await fetchPeriodRecords(callNative, startDate, endDate, hid)
       const lastStartStr = result?.lastPeriodStart || null
       if (result?.records) {
         setPeriodLogs(result.records)
@@ -1514,6 +1520,7 @@ export default function PeriodManagement() {
   const handleSaveDetails = async (data) => {
     try {
       await showLoading('保存中...')
+      const hid = await resolveHabitId()
       // 如果 data 中包含 date 字段（从爱爱弹窗传递），使用该日期；否则使用 selectedDate
       const saveDate = data.date ? data.date : formatDate(selectedDate)
       // 从 data 中移除 date、createTime，避免保存到 details 中
@@ -1522,7 +1529,7 @@ export default function PeriodManagement() {
         date: saveDate,
         details: detailsData,
         createTime: createTime != null ? createTime : undefined,
-      })
+      }, hid)
       await hideLoading()
       await showToast('保存成功')
       setShowPeriodModal(false)
@@ -1537,8 +1544,9 @@ export default function PeriodManagement() {
   
   const handleDeleteRecord = async (dateStr) => {
     try {
+      const hid = await resolveHabitId()
       const toDelete = dateStr != null ? dateStr : formatDate(selectedDate)
-      await deletePeriodDay(callNative, toDelete)
+      await deletePeriodDay(callNative, toDelete, hid)
       await showToast('已删除')
       setShowPeriodModal(false)
       setShowLoveModal(false)
@@ -1548,12 +1556,13 @@ export default function PeriodManagement() {
   
   const handleSaveSettings = async (cycleLen, periodLen, reminderEnabled, reminderAdvance) => {
     try {
+      const hid = await resolveHabitId()
       await updatePeriodSettings(callNative, {
         cycleLength: cycleLen,
         periodLength: periodLen,
         reminderEnabled,
         reminderAdvance,
-      })
+      }, hid)
       setConfig({
         cycleLen,
         periodLen,

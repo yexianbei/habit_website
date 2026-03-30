@@ -98,3 +98,40 @@ export async function resolveFingerCounterHabitId(callNative) {
   return null
 }
 
+/**
+ * 解析当前经期管理习惯的 habitId（URL ?habitId= → 旧 type → H5 子类）
+ * 说明：这是业务所需的“上下文解析”，用于在容器未注入上下文 habitId 时仍能合规写入数据。
+ */
+export async function resolvePeriodHabitId(callNative) {
+  try {
+    if (typeof window !== 'undefined') {
+      const q = new URLSearchParams(window.location.search).get('habitId')
+      if (q) return q
+    }
+  } catch {
+    /* ignore */
+  }
+  try {
+    const legacy = await callNative('habit.getList', { type: LEGACY_HABIT_TYPE_PERIOD })
+    const first = legacy?.habits?.[0]
+    if (first?.id) return first.id
+
+    const list = await callNative('habit.getList', { type: HABIT_TYPE_H5 })
+    for (const h of list?.habits || []) {
+      const id = h.id || h.habitId
+      if (!id) continue
+      try {
+        const detail = await callNative('habit.getDetail', { habitId: id })
+        const st = detail?.habit?.conditionValue?.habitSubType
+        if (st === HABIT_SUBTYPE_PERIOD) return id
+      } catch {
+        /* ignore */
+      }
+      if (h.name === '经期管理') return id
+    }
+  } catch {
+    /* ignore */
+  }
+  return null
+}
+
