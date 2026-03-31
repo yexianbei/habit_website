@@ -416,7 +416,23 @@ export default function CounterManagement() {
         const displayConfig = cv?.displayConfig || detail?.habit?.displayConfig
         displayConfigRef.current = displayConfig || null
         const enabled = shouldEnableH5DayStats(displayConfig)
-        console.log('[CounterManagement][H5DayStats] displayConfig=', displayConfig)
+        console.log('[CounterManagement][H5DayStats] displayConfig=', displayConfig ? JSON.stringify(displayConfig) : 'null')
+        if (!enabled) {
+          const mode = displayConfig?.subtitleDisplayMode
+          const sourceList = []
+          const lo = displayConfig?.layoutOverrides
+          if (lo && typeof lo === 'object') {
+            Object.keys(lo).forEach((layoutKey) => {
+              const slots = lo[layoutKey]
+              if (!slots || typeof slots !== 'object') return
+              Object.keys(slots).forEach((slotKey) => {
+                sourceList.push(`${layoutKey}.${slotKey}:${slots[slotKey]?.source || ''}`)
+              })
+            })
+          }
+          console.log('[CounterManagement][H5DayStats] disabled reason: subtitleDisplayMode=', mode || '')
+          console.log('[CounterManagement][H5DayStats] disabled reason: layoutSources=', sourceList.join('|'))
+        }
         console.log('[CounterManagement][H5DayStats] enabled=', enabled)
         setEnableH5DayStats(enabled)
       } catch (e) {
