@@ -40,6 +40,9 @@ const TrainingLibrary = lazy(() => import('./pages/habit/training/TrainingLibrar
 const TrainingExercise = lazy(() => import('./pages/habit/training/TrainingExercise'))
 const BabyIntro = lazy(() => import('./pages/habit/BabyIntro'))
 const BabyManagement = lazy(() => import('./pages/habit/BabyManagement'))
+const KidFinanceIntro = lazy(() => import('./pages/habit/KidFinanceIntro'))
+const KidFinanceManagement = lazy(() => import('./pages/habit/KidFinanceManagement'))
+const KidFinanceStats = lazy(() => import('./pages/habit/KidFinanceStats'))
 const BabyOnboarding = lazy(() => import('./pages/habit/BabyOnboarding'))
 const BloodSugarIntro = lazy(() => import('./pages/habit/BloodSugarIntro'))
 const BloodSugarManagement = lazy(() => import('./pages/habit/BloodSugarManagement'))
@@ -291,6 +294,30 @@ function App() {
           element={
             <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
               <BabyManagement />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/kid-finance/intro"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <KidFinanceIntro />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/kid-finance/stats"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <KidFinanceStats />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/habit/kid-finance"
+          element={
+            <Suspense fallback={<LoadingPlaceholder height="100vh" />}>
+              <KidFinanceManagement />
             </Suspense>
           }
         />
