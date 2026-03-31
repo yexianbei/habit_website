@@ -415,9 +415,13 @@ export default function CounterManagement() {
         const cv = detail?.habit?.conditionValue
         const displayConfig = cv?.displayConfig || detail?.habit?.displayConfig
         displayConfigRef.current = displayConfig || null
-        setEnableH5DayStats(shouldEnableH5DayStats(displayConfig))
+        const enabled = shouldEnableH5DayStats(displayConfig)
+        console.log('[CounterManagement][H5DayStats] displayConfig=', displayConfig)
+        console.log('[CounterManagement][H5DayStats] enabled=', enabled)
+        setEnableH5DayStats(enabled)
       } catch (e) {
         // 取不到配置时默认不启用，避免影响其它业务/习惯
+        console.log('[CounterManagement][H5DayStats] load displayConfig failed, disable. err=', e)
         displayConfigRef.current = null
         setEnableH5DayStats(false)
       }
@@ -460,12 +464,16 @@ export default function CounterManagement() {
         habitId: hid,
       })
       if (enableH5DayStats) {
+        console.log('[CounterManagement][H5DayStats] after checkin: updating h5_* attrs...')
         await updateH5DayStatsAfterCheckinViaEventAttr(callNative, {
           date: todayStr(),
           habitId: hid,
           enabled: true,
           displayConfig: displayConfigRef.current,
         })
+        console.log('[CounterManagement][H5DayStats] update done')
+      } else {
+        console.log('[CounterManagement][H5DayStats] disabled, skip updating h5_* attrs')
       }
     } catch (e) {
       console.error('[CounterManagement] save error:', e)
