@@ -37,6 +37,7 @@ function val(values, key) {
   return o.attributeValue != null ? String(o.attributeValue) : undefined
 }
 
+
 /**
  * @param {object} res eventAttr.habit.get 返回 { values }
  * @returns {object} 指尖计数器设置（扁平字段，供 UI 使用）

@@ -15,6 +15,7 @@ import {
   saveCounterIncrementViaEventAttr,
   deleteCounterLogsForDateViaEventAttr,
 } from '../../utils/counterEventAttr'
+import { shouldEnableH5DayStats, updateH5DayStatsAfterCheckinViaEventAttr } from '../../utils/h5DayStats'
 
 // ─────────────────────────────────────────────
 // 工具函数
@@ -349,6 +350,8 @@ export default function CounterManagement() {
     typeof initialWebSettings.showHomeGoalProgress === 'boolean' ? initialWebSettings.showHomeGoalProgress : false
   ))
   const [showSettings, setShowSettings] = useState(false)
+  const [enableH5DayStats, setEnableH5DayStats] = useState(false)
+  const displayConfigRef = useRef(null)
   const settingsLoadedRef = useRef(false)
 
   const pageTitle = '指尖计数器'
@@ -361,7 +364,8 @@ export default function CounterManagement() {
     const rafId = window.requestAnimationFrame(() => {
       window.setTimeout(() => {
         // 优先从原生属性系统加载设置（跨设备同步），再加载今日计数
-        loadSettings().finally(() => loadTodayCount())
+        loadSettings()
+          .finally(() => loadTodayCount())
       }, 280)
     })
     return () => {
@@ -403,6 +407,20 @@ export default function CounterManagement() {
         if (res.totalGoal) setTotalGoal(Math.max(1, parseInt(res.totalGoal, 10) || 100))
         if (typeof res.showHomeGoalProgress === 'boolean') setShowHomeGoalProgress(res.showHomeGoalProgress)
       }
+
+      // H5 独立口径：只有当 displayConfig 明确配置需要“坚持/连续天数”时，才维护 h5_* 天数属性
+      // 目前最小开关：displayConfig.subtitleDisplayMode === 'days'（其它习惯可复用同一规则）
+      try {
+        const detail = await callNative('habit.getDetail', { habitId: hid })
+        const cv = detail?.habit?.conditionValue
+        const displayConfig = cv?.displayConfig || detail?.habit?.displayConfig
+        displayConfigRef.current = displayConfig || null
+        setEnableH5DayStats(shouldEnableH5DayStats(displayConfig))
+      } catch (e) {
+        // 取不到配置时默认不启用，避免影响其它业务/习惯
+        displayConfigRef.current = null
+        setEnableH5DayStats(false)
+      }
     } catch (e) {
       console.error('[CounterManagement] loadSettings error:', e)
     }
@@ -441,10 +459,18 @@ export default function CounterManagement() {
         perClickRecord,
         habitId: hid,
       })
+      if (enableH5DayStats) {
+        await updateH5DayStatsAfterCheckinViaEventAttr(callNative, {
+          date: todayStr(),
+          habitId: hid,
+          enabled: true,
+          displayConfig: displayConfigRef.current,
+        })
+      }
     } catch (e) {
       console.error('[CounterManagement] save error:', e)
     }
-  }, [count, step, vibrationEnabled, isInApp, callNative, vibrate, perClickRecord])
+  }, [count, step, vibrationEnabled, isInApp, callNative, vibrate, perClickRecord, enableH5DayStats])
 
   // ── 重置今日 ──
   const handleReset = async () => {
