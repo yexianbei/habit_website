@@ -48,7 +48,23 @@ function ymdYesterday(ymd) {
  * 后续若引入 layoutOverrides/widgets 的更细粒度引用，可在此处扩展判定。
  */
 export function shouldEnableH5DayStats(displayConfig) {
-  return displayConfig?.subtitleDisplayMode === 'days'
+  if (displayConfig?.subtitleDisplayMode === 'days') return true
+  const lo = displayConfig?.layoutOverrides
+  if (!lo || typeof lo !== 'object') return false
+  const DAY_SOURCES = new Set([
+    'builtin:h5_cumulative_days_text',
+    'builtin:h5_continues_days_text',
+  ])
+  const layouts = Object.values(lo)
+  for (const slots of layouts) {
+    if (!slots || typeof slots !== 'object') continue
+    const slotValues = Object.values(slots)
+    for (const slot of slotValues) {
+      const src = slot?.source
+      if (typeof src === 'string' && DAY_SOURCES.has(src)) return true
+    }
+  }
+  return false
 }
 
 /**
