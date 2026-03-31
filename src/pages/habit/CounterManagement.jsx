@@ -413,7 +413,31 @@ export default function CounterManagement() {
       try {
         const detail = await callNative('habit.getDetail', { habitId: hid })
         const cv = detail?.habit?.conditionValue
-        const displayConfig = cv?.displayConfig || detail?.habit?.displayConfig
+        let displayConfig = cv?.displayConfig || detail?.habit?.displayConfig
+        // 根因修复：老版本创建的计数器没有声明 days 副标题配置，导致天数维护永远 disabled。
+        // 这里做一次 schema 迁移，把配置补到 conditionValue.displayConfig.subtitleDisplayMode=days。
+        const presentationKind = cv?.presentationKind || detail?.habit?.presentationKind
+        const habitSubType = cv?.habitSubType || detail?.habit?.habitSubType
+        const isCounterHabit = presentationKind === 'counter' || habitSubType === 'finger_counter'
+        if (isCounterHabit && !displayConfig?.subtitleDisplayMode) {
+          try {
+            await callNative('habit.update', {
+              habitId: hid,
+              conditionValue: {
+                displayConfig: {
+                  subtitleDisplayMode: 'days',
+                },
+              },
+            })
+            displayConfig = {
+              ...(displayConfig || {}),
+              subtitleDisplayMode: 'days',
+            }
+            console.log('[CounterManagement][H5DayStats] migration: set subtitleDisplayMode=days')
+          } catch (e) {
+            console.log('[CounterManagement][H5DayStats] migration failed:', e)
+          }
+        }
         displayConfigRef.current = displayConfig || null
         const enabled = shouldEnableH5DayStats(displayConfig)
         console.log('[CounterManagement][H5DayStats] displayConfig=', displayConfig ? JSON.stringify(displayConfig) : 'null')

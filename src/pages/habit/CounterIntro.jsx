@@ -170,6 +170,7 @@ export default function CounterIntro() {
 
       const displayConfig = {
         progressMode: 'counter',
+        subtitleDisplayMode: 'days',
         detailOpenMode: 'h5',
         h5Path: 'counter',
         h5StatsPath: 'counter/stats',
