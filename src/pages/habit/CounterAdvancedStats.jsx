@@ -27,6 +27,9 @@ import {
 
 const WEB_SETTINGS_KEY = 'counter_web_settings_v1'
 
+/** 为 true 时展示每日/总目标、达标率、总目标达成、图表中的目标线及「目标与连续性」等维度 */
+const SHOW_GOAL_PROGRESS_STATS = false
+
 function formatDate(d) {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -595,21 +598,23 @@ export default function CounterAdvancedStats() {
         </div>
       )}
 
-      <div className="rounded-2xl p-3 mb-4" style={{ background: cardBg }}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="rounded-xl px-3 py-2" style={{ background: cardSoftBg }}>
-            <div className="text-xs" style={{ color: textSecondary }}>每日目标</div>
-            <div className="text-sm font-semibold mt-0.5" style={{ color: textPrimary }}>{dailyGoal}{showUnit ? ` ${displayUnit}` : ''}</div>
+      {SHOW_GOAL_PROGRESS_STATS && (
+        <div className="rounded-2xl p-3 mb-4" style={{ background: cardBg }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="rounded-xl px-3 py-2" style={{ background: cardSoftBg }}>
+              <div className="text-xs" style={{ color: textSecondary }}>每日目标</div>
+              <div className="text-sm font-semibold mt-0.5" style={{ color: textPrimary }}>{dailyGoal}{showUnit ? ` ${displayUnit}` : ''}</div>
+            </div>
+            <div className="rounded-xl px-3 py-2" style={{ background: cardSoftBg }}>
+              <div className="text-xs" style={{ color: textSecondary }}>总目标</div>
+              <div className="text-sm font-semibold mt-0.5" style={{ color: textPrimary }}>{totalGoal}{showUnit ? ` ${displayUnit}` : ''}</div>
+            </div>
           </div>
-          <div className="rounded-xl px-3 py-2" style={{ background: cardSoftBg }}>
-            <div className="text-xs" style={{ color: textSecondary }}>总目标</div>
-            <div className="text-sm font-semibold mt-0.5" style={{ color: textPrimary }}>{totalGoal}{showUnit ? ` ${displayUnit}` : ''}</div>
+          <div className="text-xs mt-2" style={{ color: textSecondary }}>
+            目标仅在计数器首页设置中修改，高级统计页只读展示。
           </div>
         </div>
-        <div className="text-xs mt-2" style={{ color: textSecondary }}>
-          目标仅在计数器首页设置中修改，高级统计页只读展示。
-        </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="rounded-2xl p-3" style={{ background: cardBg }}>
@@ -620,10 +625,12 @@ export default function CounterAdvancedStats() {
           <div className="text-xs" style={{ color: textSecondary }}>区间日均</div>
           <div className="text-xl font-semibold mt-1" style={{ color: textPrimary }}>{dailyAvg}{showUnit ? ` ${displayUnit}` : ''}</div>
         </div>
-        <div className="rounded-2xl p-3" style={{ background: cardBg }}>
-          <div className="text-xs" style={{ color: textSecondary }}>目标达标率</div>
-          <div className="text-xl font-semibold mt-1" style={{ color: textPrimary }}>{completionRate}%</div>
-        </div>
+        {SHOW_GOAL_PROGRESS_STATS && (
+          <div className="rounded-2xl p-3" style={{ background: cardBg }}>
+            <div className="text-xs" style={{ color: textSecondary }}>目标达标率</div>
+            <div className="text-xl font-semibold mt-1" style={{ color: textPrimary }}>{completionRate}%</div>
+          </div>
+        )}
         <div className="rounded-2xl p-3" style={{ background: cardBg }}>
           <div className="text-xs" style={{ color: textSecondary }}>对比上期</div>
           <div className="text-xl font-semibold mt-1" style={{ color: textPrimary }}>{growthRate > 0 ? '+' : ''}{growthRate}%</div>
@@ -636,10 +643,12 @@ export default function CounterAdvancedStats() {
           <div className="text-xs" style={{ color: textSecondary }}>秒级覆盖</div>
           <div className="text-xl font-semibold mt-1" style={{ color: textPrimary }}>{intervalCoverage}%</div>
         </div>
-        <div className="rounded-2xl p-3" style={{ background: cardBg }}>
-          <div className="text-xs" style={{ color: textSecondary }}>总目标达成</div>
-          <div className="text-xl font-semibold mt-1" style={{ color: textPrimary }}>{totalGoalRate}%</div>
-        </div>
+        {SHOW_GOAL_PROGRESS_STATS && (
+          <div className="rounded-2xl p-3" style={{ background: cardBg }}>
+            <div className="text-xs" style={{ color: textSecondary }}>总目标达成</div>
+            <div className="text-xl font-semibold mt-1" style={{ color: textPrimary }}>{totalGoalRate}%</div>
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -647,7 +656,9 @@ export default function CounterAdvancedStats() {
       ) : (
         <div className="space-y-4">
           <div className="rounded-2xl p-4" style={{ background: cardBg }}>
-            <div className="text-sm font-medium mb-2" style={{ color: textPrimary }}>趋势与目标线</div>
+            <div className="text-sm font-medium mb-2" style={{ color: textPrimary }}>
+              {SHOW_GOAL_PROGRESS_STATS ? '趋势与目标线' : '每日趋势'}
+            </div>
             <div style={{ height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={dailyTotals} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
@@ -655,7 +666,9 @@ export default function CounterAdvancedStats() {
                   <XAxis dataKey="day" interval={daysInRange >= 90 ? 8 : daysInRange >= 30 ? 4 : 0} tick={{ fontSize: 10, fill: textSecondary }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: textSecondary }} tickLine={false} axisLine={false} />
                   <Tooltip formatter={(val) => [showUnit ? `${val} ${displayUnit}` : `${val}`, '当日']} />
-                  <ReferenceLine y={dailyGoal} stroke="#ff7a7a" strokeDasharray="4 4" />
+                  {SHOW_GOAL_PROGRESS_STATS && (
+                    <ReferenceLine y={dailyGoal} stroke="#ff7a7a" strokeDasharray="4 4" />
+                  )}
                   <Line type="monotone" dataKey="count" stroke={accent} strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
@@ -671,7 +684,9 @@ export default function CounterAdvancedStats() {
                   <XAxis dataKey="day" interval={daysInRange >= 90 ? 8 : daysInRange >= 30 ? 4 : 0} tick={{ fontSize: 10, fill: textSecondary }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: textSecondary }} tickLine={false} axisLine={false} />
                   <Tooltip formatter={(val) => [showUnit ? `${val} ${displayUnit}` : `${val}`, '累计']} />
-                  <ReferenceLine y={totalGoal} stroke="#4cc9a6" strokeDasharray="4 4" />
+                  {SHOW_GOAL_PROGRESS_STATS && (
+                    <ReferenceLine y={totalGoal} stroke="#4cc9a6" strokeDasharray="4 4" />
+                  )}
                   <Area type="monotone" dataKey="cumulative" stroke={accent} fill={chartAlt} />
                 </AreaChart>
               </ResponsiveContainer>
@@ -783,27 +798,29 @@ export default function CounterAdvancedStats() {
             </div>
           </div>
 
-          <div className="rounded-2xl p-4" style={{ background: cardBg }}>
-            <div className="text-sm font-medium mb-2" style={{ color: textPrimary }}>目标与连续性</div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl p-3" style={{ background: cardSoftBg }}>
-                <div className="text-xs" style={{ color: textSecondary }}>当前连胜</div>
-                <div className="text-lg font-semibold mt-1" style={{ color: textPrimary }}>{streakInfo.currentStreak} 天</div>
-              </div>
-              <div className="rounded-xl p-3" style={{ background: cardSoftBg }}>
-                <div className="text-xs" style={{ color: textSecondary }}>最长连胜</div>
-                <div className="text-lg font-semibold mt-1" style={{ color: textPrimary }}>{streakInfo.longestStreak} 天</div>
-              </div>
-              <div className="rounded-xl p-3" style={{ background: cardSoftBg }}>
-                <div className="text-xs" style={{ color: textSecondary }}>达标天数</div>
-                <div className="text-lg font-semibold mt-1" style={{ color: textPrimary }}>{achievedDays}/{daysInRange}</div>
-              </div>
-              <div className="rounded-xl p-3" style={{ background: cardSoftBg }}>
-                <div className="text-xs" style={{ color: textSecondary }}>活跃天数</div>
-                <div className="text-lg font-semibold mt-1" style={{ color: textPrimary }}>{activeDays}/{daysInRange}</div>
+          {SHOW_GOAL_PROGRESS_STATS && (
+            <div className="rounded-2xl p-4" style={{ background: cardBg }}>
+              <div className="text-sm font-medium mb-2" style={{ color: textPrimary }}>目标与连续性</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl p-3" style={{ background: cardSoftBg }}>
+                  <div className="text-xs" style={{ color: textSecondary }}>当前连胜</div>
+                  <div className="text-lg font-semibold mt-1" style={{ color: textPrimary }}>{streakInfo.currentStreak} 天</div>
+                </div>
+                <div className="rounded-xl p-3" style={{ background: cardSoftBg }}>
+                  <div className="text-xs" style={{ color: textSecondary }}>最长连胜</div>
+                  <div className="text-lg font-semibold mt-1" style={{ color: textPrimary }}>{streakInfo.longestStreak} 天</div>
+                </div>
+                <div className="rounded-xl p-3" style={{ background: cardSoftBg }}>
+                  <div className="text-xs" style={{ color: textSecondary }}>达标天数</div>
+                  <div className="text-lg font-semibold mt-1" style={{ color: textPrimary }}>{achievedDays}/{daysInRange}</div>
+                </div>
+                <div className="rounded-xl p-3" style={{ background: cardSoftBg }}>
+                  <div className="text-xs" style={{ color: textSecondary }}>活跃天数</div>
+                  <div className="text-lg font-semibold mt-1" style={{ color: textPrimary }}>{activeDays}/{daysInRange}</div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="rounded-2xl p-4" style={{ background: cardBg }}>
             <div className="text-sm font-medium mb-2" style={{ color: textPrimary }}>活跃日历热度</div>

@@ -90,12 +90,6 @@ function SettingsDrawer({
   onClose,
   step,
   onStepChange,
-  dailyGoal,
-  onDailyGoalChange,
-  totalGoal,
-  onTotalGoalChange,
-  vibration,
-  onVibrationToggle,
   isDark,
   onDarkToggle,
   perClickRecord,
@@ -105,8 +99,6 @@ function SettingsDrawer({
   unitName,
   onUnitNameChange,
   onUnitNameBlur,
-  showHomeGoalProgress,
-  onShowHomeGoalProgressToggle,
 }) {
   if (!visible) return null
 
@@ -150,6 +142,7 @@ function SettingsDrawer({
           </div>
         </div>
 
+        {/* 每日目标 / 总目标 / 震动反馈：暂不开放，恢复时取消注释
         <div className="flex items-center justify-between py-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
           <div>
             <p className="text-sm font-medium" style={{ color: textColor }}>每日目标</p>
@@ -190,7 +183,6 @@ function SettingsDrawer({
           </div>
         </div>
 
-        {/* 震动 */}
         <div className="flex items-center justify-between py-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
           <div>
             <p className="text-sm font-medium" style={{ color: textColor }}>震动反馈</p>
@@ -207,6 +199,7 @@ function SettingsDrawer({
             />
           </button>
         </div>
+        */}
 
         {/* 黑夜模式 */}
         <div className="flex items-center justify-between py-4" style={{ borderBottom: `1px solid ${borderColor}` }}>
@@ -278,6 +271,7 @@ function SettingsDrawer({
           </div>
         </div>
 
+        {/* 首页显示总目标进度：暂不开放，恢复时取消注释
         <div className="flex items-center justify-between py-4" style={{ borderTop: `1px solid ${borderColor}` }}>
           <div>
             <p className="text-sm font-medium" style={{ color: textColor }}>首页显示总目标进度</p>
@@ -294,6 +288,7 @@ function SettingsDrawer({
             />
           </button>
         </div>
+        */}
 
         <div className="h-safe-bottom" style={{ height: 'env(safe-area-inset-bottom, 0px)' }} />
       </div>
@@ -315,7 +310,6 @@ export default function CounterManagement() {
     hideLoading,
     closePage,
     callNative,
-    vibrate,
   } = useNativeBridge()
   const resolveCounterHabitId = useCallback(
     () => resolveFingerCounterHabitId(callNative),
@@ -489,9 +483,10 @@ export default function CounterManagement() {
     setCount(newCount)
     writeWebTodayCount(newCount)
 
-    if (vibrationEnabled) {
-      try { vibrate('light') } catch (_) {}
-    }
+    // 震动反馈暂不开放（与设置项一同恢复）
+    // if (vibrationEnabled) {
+    //   try { vibrate('light') } catch (_) {}
+    // }
 
     if (!isInApp) return
 
@@ -518,7 +513,7 @@ export default function CounterManagement() {
     } catch (e) {
       console.error('[CounterManagement] save error:', e)
     }
-  }, [count, step, vibrationEnabled, isInApp, callNative, vibrate, perClickRecord, enableH5DayStats])
+  }, [count, step, isInApp, callNative, perClickRecord, enableH5DayStats])
 
   // ── 重置今日 ──
   const handleReset = async () => {
@@ -645,7 +640,6 @@ export default function CounterManagement() {
   const textSecondary = isDark ? '#555' : '#9b96db'
   const btnBg = isDark ? '#1e1e32' : '#ebe9ff'
   const btnText = isDark ? '#666' : '#7a75d6'
-  const dailyProgress = Math.min(100, (count / Math.max(1, dailyGoal)) * 100)
   const displayUnit = (unitName && unitName.trim()) ? unitName.trim() : '次'
 
   return (
@@ -681,6 +675,7 @@ export default function CounterManagement() {
           data-no-tap
         >
           <button
+            type="button"
             onClick={() => navigate('/habit/counter/stats')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
             style={{ background: btnBg, color: btnText }}
@@ -801,12 +796,6 @@ export default function CounterManagement() {
         onClose={() => setShowSettings(false)}
         step={step}
         onStepChange={handleStepChange}
-        dailyGoal={dailyGoal}
-        onDailyGoalChange={handleDailyGoalChange}
-        totalGoal={totalGoal}
-        onTotalGoalChange={handleTotalGoalChange}
-        vibration={vibrationEnabled}
-        onVibrationToggle={handleVibrationToggle}
         isDark={isDark}
         onDarkToggle={handleDarkToggle}
         perClickRecord={perClickRecord}
@@ -816,8 +805,6 @@ export default function CounterManagement() {
         unitName={unitName}
         onUnitNameChange={handleUnitNameChange}
         onUnitNameBlur={handleUnitNameBlur}
-        showHomeGoalProgress={showHomeGoalProgress}
-        onShowHomeGoalProgressToggle={handleShowHomeGoalProgressToggle}
       />
     </div>
   )
