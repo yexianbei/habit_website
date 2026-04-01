@@ -21,18 +21,6 @@ const hasKidFinanceHabit = async () => {
 
 const OFFICIAL_HABITS = [
   {
-    id: 'kid_finance',
-    type: HABIT_TYPE_H5,
-    name: '财商小管家',
-    desc: '启蒙阶段专属：完成打卡攒零花，存入定期赚利息，培养孩子记账与延迟满足的好习惯。',
-    icon: '💰',
-    bg: 'from-[#aa89ff] to-[#ff6ec7]',
-    introPath: '/habit/kid-finance/intro',
-    usePath: '/habit/kid-finance',
-    tag: '亲子与教育',
-    hot: true,
-  },
-  {
     id: 'period_management',
     type: HABIT_TYPE_H5,
     name: '经期管理',
@@ -55,6 +43,18 @@ const OFFICIAL_HABITS = [
     usePath: '/habit/counter',
     statsPath: '/habit/counter/stats',
     tag: '专注打卡',
+    hot: true,
+  },
+  {
+    id: 'kid_finance',
+    type: HABIT_TYPE_H5,
+    name: '财商小管家',
+    desc: '启蒙阶段专属：完成打卡攒零花，存入定期赚利息，培养孩子记账与延迟满足的好习惯。',
+    icon: '💰',
+    bg: 'from-[#aa89ff] to-[#ff6ec7]',
+    introPath: '/habit/kid-finance/intro',
+    usePath: '/habit/kid-finance',
+    tag: '亲子与教育',
     hot: true,
   },
   {
@@ -144,6 +144,10 @@ const ENABLED_HABIT_IDS = new Set([
   'finger_counter'
 ])
 
+// 已展示但尚未正式上架：点击仅提示，不跳转
+const COMING_SOON_HABIT_IDS = new Set(['kid_finance'])
+const COMING_SOON_TOAST = '开发中，会尽快开放'
+
 
 const HABIT_EXISTENCE_CHECKERS = {
   period_management: hasPeriodHabit,
@@ -176,7 +180,7 @@ function waitForNativeCallNative(maxMs = 8000) {
 
 export default function OfficialLibrary() {
   const navigate = useNavigate()
-  const { callNative, isInApp, setTitle } = useNativeBridge()
+  const { callNative, isInApp, setTitle, showToast } = useNativeBridge()
   const [existMap, setExistMap] = useState({})
   
   // 过滤出最终可见的
@@ -226,7 +230,8 @@ export default function OfficialLibrary() {
 
   // 数据衍生
   const hotHabits = useMemo(() => visibleHabits.filter(h => h.hot), [visibleHabits])
-  const heroHabit = visibleHabits.find(h => h.id === 'kid_finance') || visibleHabits[0] // 指定主推Banner
+  const heroHabit =
+    visibleHabits.find(h => !COMING_SOON_HABIT_IDS.has(h.id)) ?? visibleHabits[0]
   
   const filteredHabits = useMemo(() => {
     let list = visibleHabits
@@ -238,18 +243,26 @@ export default function OfficialLibrary() {
     return list
   }, [visibleHabits, activeCategory, searchText])
 
+  const openHabit = (item, hasAdded) => {
+    if (COMING_SOON_HABIT_IDS.has(item.id)) {
+      void showToast(COMING_SOON_TOAST)
+      return
+    }
+    navigate(hasAdded ? item.usePath : item.introPath)
+  }
 
   // 小卡片渲染函数
   const renderCard = (item, type = 'grid') => {
     const hasAdded = !!existMap[item.id]
-    const ctaText = hasAdded ? '已添加，进入' : '去开启'
+    const comingSoon = COMING_SOON_HABIT_IDS.has(item.id)
+    const ctaText = comingSoon ? '即将开放' : hasAdded ? '已添加，进入' : '去开启'
     
     if (type === 'row') {
       // 热门区块样式
       return (
         <button
           key={item.id}
-          onClick={() => navigate(hasAdded ? item.usePath : item.introPath)}
+          onClick={() => openHabit(item, hasAdded)}
           className="flex-shrink-0 w-44 bg-white rounded-3xl p-4 shadow-[0_4px_24px_rgba(0,0,0,0.04)] border border-gray-50 flex flex-col active:scale-95 transition-transform text-left"
         >
           <div className={`w-12 h-12 rounded-[16px] bg-gradient-to-br ${item.bg} flex items-center justify-center text-2xl text-white shadow-sm mb-3`}>
@@ -261,7 +274,7 @@ export default function OfficialLibrary() {
              <span className="px-2 py-[2px] rounded-md bg-gray-50 text-[10px] text-gray-500 font-medium">
                 {item.tag}
              </span>
-             <div className={`text-[11px] font-bold ${hasAdded ? 'text-gray-400' : 'text-indigo-500'}`}>
+             <div className={`text-[11px] font-bold ${comingSoon || hasAdded ? 'text-gray-400' : 'text-indigo-500'}`}>
                 {ctaText}
              </div>
           </div>
@@ -273,7 +286,7 @@ export default function OfficialLibrary() {
     return (
       <div key={item.id} className="bg-white rounded-[24px] shadow-[0_2px_16px_rgba(0,0,0,0.03)] border border-gray-50 overflow-hidden flex flex-col group">
         <button
-          onClick={() => navigate(hasAdded ? item.usePath : item.introPath)}
+          onClick={() => openHabit(item, hasAdded)}
           className="p-4 text-left w-full flex-1 flex flex-col active:opacity-60 transition-opacity"
         >
           <div className="flex justify-between items-start mb-3">
@@ -287,8 +300,8 @@ export default function OfficialLibrary() {
           <h3 className="text-[15px] font-bold text-gray-900 leading-tight mb-1">{item.name}</h3>
           <p className="text-[12px] text-gray-500 leading-relaxed line-clamp-2 mb-3">{item.desc}</p>
           
-          <div className="mt-auto flex items-center gap-1.5 text-[12px] font-bold text-indigo-500 bg-indigo-50/50 w-full justify-center py-2 rounded-xl">
-            {hasAdded ? <span className="text-gray-600">从首页进入</span> : <span>立即配置 →</span>}
+          <div className={`mt-auto flex items-center gap-1.5 text-[12px] font-bold w-full justify-center py-2 rounded-xl ${comingSoon ? 'text-gray-500 bg-gray-50' : 'text-indigo-500 bg-indigo-50/50'}`}>
+            {comingSoon ? <span>即将开放</span> : hasAdded ? <span className="text-gray-600">从首页进入</span> : <span>立即配置 →</span>}
           </div>
         </button>
       </div>
@@ -322,7 +335,7 @@ export default function OfficialLibrary() {
               <div 
                 className="relative w-full rounded-[28px] overflow-hidden p-[22px] text-white shadow-lg active:scale-[0.98] transition-transform cursor-pointer"
                 style={{ background: 'linear-gradient(135deg, #1b1642 0%, #302b63 100%)' }}
-                onClick={() => navigate(existMap[heroHabit.id] ? heroHabit.usePath : heroHabit.introPath)}
+                onClick={() => openHabit(heroHabit, !!existMap[heroHabit.id])}
               >
                 <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none" />
                 <div className="relative z-10 flex">
@@ -333,7 +346,11 @@ export default function OfficialLibrary() {
                     </h2>
                     <p className="text-[12px] opacity-80 leading-relaxed font-light line-clamp-2 pr-4">{heroHabit.desc}</p>
                     <div className="mt-4 bg-white text-[#302b63] w-max px-4 py-[7px] rounded-full text-[12px] font-bold shadow-sm">
-                      {existMap[heroHabit.id] ? '进入小金库' : '开启初体验 →'}
+                      {COMING_SOON_HABIT_IDS.has(heroHabit.id)
+                        ? '即将开放'
+                        : existMap[heroHabit.id]
+                          ? '进入小金库'
+                          : '开启初体验 →'}
                     </div>
                   </div>
                 </div>
