@@ -558,16 +558,17 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
   if (!isOpen) return null
   return (
     <div 
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" 
-      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }}
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center touch-none sm:touch-auto" 
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (e.target === e.currentTarget) onClose() }}
     >
       <div 
-        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" 
+        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp touch-auto" 
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <button 
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }} 
+            type="button"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }} 
             className="text-gray-400 text-sm py-2 px-4 -ml-4"
           >
             取消
@@ -576,14 +577,16 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
           <div className="flex gap-1">
             {existingLog && (
               <button 
-                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onDelete(), 50); }} 
+                type="button"
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); onDelete() }} 
                 className="text-red-500 font-medium text-sm py-2 px-3"
               >
                 删除
               </button>
             )}
             <button 
-              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => handleSave(), 50); }} 
+              type="button"
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleSave() }} 
               className="text-pink-500 font-medium text-sm py-2 px-3 -mr-3"
             >
               保存
@@ -709,16 +712,17 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
   if (!isOpen) return null
   return (
     <div 
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" 
-      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }}
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center touch-none sm:touch-auto" 
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (e.target === e.currentTarget) onClose() }}
     >
       <div 
-        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" 
+        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp touch-auto" 
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <button 
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }} 
+            type="button"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }} 
             className="text-gray-400 text-sm py-2 px-4 -ml-4"
           >
             取消
@@ -727,14 +731,16 @@ const LoveModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
           <div className="flex gap-1">
             {existingLog && (
               <button 
-                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onDelete(), 50); }} 
+                type="button"
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); onDelete() }} 
                 className="text-red-500 font-medium text-sm py-2 px-3"
               >
                 删除
               </button>
             )}
             <button 
-              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => handleSave(), 50); }} 
+              type="button"
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleSave() }} 
               className="text-purple-600 font-medium text-sm py-2 px-3 -mr-3"
             >
               保存
@@ -842,16 +848,17 @@ const MoodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
   if (!isOpen) return null
   return (
     <div 
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" 
-      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }}
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center touch-none sm:touch-auto" 
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (e.target === e.currentTarget) onClose() }}
     >
       <div 
-        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp" 
+        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md max-h-[90vh] flex flex-col animate-slideUp touch-auto" 
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <button 
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }} 
+            type="button"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }} 
             className="text-gray-400 text-sm py-2 px-4 -ml-4"
           >
             取消
@@ -860,14 +867,16 @@ const MoodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelet
           <div className="flex gap-1">
             {existingLog && (
               <button 
-                onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onDelete(formatDate(new Date(existingLog.createTime))), 50); }} 
+                type="button"
+                onClick={(e) => { e.stopPropagation(); e.preventDefault(); onDelete(formatDate(new Date(existingLog.createTime))) }} 
                 className="text-red-500 font-medium text-sm py-2 px-3"
               >
                 删除
               </button>
             )}
             <button 
-              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => handleSave(), 50); }} 
+              type="button"
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleSave() }} 
               className="text-amber-500 font-medium text-sm py-2 px-3 -mr-3"
             >
               保存
@@ -924,11 +933,11 @@ const SettingsModal = ({ isOpen, onClose, config, onSave }) => {
   
   return (
     <div 
-      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" 
-      onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }}
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 touch-none sm:touch-auto" 
+      onClick={(e) => { e.stopPropagation(); e.preventDefault(); if (e.target === e.currentTarget) onClose() }}
     >
       <div 
-        className="bg-white rounded-3xl w-full max-w-sm p-6 animate-slideUp"
+        className="bg-white rounded-3xl w-full max-w-sm p-6 animate-slideUp touch-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="text-center mb-6">
@@ -995,13 +1004,15 @@ const SettingsModal = ({ isOpen, onClose, config, onSave }) => {
         
         <div className="flex gap-3 mt-8">
           <button 
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onClose(), 50); }} 
+            type="button"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onClose() }} 
             className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-medium active:scale-98"
           >
             取消
           </button>
           <button 
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setTimeout(() => onSave(cycleLen, periodLen, reminderEnabled, reminderAdvance), 50); }}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onSave(cycleLen, periodLen, reminderEnabled, reminderAdvance) }}
             className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl font-medium shadow-lg shadow-pink-200 active:scale-98"
           >
             保存
@@ -1129,6 +1140,19 @@ export default function PeriodManagement() {
   const [showLoveModal, setShowLoveModal] = useState(false)
   const [showMoodModal, setShowMoodModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
+  /** 底部弹窗关闭后，WebView 可能把同一次触摸的合成 click 落到下方日历，导致刚关掉又打开 */
+  const suppressCalendarTapRef = useRef(false)
+  const armSuppressCalendarTap = useCallback(() => {
+    suppressCalendarTapRef.current = true
+    window.setTimeout(() => {
+      suppressCalendarTapRef.current = false
+    }, 350)
+  }, [])
+  const handleCalendarDateSelect = useCallback((date) => {
+    if (suppressCalendarTapRef.current) return
+    setSelectedDate(date)
+    setShowPeriodModal(true)
+  }, [])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const { deleteHabit, isDeleting } = useHabitDelete({ type: 16, name: '经期管理' })
@@ -1532,6 +1556,7 @@ export default function PeriodManagement() {
       }, hid)
       await hideLoading()
       await showToast('保存成功')
+      armSuppressCalendarTap()
       setShowPeriodModal(false)
       setShowLoveModal(false)
       setShowMoodModal(false)
@@ -1548,6 +1573,7 @@ export default function PeriodManagement() {
       const toDelete = dateStr != null ? dateStr : formatDate(selectedDate)
       await deletePeriodDay(callNative, toDelete, hid)
       await showToast('已删除')
+      armSuppressCalendarTap()
       setShowPeriodModal(false)
       setShowLoveModal(false)
       loadData()
@@ -1569,6 +1595,7 @@ export default function PeriodManagement() {
         reminderEnabled,
         reminderAdvance: Math.min(7, Math.max(1, Number(reminderAdvance) || 3)),
       })
+      armSuppressCalendarTap()
       setShowSettingsModal(false)
       await showToast('设置已保存')
       loadData()
@@ -1706,7 +1733,7 @@ export default function PeriodManagement() {
           currentMonth={currentMonth}
           setCurrentMonth={setCurrentMonth}
           selectedDate={selectedDate}
-          onDateSelect={(date) => { setSelectedDate(date); setShowPeriodModal(true) }}
+          onDateSelect={handleCalendarDateSelect}
           periodLogs={periodLogs}
           predictions={predictions}
           config={config}
@@ -1738,23 +1765,23 @@ export default function PeriodManagement() {
       
       {/* 弹窗 */}
       <PeriodModal 
-        isOpen={showPeriodModal} onClose={() => setShowPeriodModal(false)}
+        isOpen={showPeriodModal} onClose={() => { armSuppressCalendarTap(); setShowPeriodModal(false) }}
         selectedDate={selectedDate} existingLog={getSelectedDateLog()}
         onSave={handleSaveDetails} onDelete={handleDeleteRecord}
         isInitialized={lastPeriodStart !== null}
       />
       <LoveModal 
-        isOpen={showLoveModal} onClose={() => setShowLoveModal(false)}
+        isOpen={showLoveModal} onClose={() => { armSuppressCalendarTap(); setShowLoveModal(false) }}
         selectedDate={selectedDate} existingLog={getSelectedDateLog()}
         onSave={handleSaveDetails} onDelete={handleDeleteRecord}
       />
       <MoodModal 
-        isOpen={showMoodModal} onClose={() => setShowMoodModal(false)}
+        isOpen={showMoodModal} onClose={() => { armSuppressCalendarTap(); setShowMoodModal(false) }}
         selectedDate={selectedDate} existingLog={getSelectedDateLog()}
         onSave={handleSaveDetails} onDelete={(dateStr) => handleDeleteRecord(dateStr)}
       />
       <SettingsModal 
-        isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)}
+        isOpen={showSettingsModal} onClose={() => { armSuppressCalendarTap(); setShowSettingsModal(false) }}
         config={config} onSave={handleSaveSettings}
       />
       
