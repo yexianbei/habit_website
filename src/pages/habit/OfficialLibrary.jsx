@@ -148,6 +148,9 @@ const ENABLED_HABIT_IDS = new Set([
 const COMING_SOON_HABIT_IDS = new Set(['kid_finance'])
 const COMING_SOON_TOAST = '开发中，会尽快开放'
 
+// 习惯库搜索框：先下线，后续再打开
+const ENABLE_OFFICIAL_LIBRARY_SEARCH = false
+
 
 const HABIT_EXISTENCE_CHECKERS = {
   period_management: hasPeriodHabit,
@@ -311,20 +314,22 @@ export default function OfficialLibrary() {
   return (
     <div className="min-h-screen bg-[#F8F9FB] font-sans pb-10">
       
-      {/* (1) 搜索框区：吸顶 + 毛玻璃 */}
-      <div className="sticky top-0 z-50 w-full px-5 py-3 backdrop-blur-md bg-white/80 border-b border-gray-100/50 mb-4 transition-all shadow-sm">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <span className="text-gray-400">🔍</span>
+      {ENABLE_OFFICIAL_LIBRARY_SEARCH && (
+        /* (1) 搜索框区：吸顶 + 毛玻璃 */
+        <div className="sticky top-0 z-50 w-full px-5 py-3 backdrop-blur-md bg-white/80 border-b border-gray-100/50 mb-4 transition-all shadow-sm">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <span className="text-gray-400">🔍</span>
+            </div>
+            <input 
+              className="w-full bg-[#f1f3f6] text-gray-800 text-sm rounded-full pl-10 pr-4 py-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-shadow"
+              placeholder="搜索习惯名字或关键词，如'财商'"
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+            />
           </div>
-          <input 
-            className="w-full bg-[#f1f3f6] text-gray-800 text-sm rounded-full pl-10 pr-4 py-[10px] focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-shadow"
-            placeholder="搜索习惯名字或关键词，如'财商'"
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-          />
         </div>
-      </div>
+      )}
 
       {/* 以下是如果没有搜索关键词，则显示重磅推荐和热门区，有搜索则不显示 */}
       {!searchText.trim() && (
