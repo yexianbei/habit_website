@@ -1,6 +1,6 @@
 import { BASE_URL } from './config'
 import React, { useEffect, Suspense, lazy } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
 import Hero from './components/Hero'
 import Features from './components/Features'
 import Footer from './components/Footer'
@@ -69,8 +69,16 @@ const LoadingPlaceholder = ({ height = '200px' }) => (
 // 路由滚动处理组件
 const ScrollToTop = () => {
   const { pathname } = useLocation()
+  const navigationType = useNavigationType()
   
   useEffect(() => {
+    // 说明：
+    // - H5/ WebView 默认共用 window 滚动容器，路由切换不会自动重置滚动位置
+    // - 原生 App “打开二级页从顶部开始”是因为新页面有新的 ScrollView
+    // - 这里用 Scroll Restoration 达到同等体验：
+    //   - 进入新页面（PUSH/REPLACE）滚到顶部
+    //   - 返回上一页（POP）恢复上一页离开时的位置
+
     // 在全局 smooth scroll 开启的情况下，强制「瞬间滚动」
     const scrollInstantly = (y = 0) => {
       const html = document.documentElement
@@ -88,11 +96,49 @@ const ScrollToTop = () => {
       })
     }
 
+    const key = (p) => `scrollY:${p}`
+    const shouldRestoreScroll = (p) => {
+      // 仅一级列表页需要“返回保持原位置”
+      // 二级页（介绍/管理等）进入时一律从顶部开始，符合原生“新页面新滚动容器”的体验
+      return p === '/habit/library/official' || p === '/habit/training/library'
+    }
+    const readY = (p) => {
+      try {
+        const v = sessionStorage.getItem(key(p))
+        const n = v == null ? NaN : Number(v)
+        return Number.isFinite(n) ? n : 0
+      } catch {
+        return 0
+      }
+    }
+    const writeY = (p, y) => {
+      try {
+        sessionStorage.setItem(key(p), String(y))
+      } catch {
+        // ignore
+      }
+    }
+
     // 文章详情页：任何方式进入都滚到顶部
     if (pathname.startsWith('/blog/')) {
       scrollInstantly(0)
     }
-  }, [pathname])
+
+    // 习惯相关：
+    // - 一级列表页：返回时恢复位置
+    // - 其它二级页：进入即滚到顶部
+    if (pathname.startsWith('/habit/')) {
+      if (shouldRestoreScroll(pathname) && navigationType === 'POP') scrollInstantly(readY(pathname))
+      else scrollInstantly(0)
+    }
+
+    // 离开当前路由时记住当前位置（用于回退恢复）
+    return () => {
+      if (shouldRestoreScroll(pathname)) {
+        writeY(pathname, window.scrollY || 0)
+      }
+    }
+  }, [pathname, navigationType])
   
   return null
 }
