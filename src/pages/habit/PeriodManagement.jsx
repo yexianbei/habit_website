@@ -487,8 +487,11 @@ const MoodSection = ({ mood, setMood }) => (
   </div>
 )
 
-const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelete, isInitialized }) => {
-  // 经期开关默认关闭，只有在有现有记录时才根据记录设置
+const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDelete, isInitialized, defaultIsPeriod = false }) => {
+  // 经期开关：
+  // - 有现有记录时，完全按记录里的 isPeriod 恢复
+  // - 没有记录但智能判断在经期内（且已完成初始化）时，默认打开
+  // - 其他情况默认关闭
   const [isPeriod, setIsPeriod] = useState(false)
   const [periodEnded, setPeriodEnded] = useState(false)
   const [periodStartTime, setPeriodStartTime] = useState('')
@@ -515,22 +518,22 @@ const PeriodModal = ({ isOpen, onClose, selectedDate, existingLog, onSave, onDel
         setColor(d.color || null)
         setMood(d.mood || null)
       } catch (e) {
-        // 解析失败时，默认关闭经期开关
-        setIsPeriod(false)
+        // 解析失败时，按智能判断的经期状态兜底
+        setIsPeriod(isInitialized && defaultIsPeriod)
         setPeriodEnded(false)
         setPeriodStartTime(nowTime)
         setPeriodEndTime(nowTime)
         setFlow(null); setPain(null); setColor(null); setMood(null)
       }
     } else {
-      // 没有现有记录时，默认关闭经期开关
-      setIsPeriod(false)
+      // 没有现有记录时：若当前日期智能判断在经期内，默认打开经期开关
+      setIsPeriod(isInitialized && defaultIsPeriod)
       setPeriodEnded(false)
       setPeriodStartTime(nowTime)
       setPeriodEndTime(nowTime)
       setFlow(null); setPain(null); setColor(null); setMood(null)
     }
-  }, [isOpen, existingLog, isInitialized])
+  }, [isOpen, existingLog, isInitialized, defaultIsPeriod])
 
   const handleSave = () => {
     // 允许只记录心情：把 isPeriod 关掉即可
@@ -1782,6 +1785,7 @@ export default function PeriodManagement() {
         selectedDate={selectedDate} existingLog={getSelectedDateLog()}
         onSave={handleSaveDetails} onDelete={handleDeleteRecord}
         isInitialized={lastPeriodStart !== null}
+        defaultIsPeriod={isDateInPeriod(selectedDate)}
       />
       <LoveModal 
         isOpen={showLoveModal} onClose={() => { armSuppressCalendarTap(); setShowLoveModal(false) }}
