@@ -228,7 +228,8 @@ export async function savePeriodRecord(callNative, record, habitId) {
   const createTimeMs = record.createTime != null ? Number(record.createTime) : 0
 
   const existingRes = await callNative('eventAttr.log.get', { date: dateStr, habitId })
-  const isExisting = !!(existingRes?.success && existingRes?.logId)
+  const existingLogId = (existingRes?.success && existingRes?.logId) ? String(existingRes.logId) : ''
+  const isExisting = !!existingLogId
 
   const ct = computeCreateTimeMs(dateStr, details, createTimeMs, isExisting)
   const attributes = buildAttributesFromDetails(details)
@@ -239,7 +240,9 @@ export async function savePeriodRecord(callNative, record, habitId) {
     attributes,
   }
   if (habitId) payload.habitId = habitId
-  if (ct > 0) payload.createTime = ct
+  // 根规则：同一逻辑日若已有日志锚点，后续经期/心情/爱爱都必须复用同一条，不再靠 date 二次解析
+  if (existingLogId) payload.logId = existingLogId
+  if (!existingLogId && ct > 0) payload.createTime = ct
 
   const out = await callNative('eventAttr.log.save', payload)
   if (details.isPeriod) {
@@ -261,6 +264,7 @@ export async function fetchPeriodRecords(callNative, startDate, endDate, habitId
   const mapped = recordsRaw.map((rec) => ({
     id: rec.logId,
     createTime: rec.createTime || 0,
+    period: rec.date || null,
     signUpId: assembleSignUpIdString(rec.attributes),
   }))
 

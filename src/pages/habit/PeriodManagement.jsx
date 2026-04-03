@@ -77,6 +77,19 @@ const formatDate = (date) => {
 
 const parseDate = (str) => str ? new Date(str.replace(/-/g, '/')) : null
 
+// 业务日优先：eventAttr.log.query 返回的 rec.date（YYYY-MM-DD）；兼容老数据回退 createTime。
+const logBusinessDateStr = (log) => {
+  if (log?.period && /^\d{4}-\d{2}-\d{2}$/.test(String(log.period))) {
+    return String(log.period)
+  }
+  if (log?.date && /^\d{4}-\d{2}-\d{2}$/.test(String(log.date))) {
+    return String(log.date)
+  }
+  return formatDate(new Date(log?.createTime || 0))
+}
+
+const logBusinessDate = (log) => parseDate(logBusinessDateStr(log))
+
 const diffDays = (date1, date2) => {
   const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate())
   const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate())
@@ -124,7 +137,7 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
   const getDateInfo = useCallback((date) => {
     if (!date) return { status: PERIOD_STATUS.NONE, mood: null, hasLove: false }
     const dateStr = formatDate(date)
-    const log = periodLogs.find(l => formatDate(new Date(l.createTime)) === dateStr)
+    const log = periodLogs.find(l => logBusinessDateStr(l) === dateStr)
     
     let status = PERIOD_STATUS.NONE
     let mood = null
@@ -170,8 +183,8 @@ const Calendar = ({ currentMonth, setCurrentMonth, selectedDate, onDateSelect, p
         } catch (e) { return false }
       })
       .map(log => ({
-        date: new Date(log.createTime),
-        dateStr: formatDate(new Date(log.createTime))
+        date: logBusinessDate(log),
+        dateStr: logBusinessDateStr(log),
       }))
       .sort((a, b) => a.date - b.date)
 
@@ -1054,7 +1067,7 @@ const RecentRecords = ({ logs, onRecordClick }) => {
       </h3>
       <div className="space-y-4">
         {logsWithDetails.map((log, idx) => {
-          const date = new Date(log.createTime)
+          const date = logBusinessDate(log)
           let details = {}
           try { details = JSON.parse(log.signUpId) } catch (e) {}
           
@@ -1294,8 +1307,8 @@ export default function PeriodManagement() {
         }
       })
       .map(log => ({
-        date: new Date(log.createTime),
-        dateStr: formatDate(new Date(log.createTime))
+        date: logBusinessDate(log),
+        dateStr: logBusinessDateStr(log),
       }))
       .sort((a, b) => a.date - b.date)
     
@@ -1414,7 +1427,7 @@ export default function PeriodManagement() {
           return false
         }
       })
-      .map(log => new Date(log.createTime))
+      .map(log => logBusinessDate(log))
       .sort((a, b) => a - b)
     
     if (periodRecords.length === 0) return lastPeriodStart
@@ -1473,7 +1486,7 @@ export default function PeriodManagement() {
           const d = JSON.parse(log.signUpId)
           if (d.periodEnded) {
             hasEnded = true
-            const logDate = new Date(log.createTime)
+            const logDate = logBusinessDate(log)
             const logDay = new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate())
             const dayIndex = diffDays(logDay, startDay) + 1
             endedDayIndex = Math.max(endedDayIndex, dayIndex)
@@ -1495,7 +1508,7 @@ export default function PeriodManagement() {
           }
         })
         .map(log => {
-          const logDate = new Date(log.createTime)
+          const logDate = logBusinessDate(log)
           const logDay = new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate())
           return diffDays(logDay, startDay) + 1
         })
@@ -1604,7 +1617,7 @@ export default function PeriodManagement() {
   
   const getSelectedDateLog = () => {
     const dateStr = formatDate(selectedDate)
-    return periodLogs.find(l => formatDate(new Date(l.createTime)) === dateStr)
+    return periodLogs.find(l => logBusinessDateStr(l) === dateStr)
   }
   
   const status = getStatusText()
@@ -1745,7 +1758,7 @@ export default function PeriodManagement() {
         <RecentRecords 
           logs={periodLogs} 
           onRecordClick={(log) => {
-            const date = new Date(log.createTime)
+            const date = logBusinessDate(log)
             setSelectedDate(date)
             
             let details = {}
