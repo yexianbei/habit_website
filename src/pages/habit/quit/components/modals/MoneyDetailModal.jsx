@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { formatNumber } from '../../../../../utils/quitUtils'
-import useNativeBridge from '../../../../../utils/useNativeBridge'
+import { getQuitProfileApi, hasWorkerAuthToken, updateQuitProfileApi } from '../../../../../utils/quitApi'
 
 export const MoneyDetailModal = ({ 
   isOpen, 
@@ -13,12 +13,11 @@ export const MoneyDetailModal = ({
   dailyCost, 
   days, 
   onDailyCostChange,
+  onSettingsChange,
   showToast,
   showLoading,
   hideLoading,
 }) => {
-  const { callNative } = useNativeBridge()
-  
   // 如果没有传递这些方法，使用默认实现
   const safeShowToast = showToast || ((msg) => console.log('[Toast]', msg))
   const safeShowLoading = showLoading || (() => {})
@@ -45,7 +44,9 @@ export const MoneyDetailModal = ({
 
   const loadSettings = async () => {
     try {
-      const settings = await callNative('quit.getSettings').catch(() => null)
+      const workerEnabled = await hasWorkerAuthToken().catch(() => false)
+      if (!workerEnabled) return
+      const settings = await getQuitProfileApi().catch(() => null)
       if (settings) {
         setCigarettesPerDay(settings.cigarettesPerDay?.toString() || '')
         setPricePerCigarette(settings.pricePerCigarette?.toString() || '')
@@ -78,9 +79,13 @@ export const MoneyDetailModal = ({
     try {
       safeShowLoading()
       const newDailyCost = cigarettes * price
+      const workerEnabled = await hasWorkerAuthToken().catch(() => false)
+      if (!workerEnabled) {
+        throw new Error('缺少 token，请在打开 H5 时携带 token 参数')
+      }
       
       // 保存设置
-      await callNative('quit.updateSettings', {
+      await updateQuitProfileApi({
         cigarettesPerDay: cigarettes,
         pricePerCigarette: price,
         dailyCost: newDailyCost,

@@ -7,8 +7,14 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useHabitDelete } from '../../hooks/useHabitDelete'
-import useNativeBridge from '../../utils/useNativeBridge'
 import { formatDate, diffDays, calculateQuitTime, formatNumber } from '../../utils/quitUtils'
+import {
+  createQuitEventApi,
+  getQuitEventsApi,
+  getQuitProfileApi,
+  getQuitStatsApi,
+  hasWorkerAuthToken,
+} from '../../utils/quitApi'
 import { getRandomMotivation } from './quit/constants'
 import { CompactStatsCard } from './quit/components/StatsCard'
 import { MotivationSection } from './quit/components/MotivationSection'
@@ -18,20 +24,17 @@ import { MoneyDetailModal } from './quit/components/modals/MoneyDetailModal'
 import { AchievementDetailModal } from './quit/components/modals/AchievementDetailModal'
 import { RelapseModal } from './quit/components/modals/RelapseModal'
 
+function notify(message) {
+  if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+    window.alert(message)
+  }
+}
 
 // ============ 主页面组件 ============
 
 export default function QuitManagement() {
   const navigate = useNavigate()
   const location = useLocation()
-  const {
-    isInApp,
-    callNative,
-    setTitle,
-    showToast,
-    showLoading,
-    hideLoading,
-  } = useNativeBridge()
   const { deleteHabit, isDeleting } = useHabitDelete({ type: 17, name: '戒烟' })
 
   const [quitDate, setQuitDate] = useState(null)
@@ -59,12 +62,6 @@ export default function QuitManagement() {
     document.title = pageTitle
   }, [])
   
-  useEffect(() => {
-    if (isInApp && setTitle) {
-      setTitle(pageTitle)
-    }
-  }, [isInApp, setTitle])
-
   useEffect(() => {
     // 在浏览器环境也尝试加载数据（会返回 mock 数据）
     loadData()
@@ -155,111 +152,51 @@ export default function QuitManagement() {
   const loadData = async () => {
     try {
       setLoading(true)
+      const workerEnabled = await hasWorkerAuthToken().catch(() => false)
+      if (!workerEnabled) {
+        throw new Error('缺少 token，请在打开 H5 时携带 token 参数')
+      }
       
       const params = new URLSearchParams(location.search)
       const skipOnboarding = params.get('skipOnboarding') === '1'
 
-      // 并行加载所有数据（浏览器环境会返回 mock 数据）
-      const [quitDateResult, statsResult, costResult, motivationResult, milestonesResult, settingsResult] = await Promise.all([
-        callNative('quit.getQuitDate').catch(() => null),
-        callNative('quit.getStats').catch(() => null),
-        callNative('quit.getDailyCost').catch(() => 0),
-        callNative('quit.getMotivation').catch(() => null),
-        callNative('quit.getMilestones').catch(() => []),
-        callNative('quit.getSettings').catch(() => null),
+      const today = formatDate(new Date())
+      const [profileResult, statsResult, eventsResult] = await Promise.all([
+        getQuitProfileApi().catch(() => null),
+        getQuitStatsApi('2000-01-01', today).catch(() => null),
+        getQuitEventsApi('2000-01-01', today).catch(() => ({ records: [] })),
       ])
 
-      // 加载破戒记录，找到最后一次破戒时间
-      try {
-        const recordsResult = await callNative('quit.getRecords', {
-          startDate: '2000-01-01',
-          endDate: formatDate(new Date()),
-        }).catch(() => null)
-        const records = Array.isArray(recordsResult?.records)
-          ? recordsResult.records
-          : (Array.isArray(recordsResult) ? recordsResult : [])
-        if (records && Array.isArray(records)) {
-          // 过滤出破戒记录（type为relapse的记录）
-          const relapseRecords = records.filter(r => r.type === 'relapse' || r.details?.type === 'relapse')
-          if (relapseRecords.length > 0) {
-            // 按日期排序，找到最新的
-            relapseRecords.sort((a, b) => {
-              const dateA = new Date(a.details?.datetime || a.date || a.details?.date || 0)
-              const dateB = new Date(b.details?.datetime || b.date || b.details?.date || 0)
-              return dateB - dateA
-            })
-            const lastRelapse = relapseRecords[0]
-            const relapseDate = lastRelapse.details?.datetime || lastRelapse.date || lastRelapse.details?.date
-            if (relapseDate) {
-              setLastRelapseDate(relapseDate)
-            }
-          }
-        }
-      } catch (error) {
-        console.error('加载破戒记录失败:', error)
+      const records = Array.isArray(eventsResult?.records) ? eventsResult.records : []
+      const relapseRecords = records.filter((r) => r.type === 'relapse' || r.details?.type === 'relapse')
+
+      if (relapseRecords.length > 0) {
+        const latest = relapseRecords[0]
+        const relapseDate = latest.details?.datetime
+          || (latest.eventAt ? new Date(latest.eventAt * 1000).toISOString() : latest.date)
+        if (relapseDate) setLastRelapseDate(relapseDate)
+      } else {
+        setLastRelapseDate(null)
       }
 
-      // 如果不在 App 内，使用 mock 数据进行演示
-      if (!isInApp) {
-        // 浏览器环境：使用 mock 数据
-        const mockDate = new Date()
-        mockDate.setDate(mockDate.getDate() - 7) // 模拟7天前开始戒烟
-        mockDate.setHours(8, 30, 0, 0) // 设置具体时间：8:30:00
-        setQuitDate(mockDate)
-        setDailyCost(20)
-        setStats({ days: 7, savedMoney: 140, healthData: { heartRate: 3.5, oxygen: 2.1 } })
-        setMotivation({ text: '你已经坚持了7天，继续加油！每一刻的坚持都是向健康迈进的步伐。' })
-        setMilestones([
-          { days: 7, title: '第一周', achieved: true },
-          { days: 30, title: '第一个月', achieved: false },
-          { days: 100, title: '百日挑战', achieved: false },
-        ])
-        setLoading(false)
-        return
-      }
-
-      // 如果没有任何戒烟日期数据，引导用户先做初始化
-      // 但如果带了 skipOnboarding=1，则尊重用户"稍后再填"的选择，不再强制跳转
-      if (!quitDateResult && !skipOnboarding) {
+      const quitStartAt = statsResult?.quitStartAt || profileResult?.quitStartAt || null
+      if (!quitStartAt && !skipOnboarding) {
         setLoading(false)
         navigate('/habit/quit/onboarding', { replace: true })
         return
       }
+      if (quitStartAt) setQuitDate(new Date(quitStartAt * 1000))
 
-      if (quitDateResult) {
-        setQuitDate(new Date(quitDateResult))
-      }
-      
-      if (statsResult) {
-        setStats(statsResult)
-      }
-      
-      // 优先使用设置中的 dailyCost，如果没有则使用 getDailyCost 的结果
-      let finalDailyCost = costResult || 0
-      let finalCigarettesPerDay = 0
-      let finalPricePerCigarette = 0
-      
-      if (settingsResult) {
-        if (settingsResult.cigarettesPerDay && settingsResult.pricePerCigarette) {
-          finalCigarettesPerDay = settingsResult.cigarettesPerDay
-          finalPricePerCigarette = settingsResult.pricePerCigarette
-          finalDailyCost = finalCigarettesPerDay * finalPricePerCigarette
-        } else if (settingsResult.dailyCost) {
-          finalDailyCost = settingsResult.dailyCost
-        }
-      }
-      
-      setDailyCost(finalDailyCost)
-      setCigarettesPerDay(finalCigarettesPerDay)
-      setPricePerCigarette(finalPricePerCigarette)
-      
-      setMotivation(motivationResult)
-      setMilestones(milestonesResult || [])
+      const nextDailyCost = Number(profileResult?.dailyCost || statsResult?.dailyCost || 0)
+      setDailyCost(nextDailyCost)
+      setCigarettesPerDay(Number(profileResult?.cigarettesPerDay || 0))
+      setPricePerCigarette(Number(profileResult?.pricePerCigarette || 0))
+      setStats(statsResult || null)
+      setMotivation({ text: '每一秒都是向健康迈进的步伐 💪' })
+      setMilestones([])
     } catch (error) {
       console.error('加载数据失败:', error)
-      if (isInApp) {
-        showToast('加载数据失败: ' + error.message)
-      }
+      notify('加载数据失败: ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -426,7 +363,7 @@ export default function QuitManagement() {
                   🗑️
                 </button>
                 <button
-                  onClick={() => { showToast('请设置戒烟日期') }}
+                  onClick={() => { notify('请设置戒烟日期') }}
                   className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm"
                 >
                   ⚙️
@@ -516,7 +453,7 @@ export default function QuitManagement() {
             <button
               onClick={() => {
                 // TODO: 打开设置戒烟日期弹窗
-                showToast('请设置戒烟日期')
+                notify('请设置戒烟日期')
               }}
               className="px-8 py-3 bg-gradient-to-r from-quit-green to-quit-green-dark text-white rounded-xl font-medium shadow-lg shadow-green-200 active:scale-95 transition-transform"
             >
@@ -541,14 +478,11 @@ export default function QuitManagement() {
           </div>
         )}
 
-        {/* 浏览器环境提示 */}
-        {!isInApp && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
-            <p className="text-sm text-amber-700">
-              💡 当前为演示模式，显示的是模拟数据。完整功能请在 App 内使用。
-            </p>
-          </div>
-        )}
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
+          <p className="text-sm text-amber-700">
+            请通过带 token 的链接打开本页面，否则无法加载戒烟数据。
+          </p>
+        </div>
       </div>
 
       {/* 健康数据详情弹窗 */}
@@ -578,9 +512,9 @@ export default function QuitManagement() {
             setPricePerCigarette(settings.pricePerCigarette)
           }
         }}
-        showToast={showToast}
-        showLoading={showLoading}
-        hideLoading={hideLoading}
+        showToast={notify}
+        showLoading={() => {}}
+        hideLoading={() => {}}
       />
 
       {/* 成就详情弹窗 */}
@@ -599,23 +533,20 @@ export default function QuitManagement() {
         onClose={() => setShowRelapseModal(false)}
         onSave={async (relapseData) => {
           try {
-            showLoading()
             const now = new Date()
             const datetime = relapseData.datetime || now.toISOString()
-            
-            // 保存破戒记录
-            await callNative('quit.saveRecord', {
+
+            await createQuitEventApi({
               date: formatDate(new Date(datetime)),
+              eventAt: datetime,
               type: 'relapse',
+              resetQuitDate: true,
               details: {
                 datetime,
                 cigaretteType: relapseData.cigaretteType || '',
                 note: relapseData.note || '',
               },
             })
-            
-            // 更新戒烟日期为破戒时间
-            await callNative('quit.setQuitDate', { date: datetime })
             
             // 更新本地状态
             setLastRelapseDate(datetime)
@@ -624,13 +555,11 @@ export default function QuitManagement() {
             // 重新加载数据
             await loadData()
             
-            showToast('破戒记录已保存，戒烟时间已重置')
+            notify('破戒记录已保存，戒烟时间已重置')
             setShowRelapseModal(false)
           } catch (error) {
             console.error('保存破戒记录失败:', error)
-            showToast('保存失败: ' + (error.message || '未知错误'))
-          } finally {
-            hideLoading()
+            notify('保存失败: ' + (error.message || '未知错误'))
           }
         }}
       />
@@ -691,4 +620,3 @@ export default function QuitManagement() {
     </div>
   )
 }
-

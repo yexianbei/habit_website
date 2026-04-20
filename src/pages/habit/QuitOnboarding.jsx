@@ -5,7 +5,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import useNativeBridge from '../../utils/useNativeBridge'
+import { getQuitProfileApi, hasWorkerAuthToken, updateQuitProfileApi } from '../../utils/quitApi'
 
 const formatDate = (date) => {
   if (!date) return ''
@@ -15,14 +15,7 @@ const formatDate = (date) => {
 
 export default function QuitOnboarding() {
   const navigate = useNavigate()
-  const {
-    isInApp,
-    callNative,
-    setTitle,
-    showToast,
-    showLoading,
-    hideLoading,
-  } = useNativeBridge()
+  const showToast = (message) => window.alert(message)
 
   const [quitDate, setQuitDateLocal] = useState(formatDate(new Date()))
   const [quitTime, setQuitTime] = useState('08:00')
@@ -42,18 +35,16 @@ export default function QuitOnboarding() {
     document.title = pageTitle
   }, [])
   useEffect(() => {
-    if (isInApp && setTitle) {
-      setTitle(pageTitle)
-    }
-  }, [isInApp, setTitle])
-
-  useEffect(() => {
     // 预填已有设置
     const load = async () => {
-      if (!isInApp) return
       try {
-        const date = await callNative('quit.getQuitDate').catch(() => null)
-        const cost = await callNative('quit.getDailyCost').catch(() => 0)
+        const workerEnabled = await hasWorkerAuthToken().catch(() => false)
+        if (!workerEnabled) return
+        const profile = await getQuitProfileApi().catch(() => null)
+        const date = profile?.quitStartAt
+          ? new Date(profile.quitStartAt * 1000).toISOString()
+          : null
+        const cost = profile?.dailyCost ?? 0
         if (date) {
           const d = new Date(date)
           setQuitDateLocal(formatDate(d))
@@ -65,41 +56,28 @@ export default function QuitOnboarding() {
       } catch (_) {}
     }
     load()
-  }, [isInApp, getQuitDate, getDailyCost])
+  }, [])
 
   const handleSubmit = async () => {
     if (!canSubmit) return
     try {
-      await showLoading('初始化中...')
+      const workerEnabled = await hasWorkerAuthToken().catch(() => false)
+      if (!workerEnabled) {
+        throw new Error('缺少 token，请在打开 H5 时携带 token 参数')
+      }
 
       // 1) 设置戒烟日期（包含时间）
       const dateTime = `${quitDate}T${quitTime}:00`
-      await callNative('quit.setQuitDate', { date: dateTime })
+      await updateQuitProfileApi({
+        quitStartAt: dateTime,
+        dailyCost: Number(dailyCost),
+      })
 
-      // 2) 设置每日花费
-      await callNative('quit.setDailyCost', { cost: Number(dailyCost) })
-
-      await hideLoading()
-      await showToast('初始化完成')
+      showToast('初始化完成')
       navigate('/habit/quit', { replace: true })
     } catch (e) {
-      await hideLoading()
-      await showToast('初始化失败: ' + (e?.message || '未知错误'))
+      showToast('初始化失败: ' + (e?.message || '未知错误'))
     }
-  }
-
-  if (!isInApp) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 via-white to-green-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-quit-green to-quit-green-dark flex items-center justify-center mx-auto mb-6 shadow-xl shadow-green-200">
-            <span className="text-5xl">🚭</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">戒烟管理</h1>
-          <p className="text-gray-500">请在小习惯 App 内使用</p>
-        </div>
-      </div>
-    )
   }
 
   return (

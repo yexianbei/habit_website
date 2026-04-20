@@ -7,3 +7,9 @@ compatibility_date = "2025-01-01"
 # AIRTABLE_API_KEY     = "your_airtable_personal_access_token"
 # AIRTABLE_BASE_ID     = "your_airtable_base_id"
 # AIRTABLE_TABLE_NAME  = "ViewCounts"
+# JWT_SECRET           = "与你 Java JwtUtils 中 secret 相同"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "habit_d1"
+database_id = "cf355724-1e7d-4fbc-9a22-ef158a9344ec"

@@ -5,19 +5,17 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import useNativeBridge from '../../utils/useNativeBridge'
 import { formatDate, calculateGradualPlan } from '../../utils/gradualQuitUtils'
+import { getGradualPlanApi, hasWorkerAuthToken, updateGradualPlanApi } from '../../utils/quitApi'
+
+function notify(message) {
+  if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+    window.alert(message)
+  }
+}
 
 export default function GradualQuitConfig() {
   const navigate = useNavigate()
-  const {
-    isInApp,
-    callNative,
-    setTitle,
-    showToast,
-    showLoading,
-    hideLoading,
-  } = useNativeBridge()
 
   const [initialCount, setInitialCount] = useState('20')
   const [targetCount, setTargetCount] = useState('0')
@@ -33,12 +31,6 @@ export default function GradualQuitConfig() {
   }, [])
 
   useEffect(() => {
-    if (isInApp && setTitle) {
-      setTitle(pageTitle)
-    }
-  }, [isInApp, setTitle])
-
-  useEffect(() => {
     loadExistingPlan()
   }, [])
 
@@ -48,12 +40,10 @@ export default function GradualQuitConfig() {
 
   const loadExistingPlan = async () => {
     try {
-      if (!isInApp) {
-        setLoading(false)
-        return
-      }
+      const hasToken = await hasWorkerAuthToken().catch(() => false)
+      if (!hasToken) throw new Error('缺少 token，请在打开 H5 时携带 token 参数')
 
-      const plan = await callNative('quit.getGradualPlan').catch(() => null)
+      const plan = await getGradualPlanApi().catch(() => null)
       if (plan) {
         setInitialCount(String(plan.initialCount || 20))
         setTargetCount(String(plan.targetCount || 0))
@@ -64,6 +54,7 @@ export default function GradualQuitConfig() {
       }
     } catch (error) {
       console.error('加载计划失败:', error)
+      notify('加载计划失败: ' + (error.message || '未知错误'))
     } finally {
       setLoading(false)
     }
@@ -88,42 +79,40 @@ export default function GradualQuitConfig() {
     const weekCount = Number(weeks)
 
     if (!initial || initial <= 0) {
-      showToast('请输入有效的初始根数')
+      notify('请输入有效的初始根数')
       return
     }
 
     if (target < 0 || target >= initial) {
-      showToast('目标根数应小于初始根数')
+      notify('目标根数应小于初始根数')
       return
     }
 
     if (!weekCount || weekCount <= 0 || weekCount > 52) {
-      showToast('计划周期应在1-52周之间')
+      notify('计划周期应在1-52周之间')
       return
     }
 
     if (!startDate) {
-      showToast('请选择开始日期')
+      notify('请选择开始日期')
       return
     }
 
     try {
-      await showLoading('保存中...')
-
-      await callNative('quit.setGradualPlan', {
+      const hasToken = await hasWorkerAuthToken().catch(() => false)
+      if (!hasToken) throw new Error('缺少 token，请在打开 H5 时携带 token 参数')
+      await updateGradualPlanApi({
         initialCount: initial,
         targetCount: target,
         weeks: weekCount,
         startDate,
       })
 
-      await hideLoading()
-      await showToast('配置保存成功')
+      notify('配置保存成功')
       navigate('/habit/quit/gradual/stats', { replace: true })
     } catch (error) {
-      await hideLoading()
       console.error('保存配置失败:', error)
-      showToast('保存失败: ' + (error.message || '未知错误'))
+      notify('保存失败: ' + (error.message || '未知错误'))
     }
   }
 

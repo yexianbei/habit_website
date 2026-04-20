@@ -5,7 +5,6 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import useNativeBridge from '../../utils/useNativeBridge'
 import {
   formatDate,
   calculateTimeSinceLastSmoke,
@@ -17,17 +16,24 @@ import {
   calculateWeekStats,
   calculateMonthStats,
 } from '../../utils/gradualQuitUtils'
+import {
+  getGradualDailyCountApi,
+  getGradualLastSmokeApi,
+  getGradualPlanApi,
+  getGradualRecordsApi,
+  getQuitProfileApi,
+  hasWorkerAuthToken,
+  saveGradualDailyCountApi,
+} from '../../utils/quitApi'
+
+function notify(message) {
+  if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+    window.alert(message)
+  }
+}
 
 export default function GradualQuitStats() {
   const navigate = useNavigate()
-  const {
-    isInApp,
-    callNative,
-    setTitle,
-    showToast,
-    showLoading,
-    hideLoading,
-  } = useNativeBridge()
 
   const [plan, setPlan] = useState(null)
   const [todayCount, setTodayCount] = useState(0)
@@ -46,12 +52,6 @@ export default function GradualQuitStats() {
   useEffect(() => {
     document.title = pageTitle
   }, [])
-
-  useEffect(() => {
-    if (isInApp && setTitle) {
-      setTitle(pageTitle)
-    }
-  }, [isInApp, setTitle])
 
   useEffect(() => {
     loadData()
@@ -80,13 +80,15 @@ export default function GradualQuitStats() {
       setLoading(true)
 
       const today = formatDate(new Date())
+      const hasToken = await hasWorkerAuthToken().catch(() => false)
+      if (!hasToken) throw new Error('缺少 token，请在打开 H5 时携带 token 参数')
 
       // 并行加载数据
       const [planData, todayCountData, lastSmokeData, settingsData] = await Promise.all([
-        callNative('quit.getGradualPlan').catch(() => null),
-        callNative('quit.getDailyCount', { date: today }).catch(() => 0),
-        callNative('quit.getLastSmokeTime').catch(() => null),
-        callNative('quit.getSettings').catch(() => null),
+        getGradualPlanApi().catch(() => null),
+        getGradualDailyCountApi(today).catch(() => 0),
+        getGradualLastSmokeApi().catch(() => null),
+        getQuitProfileApi().catch(() => null),
       ])
 
       setPlan(planData)
@@ -103,10 +105,10 @@ export default function GradualQuitStats() {
       const startDate = new Date(monthRange.start)
       startDate.setMonth(startDate.getMonth() - 1) // 加载近2个月的数据
 
-      const recordsResult = await callNative('quit.getCountRecords', {
-        startDate: formatDate(startDate),
-        endDate: formatDate(new Date()),
-      }).catch(() => [])
+      const recordsResult = await getGradualRecordsApi(
+        formatDate(startDate),
+        formatDate(new Date()),
+      ).catch(() => [])
       const recordsData = Array.isArray(recordsResult) ? recordsResult : (recordsResult || [])
 
       setRecords(Array.isArray(recordsData) ? recordsData : [])
@@ -118,9 +120,7 @@ export default function GradualQuitStats() {
       setMonthStats(month)
     } catch (error) {
       console.error('加载数据失败:', error)
-      if (isInApp) {
-        showToast('加载数据失败: ' + error.message)
-      }
+      notify('加载数据失败: ' + error.message)
     } finally {
       setLoading(false)
     }
@@ -129,32 +129,24 @@ export default function GradualQuitStats() {
   const handleSaveTodayCount = async () => {
     const count = Number(recordCount)
     if (isNaN(count) || count < 0) {
-      showToast('请输入有效的根数')
+      notify('请输入有效的根数')
       return
     }
 
     try {
-      await showLoading('保存中...')
       const today = formatDate(new Date())
-      await saveDailyCount(today, count, {
+      await saveGradualDailyCountApi({
+        date: today,
+        count,
         datetime: new Date().toISOString(),
       })
-
-      // 如果记录的是吸烟，更新上次吸烟时间
-      if (count > 0) {
-        // 这里需要调用原生方法更新上次吸烟时间
-        // 暂时通过 saveRecord 来实现
-      }
-
-      await hideLoading()
-      await showToast('记录保存成功')
+      notify('记录保存成功')
       setShowRecordModal(false)
       setRecordCount('')
       await loadData()
     } catch (error) {
-      await hideLoading()
       console.error('保存记录失败:', error)
-      showToast('保存失败: ' + (error.message || '未知错误'))
+      notify('保存失败: ' + (error.message || '未知错误'))
     }
   }
 
@@ -436,4 +428,3 @@ function StatCard({ icon, title, value, subtitle, color, fullWidth, className = 
     </div>
   )
 }
-
