@@ -7,6 +7,21 @@ function toDateKey(dateLike) {
   return `${y}-${m}-${d}`
 }
 
+const QUIT_HABIT_TYPE = 'quit'
+
+export async function ensureQuitHabitBinding(db, userId) {
+  const nowSec = Math.floor(Date.now() / 1000)
+  await db
+    .prepare(
+      `INSERT INTO user_habit_bindings (app_user_id, habit_type, created_at, updated_at)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(app_user_id, habit_type) DO UPDATE SET
+         updated_at = excluded.updated_at`,
+    )
+    .bind(userId, QUIT_HABIT_TYPE, nowSec, nowSec)
+    .run()
+}
+
 export async function getQuitProfile(db, userId) {
   const row = await db
     .prepare(
@@ -31,6 +46,7 @@ export async function getQuitProfile(db, userId) {
 
 export async function upsertQuitProfile(db, userId, patch = {}) {
   const nowSec = Math.floor(Date.now() / 1000)
+  await ensureQuitHabitBinding(db, userId)
   const existing = await getQuitProfile(db, userId)
 
   const nextQuitStartAt =
@@ -100,6 +116,7 @@ export async function listQuitEvents(db, userId, startDate, endDate) {
 
 export async function createQuitEvent(db, userId, payload = {}) {
   const nowSec = Math.floor(Date.now() / 1000)
+  await ensureQuitHabitBinding(db, userId)
   const eventDate = payload.date || toDateKey(payload.eventAt || Date.now())
   const eventAtSec = payload.eventAt
     ? Math.floor(new Date(payload.eventAt).getTime() / 1000)
@@ -161,6 +178,7 @@ export async function getGradualPlan(db, userId) {
 
 export async function upsertGradualPlan(db, userId, payload = {}) {
   const nowSec = Math.floor(Date.now() / 1000)
+  await ensureQuitHabitBinding(db, userId)
   const initialCount = Number(payload.initialCount || 0)
   const targetCount = Number(payload.targetCount || 0)
   const weeks = Number(payload.weeks || 0)
@@ -200,6 +218,7 @@ export async function getGradualDailyCount(db, userId, date) {
 
 export async function upsertGradualDailyCount(db, userId, payload = {}) {
   const nowSec = Math.floor(Date.now() / 1000)
+  await ensureQuitHabitBinding(db, userId)
   const date = String(payload.date || '').trim()
   const count = Number(payload.count || 0)
   const eventAtSec = payload.datetime ? Math.floor(new Date(payload.datetime).getTime() / 1000) : nowSec
@@ -261,5 +280,9 @@ export async function deleteAllQuitData(db, userId) {
   await db.prepare(`DELETE FROM quit_profiles WHERE app_user_id = ?`).bind(userId).run()
   await db.prepare(`DELETE FROM quit_gradual_daily_counts WHERE app_user_id = ?`).bind(userId).run()
   await db.prepare(`DELETE FROM quit_gradual_plans WHERE app_user_id = ?`).bind(userId).run()
+  await db
+    .prepare(`DELETE FROM user_habit_bindings WHERE app_user_id = ? AND habit_type = ?`)
+    .bind(userId, QUIT_HABIT_TYPE)
+    .run()
   return { deleted: true }
 }

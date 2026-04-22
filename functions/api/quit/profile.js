@@ -29,6 +29,32 @@ export async function onRequestPut(context) {
   const body = await readJson(request)
   if (!body || typeof body !== 'object') return fail(400, '请求体必须为 JSON')
 
+  if (body.quitStartAt != null) {
+    const ts = new Date(body.quitStartAt).getTime()
+    if (Number.isNaN(ts)) return fail(400, 'quitStartAt 时间格式无效')
+  }
+
+  if (body.dailyCost != null) {
+    const dailyCost = Number(body.dailyCost)
+    if (!Number.isFinite(dailyCost) || dailyCost < 0 || dailyCost > 100000) {
+      return fail(400, 'dailyCost 必须是 0-100000 的数字')
+    }
+  }
+
+  if (body.cigarettesPerDay != null) {
+    const cpd = Number(body.cigarettesPerDay)
+    if (!Number.isFinite(cpd) || cpd < 0 || cpd > 1000) {
+      return fail(400, 'cigarettesPerDay 必须是 0-1000 的数字')
+    }
+  }
+
+  if (body.pricePerCigarette != null) {
+    const price = Number(body.pricePerCigarette)
+    if (!Number.isFinite(price) || price < 0 || price > 1000) {
+      return fail(400, 'pricePerCigarette 必须是 0-1000 的数字')
+    }
+  }
+
   const profile = await upsertQuitProfile(db, auth.userId, {
     quitStartAt: body.quitStartAt,
     dailyCost: body.dailyCost,

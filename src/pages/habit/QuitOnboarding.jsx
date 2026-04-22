@@ -151,7 +151,7 @@ export default function QuitOnboarding() {
           </div>
 
           <p className="text-center text-xs text-gray-400 mt-6">
-            数据仅存本机，可随时删除或修改
+            数据按账号存储在云端，可随时删除或修改
           </p>
         </div>
       </div>

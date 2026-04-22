@@ -219,31 +219,27 @@ export default function QuitManagement() {
     if (!confirmed) return
 
     setIsDeleting(true)
-    let localDeleted = false
-    let cloudDeleted = false
     try {
-      await callNative('ui.showLoading', { message: '删除中...' })
-      const nativeResult = await callNative('habit.deleteWithData', { type: 17 })
-      localDeleted = nativeResult?.success === true
-      if (!localDeleted) {
+      await callNative('ui.showLoading', { message: '正在清理云端数据...' })
+      try {
+        await deleteQuitAllApi()
+      } catch (e) {
         await callNative('ui.hideLoading', {})
-        await showToast('本地习惯删除失败，请重试')
+        await showToast('云端数据删除失败，请重试')
         return
       }
 
-      try {
-        await deleteQuitAllApi()
-        cloudDeleted = true
-      } catch (e) {
-        cloudDeleted = false
+      await callNative('ui.showLoading', { message: '正在删除本地习惯...' })
+      const nativeResult = await callNative('habit.deleteWithData', { type: 17 })
+      const localDeleted = nativeResult?.success === true
+      if (!localDeleted) {
+        await callNative('ui.hideLoading', {})
+        await showToast('云端数据已删除，但本地习惯删除失败，请重试')
+        return
       }
 
       await callNative('ui.hideLoading', {})
-      if (cloudDeleted) {
-        await showToast('戒烟习惯和云端数据已删除')
-      } else {
-        await showToast('本地习惯已删除，但云端数据清理失败，请稍后重试')
-      }
+      await showToast('戒烟习惯和云端数据已删除')
       setTimeout(() => closePage(), 800)
     } catch (e) {
       await callNative('ui.hideLoading', {})
@@ -404,22 +400,13 @@ export default function QuitManagement() {
                 </div>
                 <p className="text-white/80 text-sm">{status.sub}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleDeleteHabit}
-                  disabled={isDeleting}
-                  className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm disabled:opacity-50"
-                  title="删除习惯"
-                >
-                  🗑️
-                </button>
-                <button
-                  onClick={() => { notify('请设置戒烟日期') }}
-                  className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm"
-                >
-                  ⚙️
-                </button>
-              </div>
+              <button
+                onClick={() => navigate('/habit/quit/onboarding')}
+                className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm"
+                title="设置戒烟日期"
+              >
+                ⚙️
+              </button>
             </div>
           </div>
           {/* 装饰圆形 */}
@@ -534,6 +521,21 @@ export default function QuitManagement() {
             请通过带 token 的链接打开本页面，否则无法加载戒烟数据。
           </p>
         </div>
+
+        {isInApp && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-red-100">
+            <button
+              onClick={handleDeleteHabit}
+              disabled={isDeleting}
+              className="w-full py-3 rounded-xl bg-red-50 text-red-600 font-medium border border-red-200 active:scale-95 transition-transform disabled:opacity-50"
+            >
+              {isDeleting ? '删除中...' : '删除戒烟习惯与云端数据'}
+            </button>
+            <p className="text-xs text-gray-400 text-center mt-2">
+              删除后将清空当前账号所有戒烟云端数据，并删除本地习惯入口
+            </p>
+          </div>
+        )}
       </div>
 
       {/* 健康数据详情弹窗 */}
