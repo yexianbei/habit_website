@@ -35,6 +35,15 @@ function cacheToken(token) {
   sessionStorage.setItem('habit_auth_token', token)
 }
 
+function normalizeToken(raw) {
+  const token = String(raw || '').trim()
+  if (!token) return ''
+  if (/^bearer\s+/i.test(token)) {
+    return token.replace(/^bearer\s+/i, '').trim()
+  }
+  return token
+}
+
 function cleanupTokenInUrl() {
   if (typeof window === 'undefined') return
   try {
@@ -62,19 +71,19 @@ function cleanupTokenInUrl() {
 }
 
 export async function getAuthToken() {
-  const urlToken = readTokenFromUrl()
+  const urlToken = normalizeToken(readTokenFromUrl())
   if (urlToken) {
     cacheToken(urlToken)
     cleanupTokenInUrl()
     return urlToken
   }
-  const hashToken = readTokenFromHash()
+  const hashToken = normalizeToken(readTokenFromHash())
   if (hashToken) {
     cacheToken(hashToken)
     cleanupTokenInUrl()
     return hashToken
   }
-  const stored = readTokenFromStorage()
+  const stored = normalizeToken(readTokenFromStorage())
   if (stored) return stored
   return ''
 }

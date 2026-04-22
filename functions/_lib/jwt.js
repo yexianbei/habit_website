@@ -1,4 +1,5 @@
 const encoder = new TextEncoder()
+const decoder = new TextDecoder()
 
 function base64UrlToUint8Array(base64Url) {
   const padLength = (4 - (base64Url.length % 4)) % 4
@@ -33,9 +34,25 @@ async function hmacSha512(secret, data) {
 }
 
 export async function verifyHs512Jwt(token, secret) {
-  if (!token || !secret || typeof token !== 'string') return null
+  if (!token || !secret || typeof token !== 'string') {
+    return {
+      ok: false,
+      reason: 'invalid_input',
+      payload: null,
+      header: null,
+      partCount: 0,
+    }
+  }
   const parts = token.split('.')
-  if (parts.length !== 3) return null
+  if (parts.length !== 3) {
+    return {
+      ok: false,
+      reason: 'invalid_part_count',
+      payload: null,
+      header: null,
+      partCount: parts.length,
+    }
+  }
 
   const [encodedHeader, encodedPayload, encodedSignature] = parts
   const data = `${encodedHeader}.${encodedPayload}`
@@ -43,17 +60,45 @@ export async function verifyHs512Jwt(token, secret) {
   let header
   let payload
   try {
-    header = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(encodedHeader)))
-    payload = JSON.parse(new TextDecoder().decode(base64UrlToUint8Array(encodedPayload)))
+    header = JSON.parse(decoder.decode(base64UrlToUint8Array(encodedHeader)))
+    payload = JSON.parse(decoder.decode(base64UrlToUint8Array(encodedPayload)))
   } catch (_) {
-    return null
+    return {
+      ok: false,
+      reason: 'decode_failed',
+      payload: null,
+      header: null,
+      partCount: parts.length,
+    }
   }
 
-  if (header?.alg !== 'HS512') return null
+  if (header?.alg !== 'HS512') {
+    return {
+      ok: false,
+      reason: 'alg_not_hs512',
+      payload,
+      header,
+      partCount: parts.length,
+    }
+  }
 
   const expected = await hmacSha512(secret, data)
   const actual = base64UrlToUint8Array(encodedSignature)
-  if (!timingSafeEqual(expected, actual)) return null
+  if (!timingSafeEqual(expected, actual)) {
+    return {
+      ok: false,
+      reason: 'signature_mismatch',
+      payload,
+      header,
+      partCount: parts.length,
+    }
+  }
 
-  return payload
+  return {
+    ok: true,
+    reason: 'ok',
+    payload,
+    header,
+    partCount: parts.length,
+  }
 }
