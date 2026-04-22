@@ -12,6 +12,15 @@ function readTokenFromUrl() {
   return token.trim()
 }
 
+function readTokenFromHash() {
+  if (typeof window === 'undefined') return ''
+  const hash = (window.location.hash || '').replace(/^#/, '')
+  if (!hash) return ''
+  const params = new URLSearchParams(hash.startsWith('?') ? hash.slice(1) : hash)
+  const token = params.get('token') || params.get('access_token') || ''
+  return token.trim()
+}
+
 function readTokenFromStorage() {
   if (typeof window === 'undefined') return ''
   return (
@@ -26,11 +35,44 @@ function cacheToken(token) {
   sessionStorage.setItem('habit_auth_token', token)
 }
 
+function cleanupTokenInUrl() {
+  if (typeof window === 'undefined') return
+  try {
+    const url = new URL(window.location.href)
+    const changed =
+      url.searchParams.has('token')
+      || url.searchParams.has('access_token')
+      || (window.location.hash || '').includes('token=')
+      || (window.location.hash || '').includes('access_token=')
+
+    url.searchParams.delete('token')
+    url.searchParams.delete('access_token')
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash ? '' : ''}`)
+
+    if (changed) {
+      const withoutHashToken = window.location.hash
+        .replace(/token=[^&]*/g, '')
+        .replace(/access_token=[^&]*/g, '')
+        .replace(/[#?&]+$/g, '')
+      if (withoutHashToken !== window.location.hash) {
+        window.history.replaceState({}, '', `${url.pathname}${url.search}${withoutHashToken}`)
+      }
+    }
+  } catch (_) {}
+}
+
 export async function getAuthToken() {
   const urlToken = readTokenFromUrl()
   if (urlToken) {
     cacheToken(urlToken)
+    cleanupTokenInUrl()
     return urlToken
+  }
+  const hashToken = readTokenFromHash()
+  if (hashToken) {
+    cacheToken(hashToken)
+    cleanupTokenInUrl()
+    return hashToken
   }
   const stored = readTokenFromStorage()
   if (stored) return stored
@@ -135,4 +177,10 @@ export async function getGradualLastSmokeApi() {
 export async function getGradualRecordsApi(startDate, endDate) {
   const q = new URLSearchParams({ startDate, endDate })
   return request(`/api/quit/gradual/records?${q.toString()}`)
+}
+
+export async function deleteQuitAllApi() {
+  return request('/api/quit/all', {
+    method: 'DELETE',
+  })
 }

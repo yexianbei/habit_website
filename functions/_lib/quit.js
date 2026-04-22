@@ -255,3 +255,11 @@ export async function listGradualCountRecords(db, userId, startDate, endDate) {
     updatedAt: row.updated_at || null,
   }))
 }
+
+export async function deleteAllQuitData(db, userId) {
+  await db.prepare(`DELETE FROM quit_events WHERE app_user_id = ?`).bind(userId).run()
+  await db.prepare(`DELETE FROM quit_profiles WHERE app_user_id = ?`).bind(userId).run()
+  await db.prepare(`DELETE FROM quit_gradual_daily_counts WHERE app_user_id = ?`).bind(userId).run()
+  await db.prepare(`DELETE FROM quit_gradual_plans WHERE app_user_id = ?`).bind(userId).run()
+  return { deleted: true }
+}

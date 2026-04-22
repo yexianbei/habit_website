@@ -6,10 +6,11 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useHabitDelete } from '../../hooks/useHabitDelete'
+import { useNativeBridge } from '../../utils/useNativeBridge'
 import { formatDate, diffDays, calculateQuitTime, formatNumber } from '../../utils/quitUtils'
 import {
   createQuitEventApi,
+  deleteQuitAllApi,
   getQuitEventsApi,
   getQuitProfileApi,
   getQuitStatsApi,
@@ -35,7 +36,7 @@ function notify(message) {
 export default function QuitManagement() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { deleteHabit, isDeleting } = useHabitDelete({ type: 17, name: '戒烟' })
+  const { isInApp, callNative, showToast, closePage } = useNativeBridge()
 
   const [quitDate, setQuitDate] = useState(null)
   const [lastRelapseDate, setLastRelapseDate] = useState(null) // 最后一次破戒时间
@@ -50,6 +51,7 @@ export default function QuitManagement() {
   const [showAchievementModal, setShowAchievementModal] = useState(false)
   const [showMoneyModal, setShowMoneyModal] = useState(false)
   const [showRelapseModal, setShowRelapseModal] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [quitTime, setQuitTime] = useState(null) // 实时更新的坚持时间
   const [savedMoney, setSavedMoney] = useState(0) // 实时更新的节省金额
   const [currentMotivation, setCurrentMotivation] = useState('') // 当前显示的激励语
@@ -199,6 +201,55 @@ export default function QuitManagement() {
       notify('加载数据失败: ' + error.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeleteHabit = async () => {
+    if (!isInApp || isDeleting) return
+    let confirmed = false
+    try {
+      const result = await callNative('ui.showConfirm', {
+        title: '删除戒烟',
+        message: '确定要删除「戒烟」吗？删除后本地习惯和云端戒烟数据都会被清除，且无法恢复。',
+      })
+      confirmed = result?.confirmed === true
+    } catch (_) {
+      return
+    }
+    if (!confirmed) return
+
+    setIsDeleting(true)
+    let localDeleted = false
+    let cloudDeleted = false
+    try {
+      await callNative('ui.showLoading', { message: '删除中...' })
+      const nativeResult = await callNative('habit.deleteWithData', { type: 17 })
+      localDeleted = nativeResult?.success === true
+      if (!localDeleted) {
+        await callNative('ui.hideLoading', {})
+        await showToast('本地习惯删除失败，请重试')
+        return
+      }
+
+      try {
+        await deleteQuitAllApi()
+        cloudDeleted = true
+      } catch (e) {
+        cloudDeleted = false
+      }
+
+      await callNative('ui.hideLoading', {})
+      if (cloudDeleted) {
+        await showToast('戒烟习惯和云端数据已删除')
+      } else {
+        await showToast('本地习惯已删除，但云端数据清理失败，请稍后重试')
+      }
+      setTimeout(() => closePage(), 800)
+    } catch (e) {
+      await callNative('ui.hideLoading', {})
+      await showToast('删除失败，请重试')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -355,7 +406,7 @@ export default function QuitManagement() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={deleteHabit}
+                  onClick={handleDeleteHabit}
                   disabled={isDeleting}
                   className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white backdrop-blur-sm disabled:opacity-50"
                   title="删除习惯"
