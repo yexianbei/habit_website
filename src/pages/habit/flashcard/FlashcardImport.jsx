@@ -54,7 +54,7 @@ export default function FlashcardImport() {
     setStep(2)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title) {
       alert('请输入卡组标题')
       return
@@ -72,7 +72,7 @@ export default function FlashcardImport() {
       createdAt: new Date().toISOString()
     }
 
-    const success = saveDeck(newDeck, parsedCards)
+    const success = await saveDeck(newDeck, parsedCards)
     if (success) {
       navigate('/habit/flashcard')
     } else {

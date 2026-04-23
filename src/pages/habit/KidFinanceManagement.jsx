@@ -19,10 +19,9 @@ const defaultTasks = [
 
 export default function KidFinanceManagement() {
   const navigate = useNavigate()
-  const { isInApp, setTitle, showToast, callNative } = useNativeBridge()
+  const { isInApp, setTitle, showToast } = useNativeBridge()
   
-  const resolveHabitId = async () => 'kid-finance'
-  const { deleteHabit, isDeleting } = useHabitDelete({ name: '培养孩子财商', resolveHabitId })
+  const { deleteHabit, isDeleting } = useHabitDelete({ name: '培养孩子财商', type: 3000 })
 
   // === 状态定义 ===
   const [bank, setBank] = useState(0) // 现金小金库

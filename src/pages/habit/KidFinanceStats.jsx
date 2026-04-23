@@ -4,7 +4,8 @@ import { useNativeBridge } from '../../utils/useNativeBridge'
 import FloatingBackButton from '../../components/FloatingBackButton'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 
-const LOCAL_STORAGE_KEY = 'kid_finance_data_v1'
+const LOCAL_STORAGE_KEY = 'kid_finance_data_v2'
+const LEGACY_LOCAL_STORAGE_KEY = 'kid_finance_data_v1'
 const DAYS_OF_WEEK = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 
 export default function KidFinanceStats() {
@@ -25,7 +26,7 @@ export default function KidFinanceStats() {
     if (isInApp) setTitle('报表统计')
 
     try {
-      const dataStr = localStorage.getItem(LOCAL_STORAGE_KEY)
+      const dataStr = localStorage.getItem(LOCAL_STORAGE_KEY) || localStorage.getItem(LEGACY_LOCAL_STORAGE_KEY)
       if (dataStr) {
         const data = JSON.parse(dataStr)
         const allR = data.records || []

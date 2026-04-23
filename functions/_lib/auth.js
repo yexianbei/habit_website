@@ -32,6 +32,13 @@ function authLog(level, message, extra = {}) {
   console.log(JSON.stringify(payload))
 }
 
+function getTestBypassConfig(env) {
+  return {
+    token: (env?.TEST_BYPASS_TOKEN || '').trim(),
+    userId: (env?.TEST_BYPASS_USER_ID || 'quit_test_user').trim(),
+  }
+}
+
 export async function requireUserId(request, env) {
   const traceId = buildTraceId(request)
   const token = readBearerToken(request)
@@ -43,6 +50,21 @@ export async function requireUserId(request, env) {
       hasXAccessToken: Boolean(request.headers.get('x-access-token')),
     })
     return { error: fail(401, '缺少 Authorization Bearer token', { traceId }) }
+  }
+
+  const bypass = getTestBypassConfig(env)
+  if (bypass.token && token === bypass.token) {
+    authLog('info', 'jwt_bypass_test_token', {
+      traceId,
+      path: new URL(request.url).pathname,
+      userId: bypass.userId,
+      tokenPreview: maskToken(token),
+    })
+    return {
+      userId: bypass.userId,
+      tokenPayload: { sub: bypass.userId, testBypass: true },
+      traceId,
+    }
   }
 
   const secret = env.JWT_SECRET

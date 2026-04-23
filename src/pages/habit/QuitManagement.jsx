@@ -11,10 +11,9 @@ import { formatDate, diffDays, calculateQuitTime, formatNumber } from '../../uti
 import {
   createQuitEventApi,
   deleteQuitAllApi,
-  getQuitEventsApi,
-  getQuitProfileApi,
-  getQuitStatsApi,
+  getQuitDashboardApi,
   hasWorkerAuthToken,
+  saveGradualDailyCountApi,
 } from '../../utils/quitApi'
 import { getRandomMotivation } from './quit/constants'
 import { CompactStatsCard } from './quit/components/StatsCard'
@@ -52,6 +51,13 @@ export default function QuitManagement() {
   const [showMoneyModal, setShowMoneyModal] = useState(false)
   const [showRelapseModal, setShowRelapseModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [hasGradualPlan, setHasGradualPlan] = useState(false)
+  const [todayGradualCount, setTodayGradualCount] = useState(0)
+  const [todayGradualTarget, setTodayGradualTarget] = useState(0)
+  const [todayGradualRemaining, setTodayGradualRemaining] = useState(0)
+  const [showQuickGradualModal, setShowQuickGradualModal] = useState(false)
+  const [quickGradualCount, setQuickGradualCount] = useState('')
+  const [savingQuickGradual, setSavingQuickGradual] = useState(false)
   const [quitTime, setQuitTime] = useState(null) // 实时更新的坚持时间
   const [savedMoney, setSavedMoney] = useState(0) // 实时更新的节省金额
   const [currentMotivation, setCurrentMotivation] = useState('') // 当前显示的激励语
@@ -163,25 +169,19 @@ export default function QuitManagement() {
       const skipOnboarding = params.get('skipOnboarding') === '1'
 
       const today = formatDate(new Date())
-      const [profileResult, statsResult, eventsResult] = await Promise.all([
-        getQuitProfileApi().catch(() => null),
-        getQuitStatsApi('2000-01-01', today).catch(() => null),
-        getQuitEventsApi('2000-01-01', today).catch(() => ({ records: [] })),
-      ])
+      const dashboard = await getQuitDashboardApi(today).catch(() => null)
+      if (!dashboard) {
+        throw new Error('获取戒烟数据失败')
+      }
 
-      const records = Array.isArray(eventsResult?.records) ? eventsResult.records : []
-      const relapseRecords = records.filter((r) => r.type === 'relapse' || r.details?.type === 'relapse')
-
-      if (relapseRecords.length > 0) {
-        const latest = relapseRecords[0]
-        const relapseDate = latest.details?.datetime
-          || (latest.eventAt ? new Date(latest.eventAt * 1000).toISOString() : latest.date)
-        if (relapseDate) setLastRelapseDate(relapseDate)
+      const relapseAt = dashboard?.lastRelapseAt
+      if (relapseAt) {
+        setLastRelapseDate(new Date(relapseAt * 1000).toISOString())
       } else {
         setLastRelapseDate(null)
       }
 
-      const quitStartAt = statsResult?.quitStartAt || profileResult?.quitStartAt || null
+      const quitStartAt = dashboard?.quitStartAt || dashboard?.profile?.quitStartAt || null
       if (!quitStartAt && !skipOnboarding) {
         setLoading(false)
         navigate('/habit/quit/onboarding', { replace: true })
@@ -189,13 +189,25 @@ export default function QuitManagement() {
       }
       if (quitStartAt) setQuitDate(new Date(quitStartAt * 1000))
 
-      const nextDailyCost = Number(profileResult?.dailyCost || statsResult?.dailyCost || 0)
+      const nextDailyCost = Number(dashboard?.profile?.dailyCost || dashboard?.dailyCost || 0)
       setDailyCost(nextDailyCost)
-      setCigarettesPerDay(Number(profileResult?.cigarettesPerDay || 0))
-      setPricePerCigarette(Number(profileResult?.pricePerCigarette || 0))
-      setStats(statsResult || null)
+      setCigarettesPerDay(Number(dashboard?.profile?.cigarettesPerDay || 0))
+      setPricePerCigarette(Number(dashboard?.profile?.pricePerCigarette || 0))
+      setStats(dashboard || null)
       setMotivation({ text: '每一秒都是向健康迈进的步伐 💪' })
       setMilestones([])
+
+      const hasPlan = Boolean(dashboard?.gradual?.enabled)
+      setHasGradualPlan(hasPlan)
+      if (hasPlan) {
+        setTodayGradualCount(Number(dashboard?.gradual?.todayCount || 0))
+        setTodayGradualTarget(Number(dashboard?.gradual?.targetToday || 0))
+        setTodayGradualRemaining(Number(dashboard?.gradual?.remaining || 0))
+      } else {
+        setTodayGradualCount(0)
+        setTodayGradualTarget(0)
+        setTodayGradualRemaining(0)
+      }
     } catch (error) {
       console.error('加载数据失败:', error)
       notify('加载数据失败: ' + error.message)
@@ -246,6 +258,40 @@ export default function QuitManagement() {
       await showToast('删除失败，请重试')
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  const handleOpenQuickGradualRecord = () => {
+    if (!hasGradualPlan) {
+      navigate('/habit/quit/gradual/config')
+      return
+    }
+    setQuickGradualCount(String(todayGradualCount))
+    setShowQuickGradualModal(true)
+  }
+
+  const handleSaveQuickGradualRecord = async () => {
+    const count = Number(quickGradualCount)
+    if (!Number.isFinite(count) || count < 0 || count > 200) {
+      notify('请输入 0-200 的有效根数')
+      return
+    }
+
+    try {
+      setSavingQuickGradual(true)
+      const today = formatDate(new Date())
+      await saveGradualDailyCountApi({
+        date: today,
+        count,
+        datetime: new Date().toISOString(),
+      })
+      setShowQuickGradualModal(false)
+      notify('今日抽烟根数已保存')
+      await loadData()
+    } catch (error) {
+      notify('保存失败: ' + (error.message || '未知错误'))
+    } finally {
+      setSavingQuickGradual(false)
     }
   }
 
@@ -447,7 +493,8 @@ export default function QuitManagement() {
           </div>
         )}
 
-        {/* 渐进式戒烟入口 */}
+        {/* 渐进式戒烟信息（仅配置后展示） */}
+        {hasGradualPlan && (
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -456,17 +503,20 @@ export default function QuitManagement() {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-800">渐进式戒烟</h3>
-                <p className="text-sm text-gray-500">逐步减少吸烟量，科学戒烟</p>
+                <p className="text-sm text-gray-500">
+                  今日已记录 {todayGradualCount} 根，目标 {todayGradualTarget} 根，剩余 {todayGradualRemaining} 根
+                </p>
               </div>
             </div>
             <button
-              onClick={() => navigate('/habit/quit/gradual/stats')}
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl text-sm font-medium active:scale-95 transition-transform"
+              onClick={handleOpenQuickGradualRecord}
+              className="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium border border-blue-200 active:scale-95 transition-transform"
             >
-              进入
+              记录今日
             </button>
           </div>
         </div>
+        )}
 
         {/* 激励内容 */}
         {motivation && <MotivationSection motivation={motivation} />}
@@ -489,10 +539,7 @@ export default function QuitManagement() {
             <h3 className="text-xl font-bold text-gray-800 mb-2">开始你的戒烟之旅</h3>
             <p className="text-gray-500 mb-6">设置戒烟日期，开始记录你的戒烟历程</p>
             <button
-              onClick={() => {
-                // TODO: 打开设置戒烟日期弹窗
-                notify('请设置戒烟日期')
-              }}
+              onClick={() => navigate('/habit/quit/onboarding')}
               className="px-8 py-3 bg-gradient-to-r from-quit-green to-quit-green-dark text-white rounded-xl font-medium shadow-lg shadow-green-200 active:scale-95 transition-transform"
             >
               设置戒烟日期
@@ -616,6 +663,48 @@ export default function QuitManagement() {
           }
         }}
       />
+
+      {showQuickGradualModal && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowQuickGradualModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl w-full max-w-md p-6 animate-slideUp"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-bold text-gray-800 mb-4">记录今日抽烟根数</h2>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">今日吸烟根数</label>
+              <input
+                type="number"
+                min="0"
+                max="200"
+                value={quickGradualCount}
+                onChange={(e) => setQuickGradualCount(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-quit-green"
+                placeholder="输入今日吸烟根数"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowQuickGradualModal(false)}
+                className="flex-1 px-4 py-3 rounded-2xl bg-gray-100 text-gray-700 font-medium active:scale-95 transition-transform"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleSaveQuickGradualRecord}
+                disabled={savingQuickGradual}
+                className="flex-1 px-4 py-3 rounded-2xl bg-gradient-to-r from-quit-green to-quit-green-dark text-white font-medium active:scale-95 transition-transform disabled:opacity-50"
+              >
+                {savingQuickGradual ? '保存中...' : '保存'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <style>{`
         @keyframes slideUp {

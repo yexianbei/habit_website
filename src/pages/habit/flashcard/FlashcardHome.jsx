@@ -5,10 +5,69 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFlashcardData } from './useFlashcardData'
+import { useNativeBridge } from '../../../utils/useNativeBridge'
+import { deleteFlashcardAllApi } from '../../../utils/flashcardApi'
 
 export default function FlashcardHome() {
   const navigate = useNavigate()
-  const { decks, loading } = useFlashcardData()
+  const { decks, stats, loading } = useFlashcardData()
+  const { isInApp, callNative, showToast, closePage } = useNativeBridge()
+  const [isDeleting, setIsDeleting] = React.useState(false)
+
+  const handleDeleteFlashcard = async () => {
+    if (isDeleting) return
+
+    let confirmed = true
+    if (isInApp) {
+      try {
+        const result = await callNative('ui.showConfirm', {
+          title: '删除记忆闪卡',
+          message: '确认删除闪卡习惯吗？云端数据与本地习惯都会被删除，且无法恢复。',
+        })
+        confirmed = result?.confirmed === true
+      } catch (_) {
+        confirmed = false
+      }
+    } else {
+      confirmed = window.confirm('确认删除闪卡全部云端数据？该操作不可恢复。')
+    }
+    if (!confirmed) return
+
+    try {
+      setIsDeleting(true)
+      if (isInApp) {
+        await callNative('ui.showLoading', { message: '删除中...' })
+      }
+
+      const deleteResult = await deleteFlashcardAllApi()
+      const totalDeleted = Number(deleteResult?.totalDeleted || 0)
+
+      if (isInApp) {
+        const result = await callNative('habit.deleteWithData', { type: 21 })
+        await callNative('ui.hideLoading', {})
+        if (result?.success) {
+          await showToast(`已删除云端 ${totalDeleted} 条数据，本地习惯已移除`)
+          setTimeout(() => closePage(), 800)
+          return
+        }
+        await showToast('云端已删除，本地删除失败，请重试')
+      } else {
+        window.alert(`云端数据已删除，共 ${totalDeleted} 条`)
+        window.location.reload()
+      }
+    } catch (error) {
+      if (isInApp) {
+        try {
+          await callNative('ui.hideLoading', {})
+        } catch (_) {}
+        await showToast(`删除失败: ${error?.message || '未知错误'}`)
+      } else {
+        window.alert(`删除失败: ${error?.message || '未知错误'}`)
+      }
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">加载中...</div>
@@ -32,17 +91,17 @@ export default function FlashcardHome() {
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-indigo-50 flex justify-between items-center">
           <div>
             <p className="text-xs text-gray-400 mb-1">今日待复习</p>
-            <p className="text-3xl font-bold text-gray-800">42</p>
+            <p className="text-3xl font-bold text-gray-800">{stats?.dueToday || 0}</p>
           </div>
           <div className="h-10 w-[1px] bg-gray-100"></div>
           <div>
             <p className="text-xs text-gray-400 mb-1">已掌握</p>
-            <p className="text-3xl font-bold text-gray-800">128</p>
+            <p className="text-3xl font-bold text-gray-800">{stats?.mastered || 0}</p>
           </div>
           <div className="h-10 w-[1px] bg-gray-100"></div>
           <div>
             <p className="text-xs text-gray-400 mb-1">坚持天数</p>
-            <p className="text-3xl font-bold text-gray-800">5</p>
+            <p className="text-3xl font-bold text-gray-800">{stats?.streakDays || 0}</p>
           </div>
         </div>
       </div>
@@ -61,7 +120,7 @@ export default function FlashcardHome() {
             <div className="absolute bottom-0 left-0 h-1 bg-gray-100 w-full">
               <div 
                 className={`h-full bg-gradient-to-r ${deck.color}`} 
-                style={{ width: `${Math.min(100, (deck.total - deck.due) / deck.total * 100)}%` }}
+                style={{ width: `${deck.total > 0 ? Math.min(100, ((deck.total - deck.due) / deck.total) * 100) : 0}%` }}
               />
             </div>
 
@@ -88,7 +147,7 @@ export default function FlashcardHome() {
             
             <div className="flex justify-between text-xs text-gray-400 mt-2">
               <span>总卡片 {deck.total}</span>
-              <span>进度 {Math.round((deck.total - deck.due) / deck.total * 100)}%</span>
+              <span>进度 {deck.total > 0 ? Math.round(((deck.total - deck.due) / deck.total) * 100) : 0}%</span>
             </div>
           </div>
         ))}
@@ -100,6 +159,16 @@ export default function FlashcardHome() {
         >
           <span className="text-xl">+</span> 添加新卡组 / 导入
         </button>
+
+        <div className="pt-6 flex justify-center">
+          <button
+            onClick={handleDeleteFlashcard}
+            disabled={isDeleting}
+            className="px-5 py-2 rounded-full text-xs font-bold text-gray-400 active:bg-gray-100 transition-colors disabled:opacity-60"
+          >
+            {isDeleting ? '删除中...' : '删除闪卡习惯与云端数据'}
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -7,19 +7,86 @@ function toDateKey(dateLike) {
   return `${y}-${m}-${d}`
 }
 
+function toStartOfDayMsFromSec(sec) {
+  const d = new Date(Number(sec) * 1000)
+  const day = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  return day.getTime()
+}
+
+function diffDaysBySec(nowSec, startSec) {
+  const nowDay = toStartOfDayMsFromSec(nowSec)
+  const startDay = toStartOfDayMsFromSec(startSec)
+  return Math.floor((nowDay - startDay) / (24 * 60 * 60 * 1000))
+}
+
+function calcTodayTarget(plan, todayDate) {
+  if (!plan?.startDate) return 0
+  const today = new Date(todayDate)
+  const start = new Date(plan.startDate)
+  if (Number.isNaN(today.getTime()) || Number.isNaN(start.getTime())) return 0
+  const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24))
+  const currentWeek = Math.floor(diffDays / 7) + 1
+
+  if (currentWeek > plan.weeks) return plan.targetCount
+  const totalReduction = plan.initialCount - plan.targetCount
+  const reductionPerWeek = totalReduction / plan.weeks
+  return Math.max(plan.targetCount, Math.round(plan.initialCount - reductionPerWeek * currentWeek))
+}
+
 const QUIT_HABIT_TYPE = 'quit'
+
+let bindingTableReady = false
+
+async function ensureBindingTable(db) {
+  if (bindingTableReady) return
+  await db
+    .prepare(
+      `CREATE TABLE IF NOT EXISTS user_habit_bindings (
+        app_user_id TEXT NOT NULL,
+        habit_type TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (app_user_id, habit_type)
+      )`,
+    )
+    .run()
+  await db
+    .prepare(
+      `CREATE INDEX IF NOT EXISTS idx_user_habit_bindings_type_user
+       ON user_habit_bindings(habit_type, app_user_id)`,
+    )
+    .run()
+  bindingTableReady = true
+}
 
 export async function ensureQuitHabitBinding(db, userId) {
   const nowSec = Math.floor(Date.now() / 1000)
-  await db
-    .prepare(
-      `INSERT INTO user_habit_bindings (app_user_id, habit_type, created_at, updated_at)
-       VALUES (?, ?, ?, ?)
-       ON CONFLICT(app_user_id, habit_type) DO UPDATE SET
-         updated_at = excluded.updated_at`,
-    )
-    .bind(userId, QUIT_HABIT_TYPE, nowSec, nowSec)
-    .run()
+  try {
+    await db
+      .prepare(
+        `INSERT INTO user_habit_bindings (app_user_id, habit_type, created_at, updated_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(app_user_id, habit_type) DO UPDATE SET
+           updated_at = excluded.updated_at`,
+      )
+      .bind(userId, QUIT_HABIT_TYPE, nowSec, nowSec)
+      .run()
+  } catch (error) {
+    const message = String(error?.message || '')
+    if (!message.includes('no such table: user_habit_bindings')) {
+      throw error
+    }
+    await ensureBindingTable(db)
+    await db
+      .prepare(
+        `INSERT INTO user_habit_bindings (app_user_id, habit_type, created_at, updated_at)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(app_user_id, habit_type) DO UPDATE SET
+           updated_at = excluded.updated_at`,
+      )
+      .bind(userId, QUIT_HABIT_TYPE, nowSec, nowSec)
+      .run()
+  }
 }
 
 export async function getQuitProfile(db, userId) {
@@ -276,13 +343,77 @@ export async function listGradualCountRecords(db, userId, startDate, endDate) {
 }
 
 export async function deleteAllQuitData(db, userId) {
-  await db.prepare(`DELETE FROM quit_events WHERE app_user_id = ?`).bind(userId).run()
-  await db.prepare(`DELETE FROM quit_profiles WHERE app_user_id = ?`).bind(userId).run()
-  await db.prepare(`DELETE FROM quit_gradual_daily_counts WHERE app_user_id = ?`).bind(userId).run()
-  await db.prepare(`DELETE FROM quit_gradual_plans WHERE app_user_id = ?`).bind(userId).run()
-  await db
+  const eventsRes = await db.prepare(`DELETE FROM quit_events WHERE app_user_id = ?`).bind(userId).run()
+  const profilesRes = await db.prepare(`DELETE FROM quit_profiles WHERE app_user_id = ?`).bind(userId).run()
+  const dailyRes = await db.prepare(`DELETE FROM quit_gradual_daily_counts WHERE app_user_id = ?`).bind(userId).run()
+  const plansRes = await db.prepare(`DELETE FROM quit_gradual_plans WHERE app_user_id = ?`).bind(userId).run()
+  const bindingRes = await db
     .prepare(`DELETE FROM user_habit_bindings WHERE app_user_id = ? AND habit_type = ?`)
     .bind(userId, QUIT_HABIT_TYPE)
     .run()
-  return { deleted: true }
+  const counts = {
+    quitEvents: Number(eventsRes?.meta?.changes || 0),
+    quitProfiles: Number(profilesRes?.meta?.changes || 0),
+    gradualDailyCounts: Number(dailyRes?.meta?.changes || 0),
+    gradualPlans: Number(plansRes?.meta?.changes || 0),
+    habitBindings: Number(bindingRes?.meta?.changes || 0),
+  }
+  const totalDeleted = Object.values(counts).reduce((sum, n) => sum + Number(n || 0), 0)
+  return { deleted: true, counts, totalDeleted }
+}
+
+export async function getQuitDashboard(db, userId, todayDate) {
+  const today = todayDate || toDateKey(Date.now())
+  const nowSec = Math.floor(Date.now() / 1000)
+
+  const [profile, relapseRow, gradualPlan, gradualTodayCount, gradualLastSmokeIso] = await Promise.all([
+    getQuitProfile(db, userId),
+    db
+      .prepare(
+        `SELECT event_at
+         FROM quit_events
+         WHERE app_user_id = ? AND event_type = 'relapse'
+         ORDER BY event_at DESC
+         LIMIT 1`,
+      )
+      .bind(userId)
+      .first(),
+    getGradualPlan(db, userId),
+    getGradualDailyCount(db, userId, today),
+    getGradualLastSmokeTime(db, userId),
+  ])
+
+  const relapseEventAt = relapseRow?.event_at ? Number(relapseRow.event_at) : null
+  const gradualLastSmokeAt = gradualLastSmokeIso ? Math.floor(new Date(gradualLastSmokeIso).getTime() / 1000) : null
+  const lastRelapseAt = Math.max(relapseEventAt || 0, gradualLastSmokeAt || 0) || null
+
+  const baseQuitStartAt = profile?.quitStartAt || null
+  const quitStartAt = Math.max(baseQuitStartAt || 0, lastRelapseAt || 0) || baseQuitStartAt || lastRelapseAt || null
+  const days = quitStartAt ? Math.max(0, diffDaysBySec(nowSec, quitStartAt)) : 0
+  const dailyCost = Number(profile?.dailyCost || 0)
+  const savedMoney = Number((days * dailyCost).toFixed(2))
+
+  const gradual = gradualPlan
+    ? {
+        enabled: true,
+        ...gradualPlan,
+        todayCount: Number(gradualTodayCount || 0),
+        lastSmokeAt: gradualLastSmokeIso,
+        targetToday: calcTodayTarget(gradualPlan, today),
+      }
+    : { enabled: false }
+
+  if (gradual.enabled) {
+    gradual.remaining = Math.max(0, Number(gradual.targetToday || 0) - Number(gradual.todayCount || 0))
+  }
+
+  return {
+    quitStartAt,
+    lastRelapseAt,
+    days,
+    dailyCost,
+    savedMoney,
+    profile: profile || null,
+    gradual,
+  }
 }

@@ -151,6 +151,12 @@ export async function getQuitStatsApi(startDate, endDate) {
   return request(`/api/quit/stats?${q.toString()}`)
 }
 
+export async function getQuitDashboardApi(today) {
+  const q = new URLSearchParams()
+  if (today) q.set('today', today)
+  return request(`/api/quit/dashboard${q.toString() ? `?${q.toString()}` : ''}`)
+}
+
 export async function hasWorkerAuthToken() {
   const token = await getAuthToken()
   return Boolean(token)

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import FloatingBackButton from '../../components/FloatingBackButton'
 
@@ -27,7 +26,6 @@ const features = [
 ]
 
 export default function KidFinanceIntro() {
-  const navigate = useNavigate()
   const {
     isInApp,
     callNative,
@@ -51,18 +49,31 @@ export default function KidFinanceIntro() {
     if (isInApp) setTitle(pageTitle)
   }, [isInApp, setTitle])
 
-  // 这里省略原项目基于 habitExists 的查询，简化为未添加状态
+  useEffect(() => {
+    const checkIfAdded = async () => {
+      if (!isInApp) return
+      try {
+        const result = await callNative('habit.getList', { type: 3000 })
+        if (result?.habits && Array.isArray(result.habits) && result.habits.length > 0) {
+          setHasAdded(true)
+        } else {
+          setHasAdded(false)
+        }
+      } catch (_) {
+        setHasAdded(false)
+      }
+    }
+    checkIfAdded()
+  }, [isInApp, callNative])
 
   const handleAddHabit = async () => {
     if (!isInApp) {
-      showToast('小管家已为您准备好，请在 App 中添加到首页')
-      navigate('/habit/kid-finance')
+      await showToast('请在 App 内添加到首页后使用')
       return
     }
 
     if (hasAdded) {
-      await showToast('已经配置了理财习惯！')
-      navigate('/habit/kid-finance')
+      await showToast('已经添加了该习惯，不可重复添加')
       return
     }
 
@@ -91,22 +102,19 @@ export default function KidFinanceIntro() {
       await hideLoading()
 
       // 为了容错，即使原生尚未完全配置好此类型也会给予成功回馈
-      const isSuccess = result && (result.success === true || (result.habitId && result.habitId.length > 0)) || true
+      const isSuccess = !!(result && (result.success === true || (result.habitId && result.habitId.length > 0)))
 
       if (isSuccess) {
-        await showToast('专属金库添加成功！')
+        await showToast('添加成功，请在首页查看')
         setHasAdded(true)
-        setTimeout(async () => {
-           navigate('/habit/kid-finance')
-        }, 1200)
+        setTimeout(() => closePage(), 1200)
       } else {
         await showToast('添加失败，请重试')
       }
     } catch (error) {
       await hideLoading()
       console.error('[KidFinanceIntro] 添加异常:', error)
-      // 回退跳转，让用户在预览模式下仍能看到效果
-      navigate('/habit/kid-finance')
+      await showToast('添加失败，请稍后重试')
     } finally {
       setIsAdding(false)
     }

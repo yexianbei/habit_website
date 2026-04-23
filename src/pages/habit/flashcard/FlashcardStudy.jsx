@@ -9,7 +9,7 @@ import { useFlashcardData } from './useFlashcardData'
 export default function FlashcardStudy() {
   const { deckId } = useParams()
   const navigate = useNavigate()
-  const { getDeck, getCards, loading } = useFlashcardData()
+  const { loadDeck, recordReview, loading } = useFlashcardData()
   
   const [deck, setDeck] = useState(null)
   const [cards, setCards] = useState([])
@@ -19,23 +19,43 @@ export default function FlashcardStudy() {
 
   useEffect(() => {
     if (loading) return
-    
-    const currentDeck = getDeck(deckId)
-    const deckCards = getCards(deckId)
-    
-    if (currentDeck) {
-      setDeck(currentDeck)
-      setCards(deckCards)
-    }
-  }, [deckId, loading, getDeck, getCards])
+
+    ;(async () => {
+      try {
+        const detail = await loadDeck(deckId)
+        if (detail?.deck) {
+          setDeck(detail.deck)
+          setCards(Array.isArray(detail.cards) ? detail.cards : [])
+        } else {
+          setDeck(null)
+          setCards([])
+        }
+      } catch (error) {
+        console.error('加载卡组失败', error)
+        setDeck(null)
+        setCards([])
+      }
+    })()
+  }, [deckId, loading, loadDeck])
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped)
   }
 
-  const handleNext = (difficulty) => {
-    // 简单模拟算法：无论选什么都下一个
-    // 实际应用这里会根据 difficulty 计算下次复习时间
+  const handleNext = async (difficulty) => {
+    const currentCard = cards[currentIndex]
+    if (currentCard?.id && deckId) {
+      try {
+        await recordReview({
+          deckId,
+          cardId: currentCard.id,
+          difficulty,
+        })
+      } catch (error) {
+        console.error('保存复习结果失败', error)
+      }
+    }
+
     setIsFlipped(false)
     setTimeout(() => {
       if (currentIndex < cards.length - 1) {
@@ -46,7 +66,7 @@ export default function FlashcardStudy() {
     }, 200) // 等待翻转回去的动画
   }
 
-  if (!deck) return <div className="min-h-screen flex items-center justify-center">加载中...</div>
+  if (!deck || cards.length === 0) return <div className="min-h-screen flex items-center justify-center">加载中...</div>
 
   if (isFinished) {
     return (

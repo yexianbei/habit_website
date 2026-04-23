@@ -13,7 +13,7 @@ import { hasPeriodHabit, hasFingerCounterHabit } from '../../utils/platformHabit
 // 自定义简易检测器（优先用本地存储判断测试环境是否开通）
 const hasKidFinanceHabit = async () => {
   try {
-    return localStorage.getItem('kid_finance_data_v1') !== null
+    return localStorage.getItem('kid_finance_data_v2') !== null || localStorage.getItem('kid_finance_data_v1') !== null
   } catch {
     return false
   }
