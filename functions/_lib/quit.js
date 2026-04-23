@@ -33,6 +33,30 @@ function calcTodayTarget(plan, todayDate) {
   return Math.max(plan.targetCount, Math.round(plan.initialCount - reductionPerWeek * currentWeek))
 }
 
+function getWeekRangeByDateKey(dateKey) {
+  const d = new Date(`${dateKey}T00:00:00`)
+  const day = d.getDay()
+  const offset = day === 0 ? -6 : 1 - day
+  const start = new Date(d)
+  start.setDate(d.getDate() + offset)
+  const end = new Date(start)
+  end.setDate(start.getDate() + 6)
+  return {
+    start: toDateKey(start),
+    end: toDateKey(end),
+  }
+}
+
+function getMonthRangeByDateKey(dateKey) {
+  const d = new Date(`${dateKey}T00:00:00`)
+  const start = new Date(d.getFullYear(), d.getMonth(), 1)
+  const end = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+  return {
+    start: toDateKey(start),
+    end: toDateKey(end),
+  }
+}
+
 const QUIT_HABIT_TYPE = 'quit'
 
 let bindingTableReady = false
@@ -365,8 +389,10 @@ export async function deleteAllQuitData(db, userId) {
 export async function getQuitDashboard(db, userId, todayDate) {
   const today = todayDate || toDateKey(Date.now())
   const nowSec = Math.floor(Date.now() / 1000)
+  const weekRange = getWeekRangeByDateKey(today)
+  const monthRange = getMonthRangeByDateKey(today)
 
-  const [profile, relapseRow, gradualPlan, gradualTodayCount, gradualLastSmokeIso] = await Promise.all([
+  const [profile, relapseRow, gradualPlan, gradualTodayCount, gradualLastSmokeIso, weekRows, monthRows] = await Promise.all([
     getQuitProfile(db, userId),
     db
       .prepare(
@@ -381,6 +407,22 @@ export async function getQuitDashboard(db, userId, todayDate) {
     getGradualPlan(db, userId),
     getGradualDailyCount(db, userId, today),
     getGradualLastSmokeTime(db, userId),
+    db
+      .prepare(
+        `SELECT cigarette_count
+         FROM quit_gradual_daily_counts
+         WHERE app_user_id = ? AND record_date >= ? AND record_date <= ?`,
+      )
+      .bind(userId, weekRange.start, weekRange.end)
+      .all(),
+    db
+      .prepare(
+        `SELECT cigarette_count
+         FROM quit_gradual_daily_counts
+         WHERE app_user_id = ? AND record_date >= ? AND record_date <= ?`,
+      )
+      .bind(userId, monthRange.start, monthRange.end)
+      .all(),
   ])
 
   const relapseEventAt = relapseRow?.event_at ? Number(relapseRow.event_at) : null
@@ -405,6 +447,34 @@ export async function getQuitDashboard(db, userId, todayDate) {
 
   if (gradual.enabled) {
     gradual.remaining = Math.max(0, Number(gradual.targetToday || 0) - Number(gradual.todayCount || 0))
+    const weekCounts = (weekRows?.results || []).map((r) => Number(r.cigarette_count || 0))
+    const monthCounts = (monthRows?.results || []).map((r) => Number(r.cigarette_count || 0))
+    const weekTotal = weekCounts.reduce((sum, n) => sum + n, 0)
+    const monthTotal = monthCounts.reduce((sum, n) => sum + n, 0)
+    const weekDays = weekCounts.length
+    const monthDays = monthCounts.length
+    const pricePerCigarette = Number(profile?.pricePerCigarette || 0)
+
+    gradual.todayCost = Number((Number(gradual.todayCount || 0) * pricePerCigarette).toFixed(2))
+    gradual.todayTar = Number(gradual.todayCount || 0) * 12
+    gradual.week = {
+      total: weekTotal,
+      average: weekDays > 0 ? Number((weekTotal / weekDays).toFixed(1)) : 0,
+      max: weekDays > 0 ? Math.max(...weekCounts) : 0,
+      min: weekDays > 0 ? Math.min(...weekCounts) : 0,
+      days: weekDays,
+      startDate: weekRange.start,
+      endDate: weekRange.end,
+    }
+    gradual.month = {
+      total: monthTotal,
+      average: monthDays > 0 ? Number((monthTotal / monthDays).toFixed(1)) : 0,
+      max: monthDays > 0 ? Math.max(...monthCounts) : 0,
+      min: monthDays > 0 ? Math.min(...monthCounts) : 0,
+      days: monthDays,
+      startDate: monthRange.start,
+      endDate: monthRange.end,
+    }
   }
 
   return {
