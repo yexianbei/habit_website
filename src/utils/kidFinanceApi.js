@@ -6,6 +6,7 @@ function resolveApiBase() {
 }
 
 async function request(path, options = {}) {
+  const { timeoutMs = 12000, ...fetchOptions } = options
   const token = await getAuthToken()
   if (!token) {
     const err = new Error('MISSING_TOKEN')
@@ -13,11 +14,31 @@ async function request(path, options = {}) {
     throw err
   }
 
-  const headers = new Headers(options.headers || {})
+  const headers = new Headers(fetchOptions.headers || {})
   headers.set('authorization', `Bearer ${token}`)
-  if (!headers.has('content-type') && options.body) headers.set('content-type', 'application/json')
+  if (!headers.has('content-type') && fetchOptions.body) headers.set('content-type', 'application/json')
 
-  const res = await fetch(`${resolveApiBase()}${path}`, { ...options, headers })
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+  const timeoutId = controller
+    ? setTimeout(() => {
+      controller.abort()
+    }, timeoutMs)
+    : null
+
+  let res
+  try {
+    res = await fetch(`${resolveApiBase()}${path}`, { ...fetchOptions, headers, signal: controller?.signal })
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      const err = new Error('REQUEST_TIMEOUT')
+      err.code = 'REQUEST_TIMEOUT'
+      throw err
+    }
+    throw error
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
+
   const json = await res.json().catch(() => null)
   if (!res.ok || !json?.ok) {
     const err = new Error(json?.error || `HTTP_${res.status}`)
@@ -31,7 +52,15 @@ async function request(path, options = {}) {
 export function getKidFinanceDashboardApi(today) {
   const q = new URLSearchParams()
   if (today) q.set('today', today)
-  return request(`/api/kid-finance/dashboard${q.toString() ? `?${q.toString()}` : ''}`)
+  const path = `/api/kid-finance/dashboard${q.toString() ? `?${q.toString()}` : ''}`
+  return request(path, { timeoutMs: 8000 }).catch((error) => {
+    const shouldRetry =
+      error?.code === 'REQUEST_TIMEOUT'
+      || error?.status >= 500
+      || error?.message === '获取财商看板失败'
+    if (!shouldRetry) throw error
+    return request(path, { timeoutMs: 10000 })
+  })
 }
 
 export function createKidFinanceRecordApi(payload) {

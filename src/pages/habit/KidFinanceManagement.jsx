@@ -45,6 +45,7 @@ export default function KidFinanceManagement() {
   const todayStr = useMemo(() => dateKey(new Date()), [])
 
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('home')
   const [activeModal, setActiveModal] = useState(null)
@@ -84,6 +85,7 @@ export default function KidFinanceManagement() {
     try {
       if (pageLoading) setLoading(true)
       const data = await getKidFinanceDashboardApi()
+      setLoadError('')
       setBank(Number(data?.bank || 0))
       setDemandBank(Number(data?.demandBank || 0))
       setRecords(Array.isArray(data?.records) ? data.records : [])
@@ -97,15 +99,23 @@ export default function KidFinanceManagement() {
       setMonthlySummary(data?.monthlySummary || { income: 0, expense: 0, net: 0 })
       setSettings((prev) => ({ ...prev, ...(data?.settings || {}) }))
     } catch (error) {
-      showToast(error?.message || '加载财商数据失败')
+      const isTimeout = error?.code === 'REQUEST_TIMEOUT' || error?.message === 'REQUEST_TIMEOUT'
+      const isTokenError = error?.code === 'MISSING_TOKEN' || error?.message === 'MISSING_TOKEN'
+      const message = isTokenError
+        ? '登录信息失效，请重新进入页面'
+        : isTimeout
+          ? '网络较慢，获取财商看板超时，请重试'
+          : (error?.message || '加载财商数据失败')
+      setLoadError(message)
+      showToast(message)
     } finally {
       if (pageLoading) setLoading(false)
     }
   }
 
   useEffect(() => {
-    document.title = '宝贝理财记账本'
-    if (isInApp) setTitle('宝贝理财记账本')
+    document.title = '财商培养'
+    if (isInApp) setTitle('财商培养')
     loadDashboard({ pageLoading: true })
   }, [])
 
@@ -157,21 +167,27 @@ export default function KidFinanceManagement() {
     }, '保存任务失败')
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm text-slate-500 shadow-sm">
-          加载财商数据中...
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className={`min-h-screen pb-24 relative ${settings.theme === 'boy' ? 'bg-gradient-to-b from-sky-50 via-slate-50 to-slate-100/60' : 'bg-gradient-to-b from-fuchsia-50 via-slate-50 to-slate-100/60'}`}>
       <div className="max-w-[560px] mx-auto px-4 pt-5 pb-28 sm:px-6">
+        {loading && (
+          <Card className="p-3 mb-3 border-slate-200 bg-white/90">
+            <div className="text-sm text-slate-500 animate-pulse">正在同步财商数据...</div>
+          </Card>
+        )}
+        {loadError && !loading && (
+          <Card className="p-3 mb-3 border-rose-200 bg-rose-50/80">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm text-rose-600">{loadError}</div>
+              <Button size="sm" variant="outline" onClick={() => loadDashboard({ pageLoading: true })}>
+                重试
+              </Button>
+            </div>
+          </Card>
+        )}
+
         <Card className="p-4 sm:p-5 mb-4">
-          <div className="text-xs tracking-wide text-slate-500">宝贝理财记账本</div>
+          <div className="text-xs tracking-wide text-slate-500">财商培养</div>
           <div className="mt-2 flex items-center justify-between gap-3">
             <div>
               <div className="text-sm text-slate-500">现金余额</div>
