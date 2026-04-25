@@ -6,6 +6,11 @@ export default defineConfig({
   plugins: [
     react(),
   ],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+    },
+  },
   base: '/',
   build: {
     // 兼容鸿蒙等较旧 WebView，避免现代语法导致白屏
@@ -46,4 +51,3 @@ export default defineConfig({
     include: ['react', 'react-dom', 'react-router-dom'],
   },
 })
-

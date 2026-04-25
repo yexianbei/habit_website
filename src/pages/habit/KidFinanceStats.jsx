@@ -1,15 +1,16 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import FloatingBackButton from '../../components/FloatingBackButton'
+import { Button } from '../../components/ui/button'
+import { Card } from '../../components/ui/card'
+import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
 import { getKidFinanceDashboardApi } from '../../utils/kidFinanceApi'
 
 const DAYS_OF_WEEK = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 
 export default function KidFinanceStats() {
-  const navigate = useNavigate()
-  const { isInApp, setTitle, callNative, showToast } = useNativeBridge()
+  const { isInApp, setTitle, showToast } = useNativeBridge()
 
   // 全局状态
   const [currentDate, setCurrentDate] = useState(new Date()) // 用于月选择
@@ -66,8 +67,6 @@ export default function KidFinanceStats() {
     // 逆向累推每日结余：(非常简化的实现方式：从今天实时结余逆推)
     // 实际上真正的记账日结不应基于逆推，此处仅通过聚合收支处理简化逻辑
     // 为了不复杂化且符合小学生理财，当前【结余】定义为该月的净流动结余。
-    let runningBalance = 0;
-    
     // 我们按照从小到大先排序一下时间
     const sorted = [...monthlyRecords].sort((a, b) => a.timestamp - b.timestamp)
     
@@ -76,10 +75,8 @@ export default function KidFinanceStats() {
       if (map[key]) {
         if (r.type === 'expense') {
           map[key].expense += r.price
-          runningBalance -= r.price
         } else {
            map[key].income += r.price
-           runningBalance += r.price
         }
         map[key].net = map[key].income - map[key].expense
       }
@@ -199,7 +196,7 @@ export default function KidFinanceStats() {
     return arr
   }, [monthlyRecords])
 
-  const COLORS = ['#ff77a8', '#9476ff', '#5cd6a3', '#ffc107', '#4daaff', '#ccc']
+  const COLORS = ['#334155', '#64748b', '#0f766e', '#0369a1', '#6d28d9', '#94a3b8']
 
   const barData = useMemo(() => {
      return Object.keys(dailyDataMap).map(dateStr => {
@@ -213,73 +210,68 @@ export default function KidFinanceStats() {
   }, [dailyDataMap])
 
   return (
-    <div className="min-h-screen bg-[#AECDBE] font-sans pb-10">
+    <div className="min-h-screen bg-slate-50 font-sans pb-10">
       <FloatingBackButton />
 
-      {/* 头部导航：类似 App 风格的绿底背景中嵌入 Toggle */}
-      <div className="pt-14 pb-8 px-5">
-         <div className="text-center text-white text-[28px] font-bold tracking-wide mb-2 opacity-90 drop-shadow-sm">
+      <div className="pt-14 pb-6 px-5">
+         <div className="text-center text-slate-900 text-2xl font-semibold tracking-wide mb-1">
             日历报表
          </div>
-         <div className="text-center text-white/80 text-[14px] font-medium tracking-wider mb-8">
+         <div className="text-center text-slate-500 text-sm font-medium tracking-wide mb-6">
             日历统计模式，对收支了如指掌
          </div>
 
          <div className="flex justify-center mb-2">
-            <div className="bg-[#9ABEA9] p-1 rounded-full flex w-[220px] shadow-inner border border-[#a2c5b1]">
-              <button 
-                className={`flex-1 py-1.5 rounded-full text-[14px] font-bold transition-all ${viewMode === 'report' ? 'bg-[#5e7d6b] text-white shadow-md' : 'text-[#5e7d6b] hover:text-[#4d6a59]'}`}
-                onClick={() => setViewMode('report')}
-              >
-                报表
-              </button>
-              <button 
-                className={`flex-1 py-1.5 rounded-full text-[14px] font-bold transition-all ${viewMode === 'calendar' ? 'bg-[#5e7d6b] text-white shadow-md' : 'text-[#5e7d6b] hover:text-[#4d6a59]'}`}
-                onClick={() => setViewMode('calendar')}
-              >
-                日历
-              </button>
-            </div>
+            <Tabs value={viewMode} onValueChange={setViewMode}>
+              <TabsList className="w-[220px] rounded-full">
+                <TabsTrigger className="rounded-full" value="report">报表</TabsTrigger>
+                <TabsTrigger className="rounded-full" value="calendar">日历</TabsTrigger>
+              </TabsList>
+            </Tabs>
          </div>
          
-         <div className="flex justify-between items-center text-[#3c5545] mt-6 px-2">
-            <div className="flex items-center gap-2 cursor-pointer p-1 active:opacity-60" onClick={prevMonth}>
-               <span className="text-[17px] font-bold">{currentDate.getFullYear()}年{currentDate.getMonth()+1}月 ▾</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-[15px] cursor-pointer p-1 active:opacity-60" onClick={nextMonth}>
-              <span>下月 ▾</span>
-            </div>
+         <div className="flex justify-between items-center text-slate-700 mt-5 px-2">
+            <Button variant="ghost" size="sm" className="text-base font-semibold px-2" onClick={prevMonth}>
+              {currentDate.getFullYear()}年{currentDate.getMonth()+1}月 ▾
+            </Button>
+            <Button variant="ghost" size="sm" className="text-sm px-2" onClick={nextMonth}>
+              下月 ▾
+            </Button>
          </div>
       </div>
 
-      {/* 主面板容器 */}
-      <div className="bg-white rounded-[32px] mx-4 shadow-xl shadow-[#8fb09f]/40 min-h-[500px] overflow-hidden">
+      <div className="mx-4 mb-3 grid grid-cols-3 gap-2">
+        <Card className="p-3 rounded-2xl">
+          <div className="text-[11px] text-slate-500">现金余额</div>
+          <div className="text-sm font-semibold text-slate-900 mt-1">¥{bank.toFixed(2)}</div>
+        </Card>
+        <Card className="p-3 rounded-2xl">
+          <div className="text-[11px] text-slate-500">月收入</div>
+          <div className="text-sm font-semibold text-emerald-600 mt-1">¥{totalIncome.toFixed(2)}</div>
+        </Card>
+        <Card className="p-3 rounded-2xl">
+          <div className="text-[11px] text-slate-500">月支出</div>
+          <div className="text-sm font-semibold text-rose-500 mt-1">¥{totalExpense.toFixed(2)}</div>
+        </Card>
+      </div>
+
+      <Card className="mx-4 min-h-[500px] overflow-hidden rounded-[28px]">
         
         {viewMode === 'calendar' ? (
           <div className="p-5">
-             <div className="flex gap-4 border-b border-gray-100 pb-3 mb-4 text-[15px] pl-1 font-bold text-gray-500 relative">
-               {['expense', 'income', 'net', 'balance'].map((tab, i) => {
-                 const labels = { expense: '支出', income: '收入', net: '收支', balance: '结余' }
-                 return (
-                   <div 
-                     key={tab} 
-                     className={`cursor-pointer transition-colors relative ${calTab === tab ? 'text-[#ff7b7b]' : ''} hover:text-gray-800`}
-                     onClick={() => setCalTab(tab)}
-                   >
-                     {labels[tab]}
-                     {calTab === tab && <div className="absolute -bottom-3 left-[15%] right-[15%] h-0.5 bg-[#ff7b7b] rounded-full"></div>}
-                   </div>
-                 )
-               })}
-               <div className="ml-auto text-gray-400">设置</div>
-             </div>
+             <Tabs value={calTab} onValueChange={setCalTab}>
+               <TabsList className="mb-4 h-10 rounded-xl border-none shadow-none p-0 bg-transparent justify-start gap-2">
+                 <TabsTrigger className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-900" value="expense">支出</TabsTrigger>
+                 <TabsTrigger className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-900" value="income">收入</TabsTrigger>
+                 <TabsTrigger className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-900" value="net">收支</TabsTrigger>
+                 <TabsTrigger className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-900" value="balance">结余</TabsTrigger>
+               </TabsList>
+             </Tabs>
 
-             {/* 表头星期 */}
-             <div className="grid grid-cols-7 mb-2 text-center text-[12px] text-gray-500 font-medium">
+             <div className="grid grid-cols-7 mb-2 text-center text-xs text-slate-500 font-medium">
                 {DAYS_OF_WEEK.map(v => <div key={v} className="pb-2">{v}</div>)}
              </div>
 
-             {/* 日历网格 */}
              <div className="grid grid-cols-7 gap-y-2 gap-x-1">
                 {calendarGrid.map((item, idx) => (
                    <div 
@@ -291,11 +283,11 @@ export default function KidFinanceStats() {
                         boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.01)'
                      }}
                    >
-                     <span className={`text-[15px] font-bold ${!item.isCurrentMonth ? 'text-gray-300' : 'text-gray-800'}`}>
+                     <span className={`text-[15px] font-semibold ${!item.isCurrentMonth ? 'text-slate-300' : 'text-slate-800'}`}>
                         {item.day}
                      </span>
                      {item.isCurrentMonth && (
-                       <span className="text-[9px] -mt-0.5 text-gray-600 font-semibold tracking-tighter" style={{transform: 'scale(0.85)'}}>
+                       <span className="text-[9px] -mt-0.5 text-slate-600 font-semibold tracking-tighter" style={{transform: 'scale(0.85)'}}>
                           {getCellValue(item)}
                        </span>
                      )}
@@ -305,23 +297,23 @@ export default function KidFinanceStats() {
           </div>
         ) : (
           <div className="p-5 pb-8">
-            <h3 className="font-bold text-[#3c5545] text-[17px] mb-6">消费类目分布 (饼图)</h3>
+            <h3 className="font-semibold text-slate-900 text-base mb-6">消费类目分布 (饼图)</h3>
             <div className="w-full flex justify-center -ml-4 mb-8">
               {pieData.length > 0 ? (
                 <PieChart width={300} height={200}>
                    <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} paddingAngle={5}>
-                      {pieData.map((e, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
+                      {pieData.map((_, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
                    </Pie>
                    <Tooltip />
                 </PieChart>
               ) : (
-                <div className="text-gray-300 h-[200px] flex items-center text-sm">暂无消费数据</div>
+                <div className="text-slate-300 h-[200px] flex items-center text-sm">暂无消费数据</div>
               )}
             </div>
             
             <div className="flex flex-col items-center gap-2 mb-8">
               {pieData.map((e, index) => (
-                <div key={index} className="flex justify-between w-[80%] text-[13px] text-gray-600 border-b border-gray-50 pb-1">
+                <div key={index} className="flex justify-between w-[80%] text-[13px] text-slate-600 border-b border-slate-100 pb-1">
                    <div className="flex items-center gap-2">
                      <div className="w-2.5 h-2.5 rounded-full" style={{background: COLORS[index % COLORS.length]}}></div>
                      {e.name}
@@ -331,30 +323,29 @@ export default function KidFinanceStats() {
               ))}
             </div>
 
-            <h3 className="font-bold text-[#3c5545] text-[17px] mb-6">每日统计 (柱状图)</h3>
+            <h3 className="font-semibold text-slate-900 text-base mb-6">每日统计 (柱状图)</h3>
              <div className="w-full h-[220px] -ml-4 pr-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={barData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
                     <XAxis dataKey="name" tick={{fontSize: 10}} tickLine={false} axisLine={false} interval="preserveStartEnd" />
                     <YAxis tick={{fontSize: 10}} tickLine={false} axisLine={false} />
-                    <Tooltip cursor={{fill: '#f0f0f0'}} contentStyle={{borderRadius: 12, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}} />
-                    <Bar dataKey="支出" fill="#ff7b7b" radius={[4, 4, 0, 0]} maxBarSize={10} />
-                    <Bar dataKey="收入" fill="#62e8b5" radius={[4, 4, 0, 0]} maxBarSize={10} />
+                    <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(15,23,42,0.08)'}} />
+                    <Bar dataKey="支出" fill="#fb7185" radius={[4, 4, 0, 0]} maxBarSize={10} />
+                    <Bar dataKey="收入" fill="#34d399" radius={[4, 4, 0, 0]} maxBarSize={10} />
                   </BarChart>
                 </ResponsiveContainer>
              </div>
           </div>
         )}
         
-        {/* 底部汇总（仅月历下显示） */}
         {viewMode === 'calendar' && (
-           <div className="border-t border-gray-100 flex justify-center items-center py-5 text-[14px] text-gray-600 gap-8 bg-gray-50/50 mt-2">
-              <div>月收入: <span className="text-[#62e8b5] font-bold ml-1">¥{totalIncome.toFixed(2)}</span></div>
-              <div>日均支出: <span className="text-[#ff7b7b] font-bold ml-1">¥{avgExpense}</span></div>
+           <div className="border-t border-slate-100 flex justify-center items-center py-5 text-sm text-slate-600 gap-8 bg-slate-50/60 mt-2">
+              <div>月收入: <span className="text-emerald-600 font-semibold ml-1">¥{totalIncome.toFixed(2)}</span></div>
+              <div>日均支出: <span className="text-rose-500 font-semibold ml-1">¥{avgExpense}</span></div>
            </div>
         )}
-      </div>
+      </Card>
 
     </div>
   )
