@@ -4,13 +4,14 @@
  * 整合统计、激励、成就等功能
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import { formatDate, diffDays, calculateQuitTime } from '../../utils/quitUtils'
 import {
   createQuitEventApi,
   deleteQuitAllApi,
+  getGradualDailyCountApi,
   getQuitDashboardApi,
   hasWorkerAuthToken,
   saveGradualDailyCountApi,
@@ -56,11 +57,12 @@ export default function QuitManagement() {
   const [lastGradualSmokeAt, setLastGradualSmokeAt] = useState(null)
   const [weekGradualStats, setWeekGradualStats] = useState(null)
   const [monthGradualStats, setMonthGradualStats] = useState(null)
-  const [showQuickGradualModal, setShowQuickGradualModal] = useState(false)
-  const [quickGradualCount, setQuickGradualCount] = useState('')
-  const [savingQuickGradual, setSavingQuickGradual] = useState(false)
+  const [recordModalMode, setRecordModalMode] = useState('relapse')
+  const [actionLoading, setActionLoading] = useState(false)
+  const [actionLoadingText, setActionLoadingText] = useState('保存中...')
   const [quitTime, setQuitTime] = useState(null) // 实时更新的坚持时间
   const [savedMoney, setSavedMoney] = useState(0) // 实时更新的节省金额
+  const saveRecordLockRef = useRef(false)
 
   const pageTitle = '戒烟管理'
   
@@ -69,8 +71,7 @@ export default function QuitManagement() {
   }, [])
   
   useEffect(() => {
-    // 在浏览器环境也尝试加载数据（会返回 mock 数据）
-    loadData()
+    loadData({ pageLoading: true })
   }, [])
 
   // 实时更新坚持时间（每秒更新）
@@ -124,9 +125,9 @@ export default function QuitManagement() {
     }
   }, [quitDate, quitTime, cigarettesPerDay, pricePerCigarette, dailyCost])
 
-  const loadData = async () => {
+  const loadData = async ({ pageLoading = false } = {}) => {
     try {
-      setLoading(true)
+      if (pageLoading) setLoading(true)
       const workerEnabled = await hasWorkerAuthToken().catch(() => false)
       if (!workerEnabled) {
         throw new Error('缺少 token，请在打开 H5 时携带 token 参数')
@@ -186,7 +187,7 @@ export default function QuitManagement() {
       console.error('加载数据失败:', error)
       notify('加载数据失败: ' + error.message)
     } finally {
-      setLoading(false)
+      if (pageLoading) setLoading(false)
     }
   }
 
@@ -240,32 +241,60 @@ export default function QuitManagement() {
       navigate('/habit/quit/gradual/config')
       return
     }
-    setQuickGradualCount(String(todayGradualCount))
-    setShowQuickGradualModal(true)
+    setRecordModalMode('gradual')
+    setShowRelapseModal(true)
   }
 
-  const handleSaveQuickGradualRecord = async () => {
-    const count = Number(quickGradualCount)
-    if (!Number.isFinite(count) || count < 0 || count > 200) {
-      notify('请输入 0-200 的有效根数')
+  const handleSaveSmokingRecord = async (recordData) => {
+    if (saveRecordLockRef.current) return
+
+    const now = new Date()
+    const datetime = recordData?.datetime || now.toISOString()
+    const eventDate = formatDate(new Date(datetime))
+    const cigaretteCount = Number(recordData?.cigaretteCount || 1)
+
+    if (!Number.isFinite(cigaretteCount) || cigaretteCount <= 0 || cigaretteCount > 200) {
+      notify('请输入 1-200 的有效根数')
       return
     }
 
     try {
-      setSavingQuickGradual(true)
-      const today = formatDate(new Date())
-      await saveGradualDailyCountApi({
-        date: today,
-        count,
-        datetime: new Date().toISOString(),
+      saveRecordLockRef.current = true
+      setActionLoadingText(recordModalMode === 'gradual' ? '正在保存今日记录...' : '正在保存破戒记录...')
+      setActionLoading(true)
+
+      await createQuitEventApi({
+        date: eventDate,
+        eventAt: datetime,
+        type: 'relapse',
+        cigaretteCount,
+        resetQuitDate: true,
+        details: {
+          datetime,
+          cigaretteCount,
+          cigaretteType: recordData?.cigaretteType || '',
+          note: recordData?.note || '',
+          sourceMode: recordModalMode,
+        },
       })
-      setShowQuickGradualModal(false)
-      notify('今日抽烟根数已保存')
-      await loadData()
+
+      if (hasGradualPlan) {
+        const existing = Number((await getGradualDailyCountApi(eventDate).catch(() => 0)) || 0)
+        await saveGradualDailyCountApi({
+          date: eventDate,
+          count: existing + cigaretteCount,
+          datetime,
+        })
+      }
+
+      setShowRelapseModal(false)
+      await loadData({ pageLoading: false })
+      notify(recordModalMode === 'gradual' ? `已记录今日抽烟 ${cigaretteCount} 根` : '破戒记录已保存，戒烟时间已重置')
     } catch (error) {
       notify('保存失败: ' + (error.message || '未知错误'))
     } finally {
-      setSavingQuickGradual(false)
+      saveRecordLockRef.current = false
+      setActionLoading(false)
     }
   }
 
@@ -436,7 +465,10 @@ export default function QuitManagement() {
                   value="记录"
                   subtitle="点击记录"
                   gradient="bg-gradient-to-br from-gray-500 to-gray-600"
-                  onClick={() => setShowRelapseModal(true)}
+                  onClick={() => {
+                    setRecordModalMode('relapse')
+                    setShowRelapseModal(true)
+                  }}
                 />
               </div>
             )}
@@ -670,77 +702,17 @@ export default function QuitManagement() {
       <RelapseModal
         isOpen={showRelapseModal}
         onClose={() => setShowRelapseModal(false)}
-        onSave={async (relapseData) => {
-          try {
-            const now = new Date()
-            const datetime = relapseData.datetime || now.toISOString()
-
-            await createQuitEventApi({
-              date: formatDate(new Date(datetime)),
-              eventAt: datetime,
-              type: 'relapse',
-              resetQuitDate: true,
-              details: {
-                datetime,
-                cigaretteType: relapseData.cigaretteType || '',
-                note: relapseData.note || '',
-              },
-            })
-            
-            // 更新本地状态
-            setLastRelapseDate(datetime)
-            setQuitDate(new Date(datetime))
-            
-            // 重新加载数据
-            await loadData()
-            
-            notify('破戒记录已保存，戒烟时间已重置')
-            setShowRelapseModal(false)
-          } catch (error) {
-            console.error('保存破戒记录失败:', error)
-            notify('保存失败: ' + (error.message || '未知错误'))
-          }
-        }}
+        mode={recordModalMode}
+        defaultCount={1}
+        isSaving={actionLoading}
+        onSave={handleSaveSmokingRecord}
       />
 
-      {showQuickGradualModal && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setShowQuickGradualModal(false)}
-        >
-          <div
-            className="bg-white rounded-3xl w-full max-w-md p-6 animate-slideUp"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-xl font-bold text-gray-800 mb-4">记录今日抽烟根数</h2>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">今日吸烟根数</label>
-              <input
-                type="number"
-                min="0"
-                max="200"
-                value={quickGradualCount}
-                onChange={(e) => setQuickGradualCount(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-quit-green"
-                placeholder="输入今日吸烟根数"
-                autoFocus
-              />
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowQuickGradualModal(false)}
-                className="flex-1 px-4 py-3 rounded-2xl bg-gray-100 text-gray-700 font-medium active:scale-95 transition-transform"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleSaveQuickGradualRecord}
-                disabled={savingQuickGradual}
-                className="flex-1 px-4 py-3 rounded-2xl bg-gradient-to-r from-quit-green to-quit-green-dark text-white font-medium active:scale-95 transition-transform disabled:opacity-50"
-              >
-                {savingQuickGradual ? '保存中...' : '保存'}
-              </button>
-            </div>
+      {actionLoading && (
+        <div className="fixed inset-0 z-[60] bg-black/25 backdrop-blur-[2px] flex items-center justify-center">
+          <div className="bg-white rounded-2xl px-6 py-5 shadow-xl flex items-center gap-3">
+            <div className="w-6 h-6 border-2 border-quit-green border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-sm text-gray-700">{actionLoadingText}</span>
           </div>
         </div>
       )}

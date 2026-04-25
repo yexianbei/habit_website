@@ -18,8 +18,9 @@ import { useNativeBridge } from '../utils/useNativeBridge'
  * @param {string} options.name             习惯名称（用于弹窗文案）
  * @param {string} [options.habitId]        优先使用：精确删除该习惯（多 H5 习惯共存时必传）
  * @param {() => Promise<string|null>} [options.resolveHabitId]  无 habitId 时异步解析 habitId
+ * @param {() => Promise<void>} [options.beforeDelete]           本地删除前的前置动作（如先删云端数据）
  */
-export function useHabitDelete({ type, name, habitId: habitIdProp, resolveHabitId }) {
+export function useHabitDelete({ type, name, habitId: habitIdProp, resolveHabitId, beforeDelete }) {
   const { isInApp, callNative, showToast, closePage } = useNativeBridge()
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -43,6 +44,9 @@ export function useHabitDelete({ type, name, habitId: habitIdProp, resolveHabitI
     setIsDeleting(true)
     try {
       await callNative('ui.showLoading', { message: '删除中...' })
+      if (typeof beforeDelete === 'function') {
+        await beforeDelete()
+      }
       let habitId = habitIdProp
       if (!habitId && typeof resolveHabitId === 'function') {
         try {
@@ -77,7 +81,7 @@ export function useHabitDelete({ type, name, habitId: habitIdProp, resolveHabitI
     } finally {
       setIsDeleting(false)
     }
-  }, [isInApp, isDeleting, callNative, showToast, closePage, type, name, habitIdProp, resolveHabitId])
+  }, [isInApp, isDeleting, callNative, showToast, closePage, type, name, habitIdProp, resolveHabitId, beforeDelete])
 
   return { deleteHabit, isDeleting }
 }

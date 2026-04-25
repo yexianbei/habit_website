@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useNativeBridge } from '../../utils/useNativeBridge'
 import FloatingBackButton from '../../components/FloatingBackButton'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
+import { getKidFinanceDashboardApi } from '../../utils/kidFinanceApi'
 
-const LOCAL_STORAGE_KEY = 'kid_finance_data_v2'
-const LEGACY_LOCAL_STORAGE_KEY = 'kid_finance_data_v1'
 const DAYS_OF_WEEK = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 
 export default function KidFinanceStats() {
@@ -25,32 +24,28 @@ export default function KidFinanceStats() {
     document.title = '报表统计'
     if (isInApp) setTitle('报表统计')
 
-    try {
-      const dataStr = localStorage.getItem(LOCAL_STORAGE_KEY) || localStorage.getItem(LEGACY_LOCAL_STORAGE_KEY)
-      if (dataStr) {
-        const data = JSON.parse(dataStr)
-        const allR = data.records || []
-        // 清洗数据，添加时间戳，未设类型的默认为支出
-        const processed = allR.map(r => {
-           // 处理中文格式时间，转为标准 Date
-           const cleanTime = r.time.replace(/年|月/g, '-').replace(/日/g, '')
-           const d = new Date(cleanTime)
-           const validDate = isNaN(d.getTime()) ? new Date() : d
-           return {
-             ...r,
-             type: r.type || 'expense',
-             timestamp: validDate.getTime(),
-             dateObj: validDate,
-             formatDate: `${validDate.getFullYear()}-${String(validDate.getMonth()+1).padStart(2, '0')}-${String(validDate.getDate()).padStart(2, '0')}`
-           }
+    getKidFinanceDashboardApi()
+      .then((data) => {
+        const allR = Array.isArray(data?.records) ? data.records : []
+        const processed = allR.map((r) => {
+          const sourceDate = r.occurredAt ? new Date(Number(r.occurredAt) * 1000) : new Date(String(r.time || '').replace(/年|月/g, '-').replace(/日/g, ''))
+          const validDate = Number.isNaN(sourceDate.getTime()) ? new Date() : sourceDate
+          return {
+            ...r,
+            type: r.type || 'expense',
+            timestamp: validDate.getTime(),
+            dateObj: validDate,
+            formatDate: `${validDate.getFullYear()}-${String(validDate.getMonth() + 1).padStart(2, '0')}-${String(validDate.getDate()).padStart(2, '0')}`,
+          }
         })
         setRecords(processed)
-        setBank(data.bank || 0)
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }, [isInApp, setTitle])
+        setBank(Number(data?.bank || 0))
+      })
+      .catch((e) => {
+        console.error(e)
+        showToast('加载统计数据失败')
+      })
+  }, [isInApp, setTitle, showToast])
 
   // 本月数据筛选
   const maxDaysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
